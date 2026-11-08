@@ -1,0 +1,15 @@
+[
+  {
+    "id": "apollo11",
+    "name": "Apollo 11 (Tranquility Base)",
+    "program": "Apollo",
+    "country": "USA",
+    "lat": null,
+    "lon": null,
+    "height_m": null,
+    "status": "landed 1969-07-20",
+    "coord_source": "",
+    "coord_frame": "not stated",
+    "notes": ""
+  }
+]
