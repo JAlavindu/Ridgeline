@@ -1,0 +1,4 @@
+spiceypy==8.3.0
+numpy
+requests
+pytest
