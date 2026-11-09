@@ -1,0 +1,129 @@
+--- moon_de440_220930.tf
++++ moon_de440_250416.tf
+@@ -3,8 +3,8 @@
+    SPICE Lunar Reference Frame Specification Kernel
+    =====================================================================
+ 
+-   Original file name:                   moon_de440_220930.tf
+-   Creation date:                        2022 September 30 15:05
++   Original file name:                   moon_de440_250416.tf
++   Creation date:                        2025 April 16 05:09
+    Created by:                           Nat Bachman  (NAIF/JPL)
+ 
+    Version description:
+@@ -17,24 +17,21 @@
+       The above PCK contains lunar orientation data from the DE440 JPL
+       Planetary Ephemeris.
+ 
+-      This frame kernel extends the previous version
+-
+-         moon_pa_de440_200625.tf
+-
+-      by adding specifications of the alias frames
++      This frame kernel differs from the previous version
++
++         moon_pa_de440_220930.tf
++
++      in that the ID codes of the alias frames
+ 
+          MOON_PA
+          MOON_ME
+-
+-      and by upgrading the documentation to include discussion of
+-      frame association kernels and to present an example program
+-      that uses this kernel.
+-
+-      The description of the frame
+-
+-         MOON_ME_DE440_ME421
+-
+-      has been updated as well.
++ 
++      have been reset to their respective, original values 
++
++         31000
++         31001 
++
++      These codes will remain unchanged in future revisions of this kernel.
+ 
+ 
+    Frames Specified by this Kernel
+@@ -42,8 +39,8 @@
+ 
+    Frame Name                  Relative to          Type   Frame ID
+    -------------------------   -----------------    -----  --------
+-   MOON_PA                     MOON_PA_DE440        FIXED  31010
+-   MOON_ME                     MOON_ME_DE440_ME421  FIXED  31011
++   MOON_PA                     MOON_PA_DE440        FIXED  31000
++   MOON_ME                     MOON_ME_DE440_ME421  FIXED  31001
+    MOON_PA_DE440               ICRF/J2000           PCK    31008
+    MOON_ME_DE440_ME421         MOON_PA_DE440        FIXED  31009
+ 
+@@ -330,7 +327,7 @@
+         - leapseconds kernel (LSK)
+         - planetary SPK
+ 
+-       30-SEP-2022 (NJB)
++       16-APR-2025 (NJB)
+ 
+        Note: to actually use this kernel, replace the @ characters
+        below with backslashes (\). The backslash character cannot be
+@@ -344,7 +341,7 @@
+           @begindata
+ 
+             KERNELS_TO_LOAD = ( 'moon_pa_de440_200625.bpc'
+-                                'moon_de440_220930.tf'
++                                'moon_de440_250416.tf'
+                                 'leapseconds.ker'
+                                 'de440.bsp'                  )
+ 
+@@ -459,15 +456,15 @@
+ 
+    \begindata
+ 
+-      FRAME_MOON_PA                 = 31010
+-      FRAME_31010_NAME              = 'MOON_PA'
+-      FRAME_31010_CLASS             = 4
+-      FRAME_31010_CLASS_ID          = 31010
+-      FRAME_31010_CENTER            = 301
+-
+-      TKFRAME_31010_SPEC            = 'MATRIX'
+-      TKFRAME_31010_RELATIVE        = 'MOON_PA_DE440'
+-      TKFRAME_31010_MATRIX          = ( 1 0 0
++      FRAME_MOON_PA                 = 31000
++      FRAME_31000_NAME              = 'MOON_PA'
++      FRAME_31000_CLASS             = 4
++      FRAME_31000_CLASS_ID          = 31000
++      FRAME_31000_CENTER            = 301
++
++      TKFRAME_31000_SPEC            = 'MATRIX'
++      TKFRAME_31000_RELATIVE        = 'MOON_PA_DE440'
++      TKFRAME_31000_MATRIX          = ( 1 0 0
+                                         0 1 0
+                                         0 0 1 )
+ 
+@@ -483,15 +480,15 @@
+ 
+    \begindata
+ 
+-      FRAME_MOON_ME                 = 31011
+-      FRAME_31011_NAME              = 'MOON_ME'
+-      FRAME_31011_CLASS             = 4
+-      FRAME_31011_CLASS_ID          = 31011
+-      FRAME_31011_CENTER            = 301
+-
+-      TKFRAME_31011_SPEC            = 'MATRIX'
+-      TKFRAME_31011_RELATIVE        = 'MOON_ME_DE440_ME421'
+-      TKFRAME_31011_MATRIX          = ( 1 0 0
++      FRAME_MOON_ME                 = 31001
++      FRAME_31001_NAME              = 'MOON_ME'
++      FRAME_31001_CLASS             = 4
++      FRAME_31001_CLASS_ID          = 31001
++      FRAME_31001_CENTER            = 301
++
++      TKFRAME_31001_SPEC            = 'MATRIX'
++      TKFRAME_31001_RELATIVE        = 'MOON_ME_DE440_ME421'
++      TKFRAME_31001_MATRIX          = ( 1 0 0
+                                         0 1 0
+                                         0 0 1 )
+ 
