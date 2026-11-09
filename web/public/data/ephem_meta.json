@@ -1,0 +1,33 @@
+{
+  "description": "Hourly Sun and Earth positions seen from the Moon's centre",
+  "frame": "MOON_ME",
+  "aberration_correction": "CN+S",
+  "observer": "MOON",
+  "start_utc": "2023-01-01T00:00:00Z",
+  "start_tdb_s": 725803269.1839136,
+  "time_scale": "TDB seconds past J2000 (2000-01-01T12:00:00 TDB)",
+  "step_s": 3600.0,
+  "count": 87673,
+  "fields": [
+    "sun_dir_x",
+    "sun_dir_y",
+    "sun_dir_z",
+    "sun_dist_km",
+    "earth_dir_x",
+    "earth_dir_y",
+    "earth_dir_z",
+    "earth_dist_km"
+  ],
+  "values_per_record": 8,
+  "dtype": "float32",
+  "byte_order": "little",
+  "kernels": [
+    "naif0012.tls",
+    "pck00011.tpc",
+    "de440s.bsp",
+    "moon_pa_de440_200625.bpc",
+    "moon_de440_250416.tf"
+  ],
+  "generated_utc": "2026-11-09T19:02:23Z",
+  "generator": "pipeline/ephemeris.py (SpiceyPy 8.3.0, CSPICE_N0067)"
+}
