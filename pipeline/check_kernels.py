@@ -1,12 +1,3 @@
-"""Day-one checks: prove the SPICE kernels are the right ones and load correctly.
-
-Run from the repo root:
-    python pipeline/check_kernels.py
-
-Prints every check and saves the report to docs/kernel_checks.txt.
-If any check fails, fix it before building the ephemeris file (module 2).
-"""
-
 import difflib
 import sys
 from datetime import datetime, timezone
