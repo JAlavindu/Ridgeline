@@ -152,5 +152,6 @@
     "coord_source": "https://www.physics.umd.edu/nglr",
     "coord_frame": "MOON_ME (stated on source page)",
     "notes": "CHECK: this is the nominal target site, not a confirmed touchdown point. LROC rounds the actual landing to about 19 N, 62 E; look for the precise value at https://www.lroc.asu.edu/images/1400."
+    
   }
 ]
