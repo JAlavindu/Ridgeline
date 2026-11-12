@@ -4,32 +4,32 @@ export default function Hero() {
   return (
     <section className="hero">
 
-      {/* =========================
-          NAVIGATION
-      ========================= */}
-
+      {/* Navigation */}
       <header className="hero-nav">
 
         <div className="logo">
           RIDGELINE
         </div>
 
-        <nav>
-          <a href="/explore">
+        <nav className="hero-links" aria-label="Main navigation">
+
+          <a href="#interactive-moon">
             Explore
           </a>
 
-          <a href="/plan">
+          <a href="#south-pole">
             Plan
           </a>
 
-          <a href="/how-it-works">
+          <a href="#how-it-works">
             How It Works
           </a>
+
         </nav>
 
         <button
           className="menu-button"
+          type="button"
           aria-label="Open menu"
         >
           ☰
@@ -38,10 +38,7 @@ export default function Hero() {
       </header>
 
 
-      {/* =========================
-          HERO TEXT
-      ========================= */}
-
+      {/* Hero content */}
       <div className="hero-content">
 
         <p className="hero-eyebrow">
@@ -65,14 +62,14 @@ export default function Hero() {
         <div className="hero-actions">
 
           <a
-            href="/explore"
+            href="#interactive-moon"
             className="primary-button"
           >
             Explore the Moon
           </a>
 
           <a
-            href="/plan"
+            href="#south-pole"
             className="secondary-button"
           >
             Plan a Mission
@@ -83,36 +80,22 @@ export default function Hero() {
       </div>
 
 
-      {/* =========================
-          3D MOON
-      ========================= */}
-
-      <div className="moon-container">
+      {/* 3D Moon */}
+      <div className="hero-moon">
         <MoonHero />
       </div>
 
 
-      {/* =========================
-          DATA LABELS
-      ========================= */}
-
+      {/* Data labels */}
       <div className="hero-bottom">
 
-        <span>
-          NASA DATA
-        </span>
+        <span>NASA Data</span>
 
-        <span>
-          3D TERRAIN
-        </span>
+        <span>3D Terrain</span>
 
-        <span>
-          SUNLIGHT
-        </span>
+        <span>Sunlight</span>
 
-        <span>
-          EARTH VISIBILITY
-        </span>
+        <span>Earth Visibility</span>
 
       </div>
 

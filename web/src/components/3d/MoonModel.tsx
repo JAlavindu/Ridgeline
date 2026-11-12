@@ -8,7 +8,7 @@ export default function MoonModel() {
   return (
     <primitive
       object={scene}
-      scale={1}
+      scale={1.35}
       position={[0, 0, 0]}
     />
   );
