@@ -10,3 +10,9 @@ __pycache__/
 # NAIF kernels (downloaded by script, never committed)
 pipeline/kernels/*
 !pipeline/kernels/.gitkeep
+
+# Terrain downloads (large)
+pipeline/data/
+*.tif
+*.TIF
+
