@@ -1,0 +1,102 @@
+{
+  "generated_utc": "2026-11-12T15:29:03Z",
+  "generator": "pipeline/validate.py",
+  "tests": [
+    {
+      "id": "V1",
+      "name": "Sun and Earth positions vs NASA JPL Horizons",
+      "what": "Azimuth and elevation of the Sun and Earth from 6 sites, every 7h from 2026-01-01 00:00 to 2026-06-01 00:00 UTC (6216 comparisons). Ours: SPICE (DE440, MOON_ME, CN+S) + pipeline/geometry.py. Horizons: coord@301, QUANTITIES 4, airless.",
+      "tolerance": "target <= 0.002 deg; hard fail > 0.01 deg",
+      "result_deg": 2.7e-05,
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Largest angle on the sky between our direction and Horizons'. Small remaining differences come from light-time measured from the Moon's centre (ours) vs from the site (Horizons) and from Horizons' gravitational light bending.",
+      "details": {
+        "Equator (0, 0)": {
+          "sun": {
+            "max_deg": 1e-06,
+            "mean_deg": 1e-06,
+            "count": 518
+          },
+          "earth": {
+            "max_deg": 5e-06,
+            "mean_deg": 2e-06,
+            "count": 518
+          }
+        },
+        "Apollo 11": {
+          "sun": {
+            "max_deg": 1e-06,
+            "mean_deg": 1e-06,
+            "count": 518
+          },
+          "earth": {
+            "max_deg": 1.5e-05,
+            "mean_deg": 7e-06,
+            "count": 518
+          }
+        },
+        "IM-1": {
+          "sun": {
+            "max_deg": 0.0,
+            "mean_deg": 0.0,
+            "count": 518
+          },
+          "earth": {
+            "max_deg": 2.6e-05,
+            "mean_deg": 1.6e-05,
+            "count": 518
+          }
+        },
+        "Connecting Ridge": {
+          "sun": {
+            "max_deg": 0.0,
+            "mean_deg": 0.0,
+            "count": 518
+          },
+          "earth": {
+            "max_deg": 2.7e-05,
+            "mean_deg": 1.6e-05,
+            "count": 518
+          }
+        },
+        "Chandrayaan-3 (ISRO)": {
+          "sun": {
+            "max_deg": 0.0,
+            "mean_deg": 0.0,
+            "count": 518
+          },
+          "earth": {
+            "max_deg": 2.5e-05,
+            "mean_deg": 1.6e-05,
+            "count": 518
+          }
+        },
+        "Chang'e-4": {
+          "sun": {
+            "max_deg": 1e-06,
+            "mean_deg": 0.0,
+            "count": 518
+          },
+          "earth": {
+            "max_deg": 2.1e-05,
+            "mean_deg": 1.2e-05,
+            "count": 518
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "V3",
+      "name": "Time trap: UTC fed in as TDB",
+      "what": "V1 for the equator Sun again, but every time is shifted by -69.184 s, the mistake of treating clock time (UTC) as TDB.",
+      "tolerance": "must exceed the V1 target of 0.002 deg (expected about 0.0098 deg)",
+      "result_deg": 0.009802,
+      "expected_outcome": "fail",
+      "outcome": "fail",
+      "explanation": "The Sun crosses the lunar sky at about 0.0085 deg per minute, so a 69.2 s clock mistake moves it about 0.0098 deg. This test failing proves V1 is sensitive enough to catch time-scale bugs.",
+      "passed": true
+    }
+  ]
+}
