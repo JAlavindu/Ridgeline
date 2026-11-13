@@ -17,9 +17,10 @@ import {
   SiteExplorer3D,
   NeighbourhoodMap,
   ExploreExplainer,
+  ScenarioBoard,
 } from '../charts';
 import type { AppMode, HorizonMask, Site } from '../types';
-import { Rocket, Eye, Terminal, ArrowLeft, Calendar, Clock, MapPin, Loader2, Sparkles } from 'lucide-react';
+import { Rocket, Eye, Terminal, ArrowLeft, Calendar, Clock, MapPin, Loader2, Sparkles, Columns } from 'lucide-react';
 
 interface NavigatorProps {
   onBack?: () => void;
@@ -32,6 +33,15 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
   const [hoursOffset, setHoursOffset] = useState<number>(12);
   const [slipDays, setSlipDays] = useState<number>(0);
   const [loadedMask, setLoadedMask] = useState<HorizonMask | null>(null);
+
+  // Multi-site comparison state
+  const [isCompareView, setIsCompareView] = useState<boolean>(false);
+  const [comparedSiteIds, setComparedSiteIds] = useState<string[]>([
+    'connecting_ridge',
+    'malapert_massif',
+    'im1',
+  ]);
+  const [masksCache, setMasksCache] = useState<Record<string, HorizonMask>>({});
 
   // Custom coordinates state
   const [showCustomModal, setShowCustomModal] = useState<boolean>(false);
@@ -55,8 +65,8 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
         if (e.data.success && e.data.mask) {
           const generatedMask = e.data.mask;
           setLoadedMask(generatedMask);
+          setMasksCache((prev) => ({ ...prev, [generatedMask.site_id || 'custom_point']: generatedMask }));
 
-          // Create or update custom site in catalog
           const newCustomSite: Site = {
             id: generatedMask.site_id || 'custom_point',
             name: generatedMask.site_name || `Custom (${generatedMask.lat}°S, ${generatedMask.lon}°E)`,
@@ -102,7 +112,6 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
           const data: Site[] = await res.json();
           if (isMounted && Array.isArray(data) && data.length > 0) {
             setSites((prev) => {
-              // preserve any custom added sites
               const customSites = prev.filter((s) => s.id.startsWith('custom_'));
               return [...customSites, ...data];
             });
@@ -172,9 +181,37 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
     });
   };
 
-  // Load real mask JSON if available (from M3 terrain outputs)
+  // Pre-load masks for compared sites
   useEffect(() => {
-    // If active site is custom and mask already matches, don't overwrite
+    let isMounted = true;
+    for (const siteId of comparedSiteIds) {
+      if (!masksCache[siteId]) {
+        const candidates = [`/data/masks/${siteId}.json`, `/data/masks/test_${siteId}.json`];
+        (async () => {
+          for (const url of candidates) {
+            try {
+              const res = await fetch(url);
+              if (res.ok) {
+                const data: HorizonMask = await res.json();
+                if (isMounted && data.elev_deg?.length > 0) {
+                  setMasksCache((prev) => ({ ...prev, [siteId]: data }));
+                  return;
+                }
+              }
+            } catch {
+              // try next candidate
+            }
+          }
+        })();
+      }
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [comparedSiteIds, masksCache]);
+
+  // Load real mask JSON for active site if available
+  useEffect(() => {
     if (activeSite.id.startsWith('custom_') && loadedMask && loadedMask.site_id === activeSite.id) {
       return;
     }
@@ -193,6 +230,7 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
             const data: HorizonMask = await res.json();
             if (isMounted && data.elev_deg && data.elev_deg.length > 0) {
               setLoadedMask(data);
+              setMasksCache((prev) => ({ ...prev, [activeSite.id]: data }));
               return;
             }
           }
@@ -260,7 +298,7 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Controls: Site Selector, Custom Coordinate Button, Date/Time Picker & Mode Toggle */}
+          {/* Controls: Site Selector, Custom Coordinate, Date/Time, Compare & Mode Toggle */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Site Dropdown */}
             <div className="flex items-center gap-2 bg-black/70 border border-white/20 px-3 py-1.5">
@@ -316,6 +354,33 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
                 <Clock size={11} />
                 <span>{hoursOffset >= 0 ? `+${hoursOffset.toFixed(1)}h` : `${hoursOffset.toFixed(1)}h`}</span>
               </div>
+            </div>
+
+            {/* View Switcher: Single Site View vs Compare Sites */}
+            <div className="flex border border-white/20 bg-black/60 p-0.5">
+              <button
+                type="button"
+                onClick={() => setIsCompareView(false)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-['Michroma'] tracking-[1px] uppercase transition ${
+                  !isCompareView
+                    ? 'bg-white text-black font-semibold'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <span>Single Site</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCompareView(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-['Michroma'] tracking-[1px] uppercase transition ${
+                  isCompareView
+                    ? 'bg-[#ff3d18] text-white font-semibold'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Columns size={12} />
+                <span>Compare Sites</span>
+              </button>
             </div>
 
             {/* Mode Switch (Explore vs Plan) */}
@@ -441,67 +506,93 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
         )}
 
         {/* Dashboard Content */}
-        <div className="flex flex-col gap-8">
-          {/* Row 1: Now Panel (Solar Elevation Readout + Uncertainty Windows F8) */}
-          <SolarElevationReadout
-            skyState={skyState}
-            countdowns={countdowns}
-            siteLat={activeSite.lat}
-            siteName={activeSite.name}
-            mode={mode}
-          />
-
-          {/* Row 2: 360° Horizon Skyline Panorama */}
-          <Panorama
-            mask={mask}
-            skyState={skyState}
+        {isCompareView ? (
+          /* Multi-Site Scenario Comparison View */
+          <ScenarioBoard
+            allSites={sites}
+            comparedSiteIds={comparedSiteIds}
+            onAddSite={(siteId) => {
+              if (comparedSiteIds.length < 4 && !comparedSiteIds.includes(siteId)) {
+                setComparedSiteIds([...comparedSiteIds, siteId]);
+              }
+            }}
+            onRemoveSite={(siteId) => {
+              if (comparedSiteIds.length > 1) {
+                setComparedSiteIds(comparedSiteIds.filter((id) => id !== siteId));
+              }
+            }}
+            onSelectPrimary={(siteId) => {
+              setSelectedSiteId(siteId);
+              setIsCompareView(false);
+            }}
             hoursOffset={hoursOffset}
-            onHoursChange={setHoursOffset}
             mode={mode}
-            siteName={activeSite.name}
+            masksCache={masksCache}
           />
-
-          {/* Row 3: Timelines (Multi-layer Sunlit, DTE contact, Eclipse) */}
-          <Timelines
-            timelineData={timelineData}
-            currentHoursOffset={hoursOffset}
-            onSelectHours={setHoursOffset}
-            siteName={activeSite.name}
-            mode={mode}
-          />
-
-          {/* Row 4: Two Columns (3D Site Explorer & Neighbourhood Map) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <SiteExplorer3D
-              tileData={tile3D}
+        ) : (
+          /* Single Site Deep-Dive Visualizer View */
+          <div className="flex flex-col gap-8">
+            {/* Row 1: Now Panel (Solar Elevation Readout + Uncertainty Windows F8) */}
+            <SolarElevationReadout
               skyState={skyState}
+              countdowns={countdowns}
+              siteLat={activeSite.lat}
               siteName={activeSite.name}
               mode={mode}
             />
-            <NeighbourhoodMap
-              crop={neighbourhoodCrop}
+
+            {/* Row 2: 360° Horizon Skyline Panorama */}
+            <Panorama
+              mask={mask}
+              skyState={skyState}
+              hoursOffset={hoursOffset}
+              onHoursChange={setHoursOffset}
+              mode={mode}
+              siteName={activeSite.name}
+            />
+
+            {/* Row 3: Timelines (Multi-layer Sunlit, DTE contact, Eclipse) */}
+            <Timelines
+              timelineData={timelineData}
+              currentHoursOffset={hoursOffset}
+              onSelectHours={setHoursOffset}
+              siteName={activeSite.name}
+              mode={mode}
+            />
+
+            {/* Row 4: Two Columns (3D Site Explorer & Neighbourhood Map) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <SiteExplorer3D
+                tileData={tile3D}
+                skyState={skyState}
+                siteName={activeSite.name}
+                mode={mode}
+              />
+              <NeighbourhoodMap
+                crop={neighbourhoodCrop}
+                siteLat={activeSite.lat}
+                siteLon={activeSite.lon}
+                siteName={activeSite.name}
+                mode={mode}
+              />
+            </div>
+
+            {/* Row 5: Launch-Slip Scenario Chart */}
+            <SlipChart
+              slipData={slipData}
+              currentSlipDays={slipDays}
+              onSlipChange={setSlipDays}
+              siteName={activeSite.name}
+              mode={mode}
+            />
+
+            {/* Row 6: Explore Mode Explainer (Moon vs Earth, F18) */}
+            <ExploreExplainer
               siteLat={activeSite.lat}
               siteLon={activeSite.lon}
-              siteName={activeSite.name}
-              mode={mode}
             />
           </div>
-
-          {/* Row 5: Launch-Slip Scenario Chart */}
-          <SlipChart
-            slipData={slipData}
-            currentSlipDays={slipDays}
-            onSlipChange={setSlipDays}
-            siteName={activeSite.name}
-            mode={mode}
-          />
-
-          {/* Row 6: Explore Mode Explainer (Moon vs Earth, F18) */}
-          <ExploreExplainer
-            siteLat={activeSite.lat}
-            siteLon={activeSite.lon}
-          />
-        </div>
+        )}
 
         {/* Footer Consistent with Home Page */}
         <footer className="mt-16 pt-6 border-t border-white/15 flex flex-wrap justify-between items-center text-[10px] text-white/40 tracking-[0.5px]">
