@@ -1,154 +1,549 @@
-export default function CharacterisationCards() {
-  const cards = [
-    {
-      n: "01",
-      tag: "SUNLIGHT",
-      title: "ILLUMINATION",
-      text: "Areas receiving sunlight for longer periods can support power generation.",
-    },
-    {
-      n: "02",
-      tag: "TERRAIN",
-      title: "SURFACE SAFETY",
-      text: "Slope, craters and surface roughness influence whether a spacecraft can land safely.",
-    },
-    {
-      n: "03",
-      tag: "RESOURCES",
-      title: "WATER ICE",
-      text: "Permanently shadowed regions can preserve water ice and other valuable resources.",
-    },
-    {
-      n: "04",
-      tag: "ACCESS",
-      title: "COMMUNICATION",
-      text: "Visibility and access to Earth or relay infrastructure can influence mission reliability.",
-    },
-  ];
-
+export default function LunarNavigator() {
   return (
-    <div className="relative z-30">
+    <section
+      className="
+        relative
+        min-h-[720px]
+        w-full
+        overflow-visible
+        bg-black
 
-      {/* ================= CHARACTERISATION CARDS ================= */}
+        px-6
+        py-20
+
+        sm:px-8
+        sm:py-24
+
+        md:px-[6vw]
+        md:py-28
+
+        lg:px-[7.5vw]
+        lg:py-32
+        z-100
+      "
+    >
+      {/* ================= BACKGROUND GLOW ================= */}
 
       <div
         className="
-          grid
-          grid-cols-1
-          gap-6
+          pointer-events-none
+          absolute
+          inset-0
+          z-0
 
-          sm:grid-cols-2
-          sm:gap-x-8
-          sm:gap-y-7
+          bg-[radial-gradient(circle_at_72%_45%,rgba(255,255,255,0.055),transparent_38%)]
+        "
+      />
 
-          lg:grid-cols-4
-          lg:gap-6
+      {/* ================= TECH GRID ================= */}
 
-          xl:gap-8
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          z-0
+
+          opacity-[0.035]
+
+          bg-[linear-gradient(rgba(255,255,255,0.25)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.25)_1px,transparent_1px)]
+
+          bg-[size:100px_100px]
+        "
+      />
+
+      {/* ================= VERTICAL DIVIDER ================= */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-y-0
+          left-[55%]
+          z-[1]
+
+          hidden
+          w-px
+
+          bg-white/[0.06]
+
+          lg:block
+        "
+      />
+
+      {/* ================= SECTION NUMBER ================= */}
+
+      <div
+        className="
+          relative
+          z-[60]
+
+          mb-10
+
+          text-[8px]
+          uppercase
+          tracking-[4px]
+          text-white/35
+
+          sm:mb-12
+          sm:text-[9px]
+          sm:tracking-[5px]
+
+          lg:mb-8
         "
       >
-        {cards.map((c) => (
-          <div
-            key={c.n}
-            className="
-              border-t
-              border-white/20
-              pt-3
+        02 — LUNAR NAVIGATOR
+      </div>
 
-              sm:pt-4
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
+
+      <div
+        className="
+          relative
+          z-[60]
+
+          grid
+          min-h-[470px]
+
+          grid-cols-1
+
+          lg:grid-cols-[0.9fr_1.1fr]
+          lg:gap-16
+        "
+      >
+        {/* =================================================
+            LEFT SIDE — TITLE
+        ================================================= */}
+
+        <div
+          className="
+            relative
+            z-[70]
+
+            flex
+            flex-col
+            justify-center
+
+            lg:pr-10
+          "
+        >
+          {/* EYEBROW */}
+
+          <div
+            className="
+              mb-5
+
+              flex
+              items-center
+              gap-3
+
+              text-[8px]
+              uppercase
+              tracking-[4px]
+              text-white/35
             "
           >
-            {/* CARD HEADER */}
+            <span className="h-px w-8 bg-[#ff3b12]" />
+
+            02 — NAVIGATION SYSTEM
+          </div>
+
+          {/* TITLE */}
+
+          <h2
+            className="
+              font-['Michroma']
+              font-light
+              uppercase
+
+              text-[clamp(42px,5.5vw,88px)]
+
+              leading-[0.88]
+              tracking-[-3px]
+
+              text-white
+
+              sm:text-[clamp(48px,5.5vw,92px)]
+
+              lg:text-[clamp(52px,5vw,88px)]
+              lg:tracking-[-4px]
+            "
+          >
+            WHAT
+            <br />
+            IS
+            <br />
+            LUNAR
+            <br />
+            NAVIGATOR?
+          </h2>
+
+          {/* TECHNICAL DESCRIPTION */}
+
+          <div
+            className="
+              mt-8
+
+              max-w-[340px]
+
+              border-t
+              border-white/15
+
+              pt-5
+
+              text-[9px]
+              leading-[1.7]
+              text-white/45
+
+              sm:text-[10px]
+            "
+          >
+            A visual decision-support system designed to help
+            explore the conditions surrounding potential lunar
+            south-pole landing sites.
+          </div>
+        </div>
+
+        {/* =================================================
+            RIGHT SIDE — INTRO + INFORMATION
+        ================================================= */}
+
+        <div
+          className="
+            relative
+            z-[70]
+
+            mt-14
+
+            flex
+            flex-col
+            justify-center
+
+            lg:mt-0
+          "
+        >
+          {/* SMALL LABEL */}
+
+          <div
+            className="
+              mb-5
+
+              text-[8px]
+              uppercase
+              tracking-[4px]
+
+              text-white/30
+
+              sm:text-[9px]
+              sm:tracking-[5px]
+            "
+          >
+            THE MOON ISN'T AN EASY PLACE TO LAND.
+          </div>
+
+          {/* LARGE STATEMENT */}
+
+          <h3
+            className="
+              max-w-[620px]
+
+              font-sans
+              font-light
+
+              text-[clamp(22px,2.4vw,38px)]
+
+              uppercase
+              leading-[1.15]
+              tracking-[-1px]
+
+              text-white
+            "
+          >
+            THE MOON ISN'T
+            <br />
+            AN EASY PLACE
+            <br />
+            TO LAND.
+          </h3>
+
+          {/* DESCRIPTION */}
+
+          <p
+            className="
+              mt-7
+
+              max-w-[480px]
+
+              text-[10px]
+              leading-[1.7]
+
+              text-white/45
+
+              sm:text-[11px]
+              md:text-xs
+            "
+          >
+            At the lunar south pole, sunlight, terrain, and
+            Earth visibility can change dramatically with
+            location and time. Understanding these conditions
+            is essential for planning future missions.
+          </p>
+
+          {/* =================================================
+              THREE INFORMATION ITEMS
+          ================================================= */}
+
+          <div
+            className="
+              mt-10
+
+              grid
+              grid-cols-1
+
+              border-t
+              border-white/15
+
+              sm:grid-cols-3
+            "
+          >
+            {/* LIGHT */}
 
             <div
               className="
-                mb-3
+                border-b
+                border-white/15
+                py-5
 
-                flex
-                items-center
-                justify-between
-
-                text-[7px]
-                tracking-[2px]
-                text-white/40
-
-                sm:text-[8px]
+                sm:border-b-0
+                sm:border-r
+                sm:px-5
+                sm:first:pl-0
               "
             >
-              <span>{c.n}</span>
+              <div
+                className="
+                  mb-4
 
-              <span className="text-[#ff3b12]">
-                {c.tag}
-              </span>
+                  flex
+                  items-center
+                  justify-between
+
+                  text-[7px]
+                  tracking-[3px]
+                  text-white/35
+                "
+              >
+                <span>01</span>
+
+                <span className="text-[#ff3b12]">
+                  LIGHT
+                </span>
+              </div>
+
+              <h4
+                className="
+                  font-['Michroma']
+                  text-[12px]
+                  font-light
+                  uppercase
+                  text-white
+
+                  sm:text-[13px]
+                "
+              >
+                LIGHT
+              </h4>
+
+              <p
+                className="
+                  mt-3
+
+                  max-w-[170px]
+
+                  text-[9px]
+                  leading-[1.6]
+                  text-white/40
+
+                  sm:text-[10px]
+                "
+              >
+                Sunlight is limited and unpredictable.
+              </p>
             </div>
 
-            {/* CARD TITLE */}
+            {/* TERRAIN */}
 
-            <h3
+            <div
               className="
-                font-['Michroma']
-                text-[13px]
-                font-light
-                text-white
+                border-b
+                border-white/15
+                py-5
 
-                sm:text-[14px]
-
-                lg:text-[15px]
+                sm:border-b-0
+                sm:border-r
+                sm:px-5
               "
             >
-              {c.title}
-            </h3>
+              <div
+                className="
+                  mb-4
 
-            {/* CARD TEXT */}
+                  flex
+                  items-center
+                  justify-between
 
-            <p
+                  text-[7px]
+                  tracking-[3px]
+                  text-white/35
+                "
+              >
+                <span>02</span>
+
+                <span className="text-[#ff3b12]">
+                  TERRAIN
+                </span>
+              </div>
+
+              <h4
+                className="
+                  font-['Michroma']
+                  text-[12px]
+                  font-light
+                  uppercase
+                  text-white
+
+                  sm:text-[13px]
+                "
+              >
+                TERRAIN
+              </h4>
+
+              <p
+                className="
+                  mt-3
+
+                  max-w-[170px]
+
+                  text-[9px]
+                  leading-[1.6]
+                  text-white/40
+
+                  sm:text-[10px]
+                "
+              >
+                Craters and ridges shape what can be seen from
+                the surface.
+              </p>
+            </div>
+
+            {/* COMMUNICATION */}
+
+            <div
               className="
-                mt-2
+                py-5
 
-                max-w-[300px]
-
-                text-[9px]
-                leading-[1.55]
-                text-white/40
-
-                sm:text-[10px]
+                sm:px-5
+                sm:pr-0
               "
             >
-              {c.text}
-            </p>
+              <div
+                className="
+                  mb-4
+
+                  flex
+                  items-center
+                  justify-between
+
+                  text-[7px]
+                  tracking-[3px]
+                  text-white/35
+                "
+              >
+                <span>03</span>
+
+                <span className="text-[#ff3b12]">
+                  COMMS
+                </span>
+              </div>
+
+              <h4
+                className="
+                  font-['Michroma']
+                  text-[12px]
+                  font-light
+                  uppercase
+                  text-white
+
+                  sm:text-[13px]
+                "
+              >
+                COMMUNICATION
+              </h4>
+
+              <p
+                className="
+                  mt-3
+
+                  max-w-[170px]
+
+                  text-[9px]
+                  leading-[1.6]
+                  text-white/40
+
+                  sm:text-[10px]
+                "
+              >
+                Earth may disappear below the local horizon.
+              </p>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* ================= CONTINUE ================= */}
+      {/* =====================================================
+          BOTTOM TECHNICAL FOOTER
+      ===================================================== */}
 
       <div
         className="
-          mt-10
+          relative
+          z-[60]
 
-          text-center
+          mt-14
+
+          flex
+          flex-col
+          gap-4
+
+          border-t
+          border-white/10
+
+          pt-5
 
           text-[7px]
+          uppercase
           tracking-[3px]
-          text-white/30
+          text-white/25
 
-          sm:mt-12
-          sm:text-[8px]
-          sm:tracking-[4px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
         "
       >
-        CONTINUE EXPLORING
+        <span>
+          LUNAR SOUTH POLE / ENVIRONMENTAL CONDITIONS
+        </span>
 
-        <span
-          className="
-            ml-2
-            text-[#ff3b12]
-          "
-        >
-          ↓
+        <span>
+          LIGHT → TERRAIN → COMMUNICATION
+        </span>
+
+        <span className="text-[#ff3b12]">
+          CONTINUE EXPLORING ↓
         </span>
       </div>
-
-    </div>
+    </section>
   );
 }
