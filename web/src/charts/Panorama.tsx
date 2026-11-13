@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { HorizonMask, SkyState, AppMode } from '../types';
-import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 
 interface PanoramaProps {
   mask: HorizonMask;
@@ -16,11 +16,11 @@ export const Panorama: React.FC<PanoramaProps> = ({
   skyState,
   hoursOffset,
   onHoursChange,
-  mode,
   siteName,
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [hoverAz, setHoverAz] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Animation loop
   React.useEffect(() => {
@@ -41,52 +41,58 @@ export const Panorama: React.FC<PanoramaProps> = ({
   const height = 300;
 
   const azToX = (az: number) => ((az % 360) / 360) * width;
-  const elToY = (el: number) => height - ((el - minEl) / elRange) * height;
+  const elToY = React.useCallback(
+    (el: number) => height - ((el - minEl) / elRange) * height,
+    [height, minEl, elRange]
+  );
 
-  // Build SVG polygon for nominal terrain and uncertainty bands
-  const { nominalPath, bandPath } = useMemo(() => {
-    const step = mask.az_step_deg;
-    const count = mask.elev_deg.length;
+  // Build nominal terrain silhouette path
+  const nominalPath = useMemo(() => {
+    const pts = mask.elev_deg;
+    const n = pts.length;
+    if (n === 0) return '';
 
-    let nomD = `M 0,${elToY(mask.elev_deg[0])}`;
-    for (let i = 1; i < count; i++) {
-      const az = i * step;
-      nomD += ` L ${azToX(az).toFixed(1)},${elToY(mask.elev_deg[i]).toFixed(1)}`;
+    let d = `M 0,${height} `;
+    for (let i = 0; i < n; i++) {
+      const az = i * mask.az_step_deg;
+      const x = azToX(az);
+      const y = elToY(pts[i]);
+      d += `L ${x.toFixed(1)},${y.toFixed(1)} `;
     }
-    // Close polygon to bottom for terrain fill
-    const fillD = `${nomD} L ${width},${height} L 0,${height} Z`;
+    d += `L ${width},${elToY(pts[0])} L ${width},${height} Z`;
+    return d;
+  }, [mask, elToY]);
 
-    // Uncertainty band: high path forward, low path backward (if available)
-    let bandD = '';
-    const hasBands =
-      mask.elev_hi_deg &&
-      mask.elev_lo_deg &&
-      mask.elev_hi_deg.length === count &&
-      mask.elev_lo_deg.length === count;
+  // Build uncertainty band path if available
+  const bandPath = useMemo(() => {
+    if (!mask.elev_lo_deg || !mask.elev_hi_deg) return null;
+    const lo = mask.elev_lo_deg;
+    const hi = mask.elev_hi_deg;
+    const n = lo.length;
+    if (n === 0) return null;
 
-    if (hasBands && mask.elev_hi_deg && mask.elev_lo_deg) {
-      bandD = `M 0,${elToY(mask.elev_hi_deg[0])}`;
-      for (let i = 1; i < count; i++) {
-        bandD += ` L ${azToX(i * step).toFixed(1)},${elToY(mask.elev_hi_deg[i]).toFixed(1)}`;
-      }
-      for (let i = count - 1; i >= 0; i--) {
-        bandD += ` L ${azToX(i * step).toFixed(1)},${elToY(mask.elev_lo_deg[i]).toFixed(1)}`;
-      }
-      bandD += ' Z';
+    let d = `M 0,${elToY(hi[0])} `;
+    for (let i = 0; i < n; i++) {
+      const az = i * mask.az_step_deg;
+      d += `L ${azToX(az).toFixed(1)},${elToY(hi[i]).toFixed(1)} `;
     }
+    for (let i = n - 1; i >= 0; i--) {
+      const az = i * mask.az_step_deg;
+      d += `L ${azToX(az).toFixed(1)},${elToY(lo[i]).toFixed(1)} `;
+    }
+    d += 'Z';
+    return d;
+  }, [mask, elToY]);
 
-    return { nominalPath: fillD, bandPath: bandD };
-  }, [mask]);
-
-  // Sun and Earth positions
+  // Celestial positions in SVG coordinates
   const sunX = azToX(skyState.sun.az_deg);
   const sunY = elToY(skyState.sun.el_deg);
   const earthX = azToX(skyState.earth.az_deg);
   const earthY = elToY(skyState.earth.el_deg);
 
   // Apparent radii in SVG units
-  const sunRadiusPx = Math.max(7, (skyState.sun.angular_radius_deg / elRange) * height * 1.8);
-  const earthRadiusPx = Math.max(12, (skyState.earth.angular_radius_deg / elRange) * height * 1.5);
+  const sunRadiusPx = Math.max(10, (skyState.sun.angular_radius_deg / elRange) * height * 2.2);
+  const earthRadiusPx = Math.max(14, (skyState.earth.angular_radius_deg / elRange) * height * 1.8);
 
   // Plain-language caption
   const statusCaption = useMemo(() => {
@@ -108,9 +114,21 @@ export const Panorama: React.FC<PanoramaProps> = ({
   }, [skyState]);
 
   return (
-    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
+    <div
+      style={{
+        background: '#040404',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '0px',
+        padding: isFullscreen ? '24px 32px' : '16px',
+        color: '#f8fafc',
+        position: isFullscreen ? 'fixed' : 'relative',
+        inset: isFullscreen ? '0' : 'auto',
+        zIndex: isFullscreen ? 9999 : 'auto',
+        overflowY: isFullscreen ? 'auto' : 'visible',
+      }}
+    >
       {/* Header & Mode info */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: '#f1f5f9' }}>
@@ -127,7 +145,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
           </p>
         </div>
 
-        {/* Legend */}
+        {/* Legend & Fullscreen Button */}
         <div style={{ display: 'flex', gap: '14px', fontSize: '0.75rem', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#fbbf24', display: 'inline-block' }} />
@@ -143,15 +161,59 @@ export const Panorama: React.FC<PanoramaProps> = ({
               DEM Error Band {mask.elev_hi_deg ? '' : '(pending)'}
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#141414',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#fff',
+              padding: '5px 10px',
+              fontSize: '0.72rem',
+              fontFamily: 'Michroma, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              cursor: 'pointer',
+              marginLeft: '8px',
+            }}
+          >
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+            <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Panorama SVG Viewport */}
-      <div style={{ position: 'relative', width: '100%', height: '320px', background: 'linear-gradient(to top, #000000 0%, #050505 60%, #000000 100%)', borderRadius: '0px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+      {/* Panorama Viewport */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: isFullscreen ? '62vh' : '340px',
+          background: 'radial-gradient(ellipse at 50% 20%, #080c14 0%, #020202 100%)',
+          borderRadius: '0px',
+          overflow: 'hidden',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+        }}
+      >
+        {/* Starfield backdrop */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: 0.65,
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px)",
+            backgroundSize: '80px 80px',
+            pointerEvents: 'none',
+          }}
+        />
+
         <svg
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="none"
-          style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
+          style={{ width: '100%', height: '100%', cursor: 'crosshair', position: 'relative', zIndex: 1 }}
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -161,29 +223,46 @@ export const Panorama: React.FC<PanoramaProps> = ({
           onMouseLeave={() => setHoverAz(null)}
         >
           <defs>
-            {/* Terrain Gradient */}
-            <linearGradient id="terrainGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#334155" />
-              <stop offset="25%" stopColor="#1e293b" />
-              <stop offset="100%" stopColor="#0f172a" />
+            {/* Photorealistic Sun Radial Flare */}
+            <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+              <stop offset="25%" stopColor="#fef08a" stopOpacity="0.9" />
+              <stop offset="55%" stopColor="#f59e0b" stopOpacity="0.5" />
+              <stop offset="85%" stopColor="#ea580c" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#ea580c" stopOpacity="0" />
+            </radialGradient>
+
+            {/* Earth Atmospheric Halo */}
+            <radialGradient id="earthAtmosphere" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.9" />
+              <stop offset="60%" stopColor="#0284c7" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#0284c7" stopOpacity="0" />
+            </radialGradient>
+
+            {/* Earth Surface Pattern / Texture */}
+            <radialGradient id="earthGlobe" cx="35%" cy="35%" r="65%">
+              <stop offset="0%" stopColor="#7dd3fc" />
+              <stop offset="30%" stopColor="#0284c7" />
+              <stop offset="65%" stopColor="#0369a1" />
+              <stop offset="90%" stopColor="#082f49" />
+              <stop offset="100%" stopColor="#020617" />
+            </radialGradient>
+
+            {/* Lunar Regolith Textured Horizon Silhouette */}
+            <linearGradient id="lunarRockGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2a2e37" />
+              <stop offset="15%" stopColor="#1a1c23" />
+              <stop offset="50%" stopColor="#0f1115" />
+              <stop offset="100%" stopColor="#050608" />
             </linearGradient>
 
-            {/* Sun Glow */}
-            <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fef08a" stopOpacity="1" />
-              <stop offset="40%" stopColor="#f59e0b" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#b45309" stopOpacity="0" />
-            </radialGradient>
-
-            {/* Earth Glow */}
-            <radialGradient id="earthGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#7dd3fc" stopOpacity="1" />
-              <stop offset="50%" stopColor="#0284c7" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#0369a1" stopOpacity="0" />
-            </radialGradient>
+            {/* Skyline Rim Glow */}
+            <filter id="skylineGlow" x="-5%" y="-5%" width="110%" height="110%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" />
+            </filter>
           </defs>
 
-          {/* Elevation Grid Lines */}
+          {/* Elevation Horizontal Grid Lines */}
           {[-2, 0, 5, 10, 15, 20].map((el) => (
             <g key={el}>
               <line
@@ -191,11 +270,11 @@ export const Panorama: React.FC<PanoramaProps> = ({
                 y1={elToY(el)}
                 x2={width}
                 y2={elToY(el)}
-                stroke={el === 0 ? '#475569' : '#1e293b'}
+                stroke={el === 0 ? 'rgba(255, 255, 255, 0.35)' : 'rgba(255, 255, 255, 0.08)'}
                 strokeWidth={el === 0 ? 1.5 : 0.8}
                 strokeDasharray={el === 0 ? 'none' : '4 4'}
               />
-              <text x={8} y={elToY(el) - 3} fill="#64748b" fontSize="10" fontFamily="sans-serif">
+              <text x={8} y={elToY(el) - 3} fill={el === 0 ? '#f8fafc' : '#64748b'} fontSize="10" fontFamily="Michroma, sans-serif">
                 {el > 0 ? `+${el}°` : `${el}°`}
               </text>
             </g>
@@ -219,17 +298,17 @@ export const Panorama: React.FC<PanoramaProps> = ({
                 y1={0}
                 x2={azToX(az)}
                 y2={height}
-                stroke="#1e293b"
+                stroke="rgba(255, 255, 255, 0.08)"
                 strokeWidth={az % 90 === 0 ? 1.2 : 0.6}
               />
               <text
                 x={azToX(az)}
                 y={height - 8}
                 textAnchor="middle"
-                fill={az % 90 === 0 ? '#94a3b8' : '#475569'}
-                fontSize="11"
+                fill={az % 90 === 0 ? '#f8fafc' : '#64748b'}
+                fontSize="10"
                 fontWeight={az % 90 === 0 ? '600' : 'normal'}
-                fontFamily="sans-serif"
+                fontFamily="Michroma, sans-serif"
               >
                 {label}
               </text>
@@ -237,68 +316,98 @@ export const Panorama: React.FC<PanoramaProps> = ({
           ))}
 
           {/* Uncertainty Band (Shaded area between low and high DEM errors, if available) */}
-          {bandPath ? <path d={bandPath} fill="rgba(56, 189, 248, 0.12)" stroke="none" /> : null}
+          {bandPath ? <path d={bandPath} fill="rgba(56, 189, 248, 0.15)" stroke="none" /> : null}
 
-          {/* Nominal Terrain Silhouette */}
-          <path d={nominalPath} fill="url(#terrainGrad)" stroke="#64748b" strokeWidth={1.5} />
+          {/* Realistic Lunar Terrain Silhouette with Ridge Edge Glow */}
+          <path d={nominalPath} fill="url(#lunarRockGrad)" />
+          <path d={nominalPath} fill="none" stroke="#94a3b8" strokeWidth={1.2} />
 
-          {/* Sun disc & ray */}
+          {/* Sun: Realistic Radiant Solar Disc & Optical Corona */}
           <g transform={`translate(${sunX}, ${sunY})`}>
-            {/* Halo */}
-            <circle cx={0} cy={0} r={sunRadiusPx * 2.2} fill="url(#sunGlow)" opacity={skyState.sun_visible_fraction} />
-            {/* Sun Disc */}
+            {/* Extended Solar Corona Flare */}
+            <circle cx={0} cy={0} r={sunRadiusPx * 3.5} fill="url(#sunGlow)" opacity={skyState.sun_visible_fraction * 0.8} />
+            <circle cx={0} cy={0} r={sunRadiusPx * 1.8} fill="url(#sunGlow)" opacity={skyState.sun_visible_fraction} />
+            
+            {/* Core Sun Disc */}
             <circle
               cx={0}
               cy={0}
               r={sunRadiusPx}
-              fill="#fef08a"
-              stroke="#eab308"
-              strokeWidth={1.5}
+              fill="#ffffff"
+              stroke="#fbbf24"
+              strokeWidth={2}
+              filter="drop-shadow(0px 0px 8px #fef08a)"
             />
-            {/* Partial shadow overlay if partially eclipsed or below horizon */}
+            {/* Partial lunar occlusion shadow */}
             {skyState.sun_visible_fraction < 1 && (
               <circle
                 cx={0}
                 cy={0}
                 r={sunRadiusPx}
-                fill="#020617"
-                opacity={Math.min(0.9, (1 - skyState.sun_visible_fraction) * 0.9)}
+                fill="#000000"
+                opacity={Math.min(0.92, (1 - skyState.sun_visible_fraction) * 0.95)}
               />
             )}
-            {/* Elevation readout label */}
+            {/* Solar Elevation readout */}
             <text
-              x={sunRadiusPx + 4}
+              x={sunRadiusPx + 6}
               y={-4}
-              fill="#fef08a"
+              fill="#fbbf24"
               fontSize="11"
               fontWeight="bold"
-              fontFamily="sans-serif"
+              fontFamily="Michroma, sans-serif"
             >
               ☉ {skyState.sun.el_deg > 0 ? `+${skyState.sun.el_deg}°` : `${skyState.sun.el_deg}°`}
             </text>
           </g>
 
-          {/* Earth disc & label */}
+          {/* Earth: Realistic Blue Marble Globe with Continents, Clouds & Atmospheric Ring */}
           <g transform={`translate(${earthX}, ${earthY})`}>
-            <circle cx={0} cy={0} r={earthRadiusPx * 1.8} fill="url(#earthGlow)" opacity={skyState.is_earth_visible ? 0.8 : 0.2} />
+            {/* Blue Atmospheric Scattering Halo */}
+            <circle cx={0} cy={0} r={earthRadiusPx * 2.2} fill="url(#earthAtmosphere)" opacity={skyState.is_earth_visible ? 0.9 : 0.25} />
+            
+            {/* Earth Blue Marble Body */}
             <circle
               cx={0}
               cy={0}
               r={earthRadiusPx}
-              fill="#38bdf8"
-              stroke="#0284c7"
-              strokeWidth={2}
+              fill="url(#earthGlobe)"
+              stroke="#38bdf8"
+              strokeWidth={1.5}
+              opacity={skyState.is_earth_visible ? 1 : 0.4}
             />
-            {/* Earth continent texture hint */}
-            <circle cx={-earthRadiusPx * 0.25} cy={-earthRadiusPx * 0.2} r={earthRadiusPx * 0.45} fill="#166534" opacity={0.6} />
-            <circle cx={earthRadiusPx * 0.3} cy={earthRadiusPx * 0.3} r={earthRadiusPx * 0.35} fill="#15803d" opacity={0.5} />
+
+            {/* Stylized Continents (Africa / Eurasia green patches) */}
+            <path
+              d={`M ${-earthRadiusPx * 0.4},${-earthRadiusPx * 0.3} Q ${-earthRadiusPx * 0.1},${-earthRadiusPx * 0.6} ${earthRadiusPx * 0.3},${-earthRadiusPx * 0.2} Q ${earthRadiusPx * 0.1},${earthRadiusPx * 0.4} ${-earthRadiusPx * 0.3},${earthRadiusPx * 0.2} Z`}
+              fill="#15803d"
+              opacity={skyState.is_earth_visible ? 0.75 : 0.3}
+            />
+            <path
+              d={`M ${-earthRadiusPx * 0.6},${earthRadiusPx * 0.1} Q ${-earthRadiusPx * 0.3},${earthRadiusPx * 0.5} ${0},${earthRadiusPx * 0.6} Q ${-earthRadiusPx * 0.5},${earthRadiusPx * 0.4} ${-earthRadiusPx * 0.6},${earthRadiusPx * 0.1} Z`}
+              fill="#166534"
+              opacity={skyState.is_earth_visible ? 0.7 : 0.3}
+            />
+
+            {/* Cloud Swirls */}
+            <circle cx={-earthRadiusPx * 0.1} cy={-earthRadiusPx * 0.2} r={earthRadiusPx * 0.5} fill="#ffffff" opacity={skyState.is_earth_visible ? 0.35 : 0.1} />
+            <circle cx={earthRadiusPx * 0.2} cy={earthRadiusPx * 0.3} r={earthRadiusPx * 0.4} fill="#ffffff" opacity={skyState.is_earth_visible ? 0.25 : 0.1} />
+
+            {/* Night-side terminator shadow */}
+            <path
+              d={`M 0,${-earthRadiusPx} A ${earthRadiusPx} ${earthRadiusPx} 0 0 1 0,${earthRadiusPx} A ${earthRadiusPx * 0.3} ${earthRadiusPx} 0 0 1 0,${-earthRadiusPx} Z`}
+              fill="#000000"
+              opacity={0.5}
+            />
+
+            {/* Earth Elevation Label */}
             <text
-              x={earthRadiusPx + 4}
+              x={earthRadiusPx + 6}
               y={-4}
               fill="#38bdf8"
               fontSize="11"
               fontWeight="bold"
-              fontFamily="sans-serif"
+              fontFamily="Michroma, sans-serif"
             >
               ♁ {skyState.earth.el_deg > 0 ? `+${skyState.earth.el_deg}°` : `${skyState.earth.el_deg}°`}
             </text>
@@ -306,135 +415,186 @@ export const Panorama: React.FC<PanoramaProps> = ({
 
           {/* Interactive Hover Crosshair */}
           {hoverAz !== null && (
-            <line
-              x1={azToX(hoverAz)}
-              y1={0}
-              x2={azToX(hoverAz)}
-              y2={height}
-              stroke="#38bdf8"
-              strokeWidth={1}
-              strokeDasharray="2 2"
-            />
+            <g>
+              <line
+                x1={azToX(hoverAz)}
+                y1={0}
+                x2={azToX(hoverAz)}
+                y2={height}
+                stroke="#ff4d2b"
+                strokeWidth={1}
+                strokeDasharray="2 2"
+              />
+              <circle
+                cx={azToX(hoverAz)}
+                cy={elToY(
+                  mask.elev_deg[
+                    Math.min(
+                      mask.elev_deg.length - 1,
+                      Math.max(0, Math.floor(hoverAz / mask.az_step_deg))
+                    )
+                  ] || 0
+                )}
+                r={4}
+                fill="#ff4d2b"
+              />
+            </g>
           )}
         </svg>
 
-        {/* Hover Readout Tooltip */}
+        {/* Hover Tooltip Overlay */}
         {hoverAz !== null && (
           <div
             style={{
               position: 'absolute',
               top: '12px',
-              left: `${Math.min(80, Math.max(10, (hoverAz / 360) * 100))}%`,
+              left: `${(hoverAz / 360) * 100}%`,
               transform: 'translateX(-50%)',
-              background: 'rgba(15, 23, 42, 0.9)',
-              border: '1px solid #38bdf8',
+              background: '#0a0a0a',
+              border: '1px solid #ff4d2b',
               borderRadius: '0px',
               padding: '4px 8px',
               fontSize: '0.75rem',
               color: '#f8fafc',
               pointerEvents: 'none',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.4)',
+              whiteSpace: 'nowrap',
+              zIndex: 10,
             }}
           >
-            Azimuth: {hoverAz}° | Horizon Elev: {(mask.elev_deg[Math.min(mask.elev_deg.length - 1, Math.max(0, Math.floor((((hoverAz % 360) + 360) % 360) / mask.az_step_deg)))] ?? 0).toFixed(2)}°
+            Azimuth: {hoverAz}° • Ridge Elev:{' '}
+            {mask.elev_deg[
+              Math.min(
+                mask.elev_deg.length - 1,
+                Math.max(0, Math.floor(hoverAz / mask.az_step_deg))
+              )
+            ]?.toFixed(2)}
+            °
           </div>
         )}
       </div>
 
-      {/* Explore Mode plain-language banner */}
-      <div
-        style={{
-          marginTop: '10px',
-          padding: '8px 12px',
-          borderRadius: '0px',
-          background: mode === 'explore' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(30, 41, 59, 0.5)',
-          borderLeft: `3px solid ${skyState.sun_visible_fraction > 0 ? '#fbbf24' : '#64748b'}`,
-          fontSize: '0.85rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span style={{ color: mode === 'explore' ? '#bae6fd' : '#cbd5e1' }}>
-          <strong>Status:</strong> {statusCaption}
-        </span>
-        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-          TDB Light-time CN+S corrected
-        </span>
-      </div>
+      {/* Scrubber and Time Animation Controls */}
+      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          {/* Plain-Language Caption or Technical readout */}
+          <div style={{ fontSize: '0.82rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: '#ff4d2b', fontWeight: 600 }}>Status:</span>
+            <span>{statusCaption}</span>
+          </div>
 
-      {/* Time Animation Controls & Slider */}
-      <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '14px', background: '#0a0a0a', padding: '10px 14px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          style={{
-            background: isPlaying ? '#dc2626' : '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '0px',
-            padding: '6px 12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.85rem',
-            fontWeight: 500,
-          }}
-        >
-          {isPlaying ? <Pause size={15} /> : <Play size={15} />}
-          {isPlaying ? 'Pause' : 'Animate'}
-        </button>
+          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+            TDB Light-time CN+S corrected
+          </div>
+        </div>
 
-        <button
-          onClick={() => onHoursChange(0)}
-          title="Reset to Landing Time"
-          style={{
-            background: '#141414',
-            color: '#94a3b8',
-            border: 'none',
-            borderRadius: '0px',
-            padding: '6px 10px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <RotateCcw size={15} />
-        </button>
+        {/* Controls row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#000000', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px 14px' }}>
+          {/* Play/Pause */}
+          <button
+            type="button"
+            onClick={() => setIsPlaying(!isPlaying)}
+            style={{
+              background: isPlaying ? '#ef4444' : '#ff3d18',
+              border: 'none',
+              color: '#fff',
+              padding: '6px 12px',
+              borderRadius: '0px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.75rem',
+              fontFamily: 'Michroma, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            {isPlaying ? <Pause size={13} /> : <Play size={13} />}
+            <span>{isPlaying ? 'Pause' : 'Animate'}</span>
+          </button>
 
-        <button
-          onClick={() => onHoursChange(Math.max(0, hoursOffset - 6))}
-          title="-6 Hours"
-          style={{ background: '#141414', color: '#cbd5e1', border: 'none', borderRadius: '0px', padding: '6px', cursor: 'pointer' }}
-        >
-          <ChevronLeft size={16} />
-        </button>
+          {/* Reset */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsPlaying(false);
+              onHoursChange(0);
+            }}
+            style={{
+              background: '#141414',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#cbd5e1',
+              padding: '6px 10px',
+              borderRadius: '0px',
+              cursor: 'pointer',
+            }}
+            title="Reset to Hour 0"
+          >
+            <RotateCcw size={13} />
+          </button>
 
-        <button
-          onClick={() => onHoursChange(hoursOffset + 6)}
-          title="+6 Hours"
-          style={{ background: '#141414', color: '#cbd5e1', border: 'none', borderRadius: '0px', padding: '6px', cursor: 'pointer' }}
-        >
-          <ChevronRight size={16} />
-        </button>
+          {/* Step Back/Forward */}
+          <button
+            type="button"
+            onClick={() => onHoursChange(Math.max(0, hoursOffset - 6))}
+            style={{
+              background: '#141414',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#cbd5e1',
+              padding: '6px 8px',
+              borderRadius: '0px',
+              cursor: 'pointer',
+            }}
+            title="-6 Hours"
+          >
+            <ChevronLeft size={13} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onHoursChange(Math.min(708, hoursOffset + 6))}
+            style={{
+              background: '#141414',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#cbd5e1',
+              padding: '6px 8px',
+              borderRadius: '0px',
+              cursor: 'pointer',
+            }}
+            title="+6 Hours"
+          >
+            <ChevronRight size={13} />
+          </button>
 
-        {/* Time Slider */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8' }}>
-            <span>Time Scrub (0h → +708h / Full 29.5-day Lunar Day)</span>
-            <span style={{ color: '#ff4d2b', fontWeight: 600 }}>
-              +{hoursOffset}h ({(hoursOffset / 24).toFixed(1)} Earth days) • {skyState.time_utc}
+          {/* Synodic Slider */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+              0h (Landing)
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={708}
+              step={1}
+              value={hoursOffset}
+              onChange={(e) => {
+                setIsPlaying(false);
+                onHoursChange(Number(e.target.value));
+              }}
+              style={{
+                flex: 1,
+                accentColor: '#ff3d18',
+                cursor: 'pointer',
+              }}
+            />
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+              +708h (29.5d Month)
             </span>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={708}
-            step={1}
-            value={hoursOffset}
-            onChange={(e) => onHoursChange(Number(e.target.value))}
-            style={{ width: '100%', cursor: 'pointer', accentColor: '#38bdf8' }}
-          />
+
+          {/* Readout */}
+          <div style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: '#f8fafc', minWidth: '130px', textAlign: 'right' }}>
+            +{hoursOffset}h ({Number(hoursOffset / 24).toFixed(1)} Earth days)
+          </div>
         </div>
       </div>
     </div>
