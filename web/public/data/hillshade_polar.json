@@ -1,0 +1,16 @@
+{
+ "file": "hillshade_polar.png",
+ "n": 1830,
+ "step_m": 500.0,
+ "half_m": 457500.0,
+ "bounds_m": {
+  "west": -457500.0,
+  "east": 457500.0,
+  "south": -457500.0,
+  "north": 457500.0
+ },
+ "projection": "south polar stereographic on a sphere, R = 1737400 m, lon 0 toward +y, east toward +x",
+ "forward": "rho = 2*R*tan((90 + lat_deg)/2); x = rho*sin(lon); y = rho*cos(lon)",
+ "light": "azimuth 315 deg, altitude 12 deg, vertical exaggeration 2x",
+ "note": "pixel (col,row) = same grid as dem_polar_500m.bin; use L.CRS.Simple with these bounds in metres"
+}

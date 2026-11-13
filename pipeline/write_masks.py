@@ -1,4 +1,5 @@
 import json, time
+import sys
 import numpy as np
 from pathlib import Path
 from terrain import Dem
@@ -7,7 +8,7 @@ from horizon import horizon
 ROOT = Path(__file__).resolve().parent.parent
 T = ROOT / "pipeline" / "data" / "terrain"
 OUT = ROOT / "web" / "public" / "data" / "masks"
-SITES = ROOT / "web" / "public" / "data" / "sites.json"
+SITES = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "web" / "public" / "data" / "sites.json"
 
 AZ_STEP = 0.25                  # 1440 directions; confirm with M5, the contract says az_step_deg
 STEP_FRAC = 0.005

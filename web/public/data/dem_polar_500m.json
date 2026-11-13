@@ -1,0 +1,66 @@
+{
+ "file": "dem_polar_500m.bin",
+ "dtype": "int16 little-endian",
+ "n": 1830,
+ "step_m": 500.0,
+ "half_m": 457500.0,
+ "nodata": -32768,
+ "layout": "row-major, row 0 = top = +y, column 0 = west = -x; pixel centres",
+ "x_m": "(col + 0.5 - n/2) * step_m",
+ "y_m": "(n/2 - 0.5 - row) * step_m",
+ "projection": "south polar stereographic on a sphere, R = 1737400 m, lon 0 toward +y, east toward +x",
+ "forward": "rho = 2*R*tan((90 + lat_deg)/2); x = rho*sin(lon); y = rho*cos(lon)",
+ "inverse_col_row": "col = x/step + n/2 - 0.5; row = n/2 - 0.5 - y/step",
+ "heights": "metres above the 1737.4 km sphere (LOLA, MOON_ME); bilinear interpolation recommended",
+ "source": "LDEM_60S_240MPP_ADJ.TIF (LOLA PGDA 90), 4 samples averaged per pixel",
+ "min_m": -7725.94189453125,
+ "max_m": 7014.92138671875,
+ "caveat": "500 m terrain is approximate: use it for custom coordinates, not for the curated sites",
+ "checks": [
+  {
+   "lat": -89.0,
+   "lon": 0.0,
+   "x_m": 0.0,
+   "y_m": 30324.1,
+   "row": 853.852,
+   "col": 914.5,
+   "nearest_pixel_height_m": -390
+  },
+  {
+   "lat": -89.4395,
+   "lon": 222.8066,
+   "x_m": -11549.5,
+   "y_m": -12469.4,
+   "row": 939.439,
+   "col": 891.401,
+   "nearest_pixel_height_m": 1934
+  },
+  {
+   "lat": -86.0,
+   "lon": 90.0,
+   "x_m": 121342.7,
+   "y_m": 0.0,
+   "row": 914.5,
+   "col": 1157.185,
+   "nearest_pixel_height_m": -664
+  },
+  {
+   "lat": -84.7906,
+   "lon": 29.1957,
+   "x_m": 77108.2,
+   "y_m": 137993.3,
+   "row": 638.513,
+   "col": 1068.716,
+   "nearest_pixel_height_m": 5325
+  },
+  {
+   "lat": -80.0,
+   "lon": 300.0,
+   "x_m": -263276.6,
+   "y_m": 152002.8,
+   "row": 610.494,
+   "col": 387.947,
+   "nearest_pixel_height_m": -1067
+  }
+ ]
+}
