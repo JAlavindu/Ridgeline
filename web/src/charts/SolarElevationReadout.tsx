@@ -1,6 +1,6 @@
 import React from 'react';
 import type { SkyState, CountdownWindow, AppMode } from '../types';
-import { Sun, Radio, ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
+import { Sun, Radio, ArrowUpRight, ArrowDownRight, Zap, AlertTriangle, ShieldCheck, Clock } from 'lucide-react';
 
 interface SolarElevationReadoutProps {
   skyState: SkyState;
@@ -26,19 +26,19 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
   const earthriseWindow = countdowns.find((c) => c.event === 'earthrise');
 
   return (
-    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '18px', color: '#f8fafc' }}>
       {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sun size={20} color="#fbbf24" />
-            Solar Elevation & Live "Now" Panel
+            Solar Elevation & Critical Operational Now Panel
           </h3>
           <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: '#94a3b8' }}>
             {siteName} • {mode === 'explore' ? 'Instantaneous solar geometry & countdown windows' : 'Verified ephemeris state & uncertainty countdown bounds (F8)'}
           </p>
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#ff4d2b', background: '#141414', padding: '3px 10px', borderRadius: '4px' }}>
+        <div style={{ fontSize: '0.75rem', color: '#ff4d2b', background: '#141414', padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
           {isPolar ? 'Polar Site Mode (Windowed Events F8)' : 'Equatorial Mode'}
         </div>
       </div>
@@ -119,6 +119,41 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
         </div>
       </div>
 
+      {/* Critical Operational Banner: Time Remaining Before Power or Comms Loss */}
+      <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.15)', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Clock size={18} className="text-[#ff3d18]" />
+          <div>
+            <div className="text-[12px] font-['Michroma'] uppercase tracking-[1px] text-white">
+              Critical Mission Timer: Time Remaining Before Event
+            </div>
+            <div className="text-[11px] text-white/60">
+              {sunsetWindow ? (
+                <>Next Loss of Power (Sunset): <strong className="text-[#fbbf24]">{sunsetWindow.nominal_hours} hours</strong> ({sunsetWindow.earliest_hours}h to {sunsetWindow.latest_hours}h window)</>
+              ) : (
+                <>Solar conditions stable across next operational horizon</>
+              )}
+              {earthsetWindow && (
+                <> • Next Comms Blackout: <strong className="text-[#38bdf8]">{earthsetWindow.nominal_hours} hours</strong> ({earthsetWindow.earliest_hours}h to {earthsetWindow.latest_hours}h window)</>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {skyState.is_sun_visible && skyState.is_earth_visible ? (
+            <span className="flex items-center gap-1.5 text-[9px] font-['Michroma'] uppercase tracking-[1px] bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 px-3 py-1.5">
+              <ShieldCheck size={13} />
+              Prime Operating Window
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-[9px] font-['Michroma'] uppercase tracking-[1px] bg-amber-950/60 text-amber-400 border border-amber-500/40 px-3 py-1.5">
+              <AlertTriangle size={13} />
+              Degraded Mode ({!skyState.is_sun_visible ? 'No Sun' : 'No Comms'})
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* Countdown Windows Section (Formula F8 - Mandatory Uncertainty Bounds) */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -177,7 +212,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
                 <span>Next Earthset (DTE Loss)</span>
                 <span style={{ color: '#22d3ee' }}>±{earthsetWindow.uncertainty_hours}h band</span>
               </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#67e8f9', margin: '4px 0' }}>
+              <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#a5f3fc', margin: '4px 0' }}>
                 in {earthsetWindow.nominal_hours}h
               </div>
               <div style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>
@@ -196,7 +231,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
                 <span>Next Earthrise (DTE Reconnect)</span>
                 <span style={{ color: '#34d399' }}>±{earthriseWindow.uncertainty_hours}h band</span>
               </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#6ee7b7', margin: '4px 0' }}>
+              <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#a7f3d0', margin: '4px 0' }}>
                 in {earthriseWindow.nominal_hours}h
               </div>
               <div style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>
@@ -210,6 +245,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
 
         </div>
       </div>
+
     </div>
   );
 };
