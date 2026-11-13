@@ -19,3 +19,12 @@ pipeline/data/
 pipeline/dev_sites.json
 web/public/data/masks/dev_*
 web/public/data/tiles/dev_*
+
+   pipeline/dev_sites.json
+   pipeline/data/
+   pipeline/out/
+   web/public/data/masks/dev_*
+   web/public/data/tiles/dev_*
+   web/public/data/nbhd/dev_*
+   *.tif
+   *.TIF
