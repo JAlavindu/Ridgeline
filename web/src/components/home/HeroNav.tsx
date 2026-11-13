@@ -5,7 +5,7 @@ export default function HeroNav() {
       <div className="logo">RIDGELINE</div>
 
       <nav className="hero-links" aria-label="Main navigation">
-        <a href="#interactive-moon">EXPLORE</a>
+        <a href="#navigator">EXPLORE</a>
         <a href="#south-pole">SOUTH POLE</a>
         <a href="#how-it-works">HOW IT WORKS</a>
       </nav>
