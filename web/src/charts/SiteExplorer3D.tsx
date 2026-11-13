@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { TileData3D, SkyState, AppMode } from '../types';
-import { Box, Layers, Eye, Mountain } from 'lucide-react';
+import { Box, Layers, Eye, Mountain, Maximize2, Minimize2 } from 'lucide-react';
 
 interface SiteExplorer3DProps {
   tileData: TileData3D;
@@ -128,6 +128,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
   const [verticalExag, setVerticalExag] = useState<number>(1.8);
   const [realDemLoaded, setRealDemLoaded] = useState<boolean>(false);
   const [loadingDem, setLoadingDem] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Loaded real DEM data cache
   const [loadedTile, setLoadedTile] = useState<LoadedTerrainTile | null>(null);
@@ -288,7 +289,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
     if (!mountRef.current) return;
     const container = mountRef.current;
     const width = container.clientWidth;
-    const height = 400;
+    const height = isFullscreen ? window.innerHeight - 140 : 400;
 
     // 1. Scene
     const scene = new THREE.Scene();
@@ -524,11 +525,21 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
       updateCameraPos();
     };
 
+    const onResize = () => {
+      if (!mountRef.current || !rendererRef.current) return;
+      const newWidth = mountRef.current.clientWidth;
+      const newHeight = isFullscreen ? window.innerHeight - 140 : 400;
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      rendererRef.current.setSize(newWidth, newHeight);
+    };
+
     const dom = renderer.domElement;
     dom.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
     dom.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('resize', onResize);
 
     // 9. Render & Animation Loop
     let animId: number;
@@ -552,6 +563,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       dom.removeEventListener('wheel', onWheel);
+      window.removeEventListener('resize', onResize);
       renderer.dispose();
       planeGeom.dispose();
       planeMat.dispose();
@@ -560,7 +572,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
       earthGeom.dispose();
       earthMat.dispose();
     };
-  }, [loadedTile, verticalExag, colorMode]);
+  }, [loadedTile, verticalExag, colorMode, isFullscreen]);
 
   // 3. Update Material and Shaders when ColorMode changes
   useEffect(() => {
@@ -686,7 +698,27 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
   }, [skyState, showVectors]);
 
   return (
-    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '0px', padding: '18px', color: '#f8fafc' }}>
+    <div
+      style={{
+        background: '#040404',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        borderRadius: '0px',
+        padding: '18px',
+        color: '#f8fafc',
+        position: isFullscreen ? 'fixed' : 'relative',
+        top: isFullscreen ? 0 : 'auto',
+        left: isFullscreen ? 0 : 'auto',
+        right: isFullscreen ? 0 : 'auto',
+        bottom: isFullscreen ? 0 : 'auto',
+        zIndex: isFullscreen ? 9999 : 1,
+        height: isFullscreen ? '100vh' : 'auto',
+        display: isFullscreen ? 'flex' : 'block',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        boxSizing: 'border-box',
+        overflow: isFullscreen ? 'hidden' : 'visible',
+      }}
+    >
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
@@ -714,7 +746,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
         </div>
 
         {/* View Mode & Shading Controls */}
-        <div style={{ display: 'flex', gap: '6px', fontSize: '0.75rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', fontSize: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {(['photorealistic', 'elevation', 'slope', 'sunlight'] as ColorMode[]).map((modeKey) => (
             <button
               key={modeKey}
@@ -742,16 +774,40 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
               {modeKey}
             </button>
           ))}
+
+          {/* Fullscreen Button */}
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#141414',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#fff',
+              padding: '5px 12px',
+              fontSize: '0.7rem',
+              fontFamily: 'Michroma, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              cursor: 'pointer',
+              marginLeft: '6px',
+            }}
+          >
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+            <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+          </button>
         </div>
       </div>
 
       {/* 3D WebGL Canvas Container */}
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', flex: isFullscreen ? 1 : 'none' }}>
         <div
           ref={mountRef}
           style={{
             width: '100%',
-            height: '400px',
+            height: isFullscreen ? 'calc(100vh - 150px)' : '400px',
             background: '#000000',
             borderRadius: '0px',
             overflow: 'hidden',
