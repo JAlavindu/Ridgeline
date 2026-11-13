@@ -1,0 +1,16 @@
+{
+ "id": "im1",
+ "lat": -80.13,
+ "lon": 1.44,
+ "projection": "aeqd centred on the site, R=1737400",
+ "n": 501,
+ "step_m": 60,
+ "half_m": 15000,
+ "dtype": "int16",
+ "byte_order": "little",
+ "units": "metres above the 1737.4 km reference sphere",
+ "nodata": -32768,
+ "orientation": "row 0 = north (top), column 0 = west (left); azimuth 0 = up",
+ "height_min_m": 1606.3848876953125,
+ "height_max_m": 2962.7353515625
+}

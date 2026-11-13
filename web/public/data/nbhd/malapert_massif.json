@@ -1,0 +1,24 @@
+{
+ "id": "malapert_massif",
+ "lat": -85.964,
+ "lon": 357.681,
+ "n": 101,
+ "step_m": 60,
+ "half_m": 3000,
+ "orientation": "row 0 = north (top), column 0 = west (left); same grid as tiles/<id>.json",
+ "colormap": "viridis",
+ "vmin": 0,
+ "vmax": 1,
+ "legend": "fraction of time the Sun is above the horizon (0 = never, 1 = always)",
+ "sun_at_site": 0.6095,
+ "earth_at_site": 0.9384,
+ "sun_crop_median": 0.4088,
+ "earth_crop_median": 0.8983,
+ "crop_coverage": 1.0,
+ "files": [
+  "AVGVISIB_85S_060M_201608.TIF",
+  "AVGVISIB_85S_060M_201608_EARTH.TIF"
+ ],
+ "source": "NASA GSFC PGDA product 69 (LOLA; Mazarico et al. 2011): average over the lunar nutation cycle (about 18.6 years), hourly steps, at ground level",
+ "earth_rule": "Earth counts as visible if any part of its disc is above the horizon"
+}

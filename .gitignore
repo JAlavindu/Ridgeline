@@ -11,11 +11,14 @@ __pycache__/
 pipeline/kernels/*
 !pipeline/kernels/.gitkeep
 
-# Terrain downloads (large)
+# Terrain and illumination downloads (large)
 pipeline/data/
 *.tif
 *.TIF
 
-pipeline/dev_sites.json
+# M3 scratch outputs and dev-only files
+pipeline/out/
+pipeline/dev_*.json
 web/public/data/masks/dev_*
 web/public/data/tiles/dev_*
+web/public/data/nbhd/dev_*
