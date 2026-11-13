@@ -19,9 +19,13 @@ import {
   ExploreExplainer,
 } from '../charts';
 import type { AppMode, HorizonMask, Site } from '../types';
-import { Moon, Rocket, Eye, Terminal } from 'lucide-react';
+import { Rocket, Eye, Terminal, ArrowLeft } from 'lucide-react';
 
-export const Navigator: React.FC = () => {
+interface NavigatorProps {
+  onBack?: () => void;
+}
+
+export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
   const [sites, setSites] = useState<Site[]>(SAMPLE_SITES);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('connecting_ridge');
   const [mode, setMode] = useState<AppMode>('explore');
@@ -100,178 +104,175 @@ export const Navigator: React.FC = () => {
   const neighbourhoodCrop = useMemo(() => generateNeighbourhoodCrop(activeSite), [activeSite]);
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '30px 24px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      
-      {/* Top Navbar */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #1e293b', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(245, 158, 11, 0.4)' }}>
-            <Moon size={24} color="#0b1120" />
-          </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700, letterSpacing: '-0.5px', color: '#f8fafc' }}>
-              Ridgeline <span style={{ color: '#38bdf8', fontWeight: 400 }}>| Lunar Landing Site Navigator</span>
-            </h1>
-            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>
-              NASA Space Apps Challenge 2026 • Visualization Engineer Module (M4)
-            </p>
-          </div>
-        </div>
+    <div className="relative min-h-screen bg-[#020202] text-white font-['Space_Grotesk'] overflow-x-hidden selection:bg-[#ff3d18] selection:text-white">
+      {/* Background Ambience consistent with Lunar Hero */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0 bg-no-repeat opacity-40"
+        style={{
+          backgroundImage: "url('/images/1.avif')",
+          backgroundSize: '100% 100%',
+          backgroundPosition: 'center',
+        }}
+      />
+      <div className="pointer-events-none fixed inset-0 z-[1] bg-black/60" />
 
-        {/* Site Selector & Mode Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          {/* Site Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Rocket size={16} color="#38bdf8" />
-            <select
-              value={selectedSiteId}
-              onChange={(e) => {
-                setSelectedSiteId(e.target.value);
-                setHoursOffset(0);
-                setSlipDays(0);
-              }}
-              style={{
-                background: '#0f172a',
-                color: '#f8fafc',
-                border: '1px solid #334155',
-                borderRadius: '8px',
-                padding: '7px 12px',
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name} ({site.lat.toFixed(1)}° Lat)
-                </option>
-              ))}
-            </select>
-            {loadedMask && (
-              <span style={{ fontSize: '0.72rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '6px', padding: '4px 8px', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                DEM Mask: {loadedMask.az_step_deg}° ({loadedMask.elev_deg.length} pts)
-              </span>
+      {/* Subtle coordinate guide lines */}
+      <div className="pointer-events-none fixed inset-0 z-[2] space-grid opacity-20" />
+
+      <div className="relative z-10 max-w-[1440px] mx-auto px-6 py-8 md:px-12">
+        {/* Navigation Bar matching Ridgeline Theme */}
+        <header className="flex flex-wrap items-center justify-between pb-6 mb-8 border-b border-white/15 gap-4">
+          <div className="flex items-center gap-6">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-2 px-3 py-2 text-[10px] font-['Michroma'] uppercase tracking-[1px] bg-white/10 hover:bg-white hover:text-black border border-white/20 transition duration-200"
+              >
+                <ArrowLeft size={13} />
+                <span>Return to Orbit</span>
+              </button>
             )}
+            <div>
+              <div className="font-['Michroma'] text-[13px] tracking-[2px] uppercase text-white flex items-center gap-2">
+                RIDGELINE <span className="opacity-40 italic font-light text-[11px]">| NAVIGATOR</span>
+              </div>
+              <p className="mt-1 text-[10px] text-white/50 tracking-[0.5px]">
+                LUNAR SOUTH POLE SOLAR ILLUMINATION & CONTACT TIMELINE
+              </p>
+            </div>
           </div>
 
-          {/* Mode Switch (Explore vs Plan) */}
-          <div style={{ display: 'flex', background: '#0f172a', borderRadius: '8px', padding: '3px', border: '1px solid #334155' }}>
-            <button
-              onClick={() => setMode('explore')}
-              style={{
-                background: mode === 'explore' ? '#2563eb' : 'transparent',
-                color: mode === 'explore' ? '#fff' : '#94a3b8',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 14px',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                fontWeight: mode === 'explore' ? 600 : 400,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
-              <Eye size={14} />
-              Explore Mode
-            </button>
-            <button
-              onClick={() => setMode('plan')}
-              style={{
-                background: mode === 'plan' ? '#2563eb' : 'transparent',
-                color: mode === 'plan' ? '#fff' : '#94a3b8',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 14px',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                fontWeight: mode === 'plan' ? 600 : 400,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
-              <Terminal size={14} />
-              Plan Mode (Eng)
-            </button>
+          {/* Controls: Site Selector & Mode Toggle */}
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Site Dropdown */}
+            <div className="flex items-center gap-2 bg-black/70 border border-white/20 px-3 py-1.5">
+              <Rocket size={13} className="text-[#ff3d18]" />
+              <select
+                value={selectedSiteId}
+                onChange={(e) => {
+                  setSelectedSiteId(e.target.value);
+                  setHoursOffset(0);
+                  setSlipDays(0);
+                }}
+                className="bg-transparent text-white text-[11px] font-medium outline-none cursor-pointer tracking-[0.5px]"
+              >
+                {sites.map((site) => (
+                  <option key={site.id} value={site.id} className="bg-[#111] text-white">
+                    {site.name} ({site.lat.toFixed(1)}° Lat)
+                  </option>
+                ))}
+              </select>
+              {loadedMask && (
+                <span className="text-[8px] font-['Michroma'] bg-[#ff3d18]/20 text-[#ff7052] border border-[#ff3d18]/40 px-2 py-0.5 uppercase tracking-[0.5px]">
+                  LOLA DEM {loadedMask.az_step_deg}° ({loadedMask.elev_deg.length} PTS)
+                </span>
+              )}
+            </div>
+
+            {/* Mode Switch (Explore vs Plan) */}
+            <div className="flex border border-white/20 bg-black/60 p-0.5">
+              <button
+                type="button"
+                onClick={() => setMode('explore')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-['Michroma'] tracking-[1px] uppercase transition ${
+                  mode === 'explore'
+                    ? 'bg-white text-black font-semibold'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Eye size={12} />
+                Explore
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('plan')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-['Michroma'] tracking-[1px] uppercase transition ${
+                  mode === 'plan'
+                    ? 'bg-[#ff3d18] text-white font-semibold'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Terminal size={12} />
+                Plan (Eng)
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Grid Workspace */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        
-        {/* Row 1: Now Panel (Solar Elevation Readout + Uncertainty Windows F8) */}
-        <SolarElevationReadout
-          skyState={skyState}
-          countdowns={countdowns}
-          siteLat={activeSite.lat}
-          siteName={activeSite.name}
-          mode={mode}
-        />
-
-        {/* Row 2: 360° Horizon Skyline Panorama */}
-        <Panorama
-          mask={mask}
-          skyState={skyState}
-          hoursOffset={hoursOffset}
-          onHoursChange={setHoursOffset}
-          mode={mode}
-          siteName={activeSite.name}
-        />
-
-        {/* Row 3: Timelines (Multi-layer Sunlit, DTE contact, Eclipse) */}
-        <Timelines
-          timelineData={timelineData}
-          currentHoursOffset={hoursOffset}
-          onSelectHours={setHoursOffset}
-          siteName={activeSite.name}
-          mode={mode}
-        />
-
-        {/* Row 4: Two Columns (3D Site Explorer & Neighbourhood Map) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: '20px' }}>
-          <SiteExplorer3D
-            tileData={tile3D}
+        {/* Dashboard Content */}
+        <div className="flex flex-col gap-8">
+          {/* Row 1: Now Panel (Solar Elevation Readout + Uncertainty Windows F8) */}
+          <SolarElevationReadout
             skyState={skyState}
+            countdowns={countdowns}
+            siteLat={activeSite.lat}
             siteName={activeSite.name}
             mode={mode}
           />
-          <NeighbourhoodMap
-            crop={neighbourhoodCrop}
+
+          {/* Row 2: 360° Horizon Skyline Panorama */}
+          <Panorama
+            mask={mask}
+            skyState={skyState}
+            hoursOffset={hoursOffset}
+            onHoursChange={setHoursOffset}
+            mode={mode}
+            siteName={activeSite.name}
+          />
+
+          {/* Row 3: Timelines (Multi-layer Sunlit, DTE contact, Eclipse) */}
+          <Timelines
+            timelineData={timelineData}
+            currentHoursOffset={hoursOffset}
+            onSelectHours={setHoursOffset}
+            siteName={activeSite.name}
+            mode={mode}
+          />
+
+          {/* Row 4: Two Columns (3D Site Explorer & Neighbourhood Map) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <SiteExplorer3D
+              tileData={tile3D}
+              skyState={skyState}
+              siteName={activeSite.name}
+              mode={mode}
+            />
+            <NeighbourhoodMap
+              crop={neighbourhoodCrop}
+              siteLat={activeSite.lat}
+              siteLon={activeSite.lon}
+              siteName={activeSite.name}
+              mode={mode}
+            />
+          </div>
+
+          {/* Row 5: Launch-Slip Scenario Chart */}
+          <SlipChart
+            slipData={slipData}
+            currentSlipDays={slipDays}
+            onSlipChange={setSlipDays}
+            siteName={activeSite.name}
+            mode={mode}
+          />
+
+          {/* Row 6: Explore Mode Explainer (Moon vs Earth, F18) */}
+          <ExploreExplainer
             siteLat={activeSite.lat}
             siteLon={activeSite.lon}
-            siteName={activeSite.name}
-            mode={mode}
           />
         </div>
 
-        {/* Row 5: Launch-Slip Scenario Chart */}
-        <SlipChart
-          slipData={slipData}
-          currentSlipDays={slipDays}
-          onSlipChange={setSlipDays}
-          siteName={activeSite.name}
-          mode={mode}
-        />
-
-        {/* Row 6: Explore Mode Explainer (Moon vs Earth, F18) */}
-        <ExploreExplainer
-          siteLat={activeSite.lat}
-          siteLon={activeSite.lon}
-        />
-
+        {/* Footer Consistent with Home Page */}
+        <footer className="mt-16 pt-6 border-t border-white/15 flex flex-wrap justify-between items-center text-[10px] text-white/40 tracking-[0.5px]">
+          <div>
+            <span>Verified against JPL Horizons & NASA PGDA (69, 78, 90) • MOON_ME frame (1737.4 km)</span>
+          </div>
+          <div>
+            <span className="font-['Michroma'] uppercase tracking-[1px] text-white/50">NASA Space Apps Challenge 2026</span>
+          </div>
+        </footer>
       </div>
-
-      {/* Footer */}
-      <footer style={{ marginTop: '30px', paddingTop: '16px', borderTop: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#64748b', flexWrap: 'wrap', gap: '10px' }}>
-        <div>
-          <span>Verified against JPL Horizons & NASA PGDA (69, 78, 90). Reference Sphere: 1737.4 km (MOON_ME).</span>
-        </div>
-        <div>
-          <span>Role M4 — Visualization Engineer Delivery</span>
-        </div>
-      </footer>
     </div>
   );
 };

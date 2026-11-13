@@ -505,7 +505,6 @@ export default function MoonHero() {
 
       <button
         type="button"
-        onClick={() => document.getElementById('navigator')?.scrollIntoView({ behavior: 'smooth' })}
         className="
           absolute
           bottom-[7.5%]
