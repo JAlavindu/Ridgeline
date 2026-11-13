@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   SAMPLE_SITES,
   generateHorizonMask,
@@ -19,7 +19,7 @@ import {
   ExploreExplainer,
 } from '../charts';
 import type { AppMode, HorizonMask, Site } from '../types';
-import { Rocket, Eye, Terminal, ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { Rocket, Eye, Terminal, ArrowLeft, Calendar, Clock, MapPin, Loader2, Sparkles } from 'lucide-react';
 
 interface NavigatorProps {
   onBack?: () => void;
@@ -33,6 +33,65 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
   const [slipDays, setSlipDays] = useState<number>(0);
   const [loadedMask, setLoadedMask] = useState<HorizonMask | null>(null);
 
+  // Custom coordinates state
+  const [showCustomModal, setShowCustomModal] = useState<boolean>(false);
+  const [customLat, setCustomLat] = useState<string>('-89.20');
+  const [customLon, setCustomLon] = useState<string>('145.50');
+  const [isCalculatingCustom, setIsCalculatingCustom] = useState<boolean>(false);
+  const [customError, setCustomError] = useState<string | null>(null);
+
+  const workerRef = useRef<Worker | null>(null);
+
+  // Initialize Web Worker
+  useEffect(() => {
+    try {
+      workerRef.current = new Worker(
+        new URL('../workers/horizonWorker.ts', import.meta.url),
+        { type: 'module' }
+      );
+
+      workerRef.current.onmessage = (e: MessageEvent<{ success: boolean; mask?: HorizonMask; error?: string }>) => {
+        setIsCalculatingCustom(false);
+        if (e.data.success && e.data.mask) {
+          const generatedMask = e.data.mask;
+          setLoadedMask(generatedMask);
+
+          // Create or update custom site in catalog
+          const newCustomSite: Site = {
+            id: generatedMask.site_id || 'custom_point',
+            name: generatedMask.site_name || `Custom (${generatedMask.lat}°S, ${generatedMask.lon}°E)`,
+            program: 'Custom Coordinates',
+            country: 'User Defined',
+            lat: generatedMask.lat ?? -89.2,
+            lon: generatedMask.lon ?? 145.5,
+            height_m: generatedMask.site_height_m ?? 0,
+            status: 'user defined',
+            date: '2026-11-14',
+            coord_source: 'LOLA dem_polar_500m.bin on-demand ray-trace',
+            coord_frame: 'MOON_ME',
+            notes: 'Calculated in browser via M3 Polar 500m DEM',
+          };
+
+          setSites((prev) => {
+            const filtered = prev.filter((s) => s.id !== newCustomSite.id);
+            return [newCustomSite, ...filtered];
+          });
+          setSelectedSiteId(newCustomSite.id);
+          setShowCustomModal(false);
+          setCustomError(null);
+        } else {
+          setCustomError(e.data.error || 'Failed to calculate custom horizon');
+        }
+      };
+    } catch (err) {
+      console.error('Failed to initialize horizon worker:', err);
+    }
+
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, []);
+
   // Fetch full sites catalog from M6 data
   useEffect(() => {
     let isMounted = true;
@@ -42,7 +101,11 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
         if (res.ok) {
           const data: Site[] = await res.json();
           if (isMounted && Array.isArray(data) && data.length > 0) {
-            setSites(data);
+            setSites((prev) => {
+              // preserve any custom added sites
+              const customSites = prev.filter((s) => s.id.startsWith('custom_'));
+              return [...customSites, ...data];
+            });
           }
         }
       } catch {
@@ -79,12 +142,43 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
     const selectedEpochMs = new Date(newIsoString + ':00Z').getTime();
     if (isNaN(selectedEpochMs)) return;
     const diffHours = (selectedEpochMs - siteBaseEpochMs) / (3600 * 1000);
-    // Keep within reasonable synodic bounds or arbitrary selected hour
     setHoursOffset(Math.round(diffHours * 10) / 10);
+  };
+
+  // Run on-demand calculation for custom coordinates
+  const handleComputeCustomPoint = (e: React.FormEvent) => {
+    e.preventDefault();
+    const lat = parseFloat(customLat);
+    const lon = parseFloat(customLon);
+
+    if (isNaN(lat) || isNaN(lon)) {
+      setCustomError('Please enter valid numerical latitude and longitude.');
+      return;
+    }
+
+    if (lat > -75) {
+      setCustomError('Polar 500m DEM covers poleward of -75°S (Latitude must be between -75° and -90°).');
+      return;
+    }
+
+    setIsCalculatingCustom(true);
+    setCustomError(null);
+
+    workerRef.current?.postMessage({
+      lat,
+      lon: ((lon % 360) + 360) % 360,
+      azStepDeg: 0.5,
+      maxRadiusKm: 120,
+    });
   };
 
   // Load real mask JSON if available (from M3 terrain outputs)
   useEffect(() => {
+    // If active site is custom and mask already matches, don't overwrite
+    if (activeSite.id.startsWith('custom_') && loadedMask && loadedMask.site_id === activeSite.id) {
+      return;
+    }
+
     let isMounted = true;
     const candidates = [
       `/data/masks/${activeSite.id}.json`,
@@ -106,7 +200,7 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
           // Continue to next candidate
         }
       }
-      if (isMounted) {
+      if (isMounted && !activeSite.id.startsWith('custom_')) {
         setLoadedMask(null);
       }
     }
@@ -115,7 +209,7 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
     return () => {
       isMounted = false;
     };
-  }, [activeSite.id]);
+  }, [activeSite.id, loadedMask]);
 
   // Derived datasets for visualization components
   const mask = useMemo(() => loadedMask || generateHorizonMask(activeSite), [loadedMask, activeSite]);
@@ -166,7 +260,7 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Controls: Site Selector, Date/Time Picker & Mode Toggle */}
+          {/* Controls: Site Selector, Custom Coordinate Button, Date/Time Picker & Mode Toggle */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Site Dropdown */}
             <div className="flex items-center gap-2 bg-black/70 border border-white/20 px-3 py-1.5">
@@ -188,10 +282,21 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
               </select>
               {loadedMask && (
                 <span className="text-[8px] font-['Michroma'] bg-[#ff3d18]/20 text-[#ff7052] border border-[#ff3d18]/40 px-2 py-0.5 uppercase tracking-[0.5px]">
-                  LOLA DEM {loadedMask.az_step_deg}° ({loadedMask.elev_deg.length} PTS)
+                  {loadedMask.dems_used?.includes('dem_polar_500m.bin') ? 'POLAR 500M DEM' : `LOLA DEM ${loadedMask.az_step_deg}°`}
                 </span>
               )}
             </div>
+
+            {/* Custom Coordinates Trigger Button */}
+            <button
+              type="button"
+              onClick={() => setShowCustomModal(true)}
+              className="flex items-center gap-2 bg-white/10 hover:bg-white hover:text-black border border-white/25 px-3 py-2 text-[10px] font-['Michroma'] uppercase tracking-[1px] transition"
+              title="Calculate on-demand for any custom lunar coordinates"
+            >
+              <MapPin size={12} className="text-[#ff3d18]" />
+              <span>Custom Point</span>
+            </button>
 
             {/* Date & Time Picker */}
             <div className="flex items-center gap-2 bg-black/70 border border-white/20 px-3 py-1.5">
@@ -242,6 +347,98 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
             </div>
           </div>
         </header>
+
+        {/* Custom Point Modal Popup */}
+        {showCustomModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md bg-[#0a0a0a] border border-white/20 p-6 shadow-2xl relative">
+              <div className="flex items-center justify-between pb-4 border-b border-white/15 mb-4">
+                <div className="flex items-center gap-2 font-['Michroma'] text-[12px] uppercase tracking-[1px] text-white">
+                  <Sparkles size={14} className="text-[#ff3d18]" />
+                  <span>Custom Lunar Point Calculation</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomModal(false)}
+                  className="text-white/50 hover:text-white text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="text-[11px] text-white/60 mb-4 leading-relaxed">
+                Enter any coordinates poleward of <span className="text-white font-mono">-75°S</span>. The browser will ray-trace 720 horizon angles directly from Thiran&apos;s <span className="text-[#ff4d2b] font-mono">dem_polar_500m.bin</span> in real time.
+              </p>
+
+              <form onSubmit={handleComputeCustomPoint} className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[8px] font-['Michroma'] uppercase tracking-[1px] text-white/50 mb-1">
+                      Latitude (°S, -75 to -90)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="-90"
+                      max="-75"
+                      value={customLat}
+                      onChange={(e) => setCustomLat(e.target.value)}
+                      placeholder="-89.4"
+                      className="w-full bg-black/80 border border-white/20 px-3 py-2 text-white font-mono text-[12px] outline-none focus:border-[#ff3d18]"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-['Michroma'] uppercase tracking-[1px] text-white/50 mb-1">
+                      Longitude (°E, 0 to 360)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="-360"
+                      max="360"
+                      value={customLon}
+                      onChange={(e) => setCustomLon(e.target.value)}
+                      placeholder="145.2"
+                      className="w-full bg-black/80 border border-white/20 px-3 py-2 text-white font-mono text-[12px] outline-none focus:border-[#ff3d18]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {customError && (
+                  <div className="text-[10px] text-red-400 bg-red-950/40 border border-red-800/60 p-2">
+                    {customError}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomModal(false)}
+                    className="px-4 py-2 text-[10px] font-['Michroma'] uppercase tracking-[1px] text-white/60 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCalculatingCustom}
+                    className="flex items-center gap-2 bg-[#ff3d18] hover:bg-[#ff4d2b] disabled:bg-[#ff3d18]/50 text-white px-5 py-2 text-[10px] font-['Michroma'] uppercase tracking-[1px] transition"
+                  >
+                    {isCalculatingCustom ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>Ray-Tracing 500m DEM...</span>
+                      </>
+                    ) : (
+                      <span>Trace Horizon & Evaluate</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Dashboard Content */}
         <div className="flex flex-col gap-8">
