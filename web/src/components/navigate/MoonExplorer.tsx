@@ -39,32 +39,16 @@ export default function MoonExplorer({ selectedSite, sites, onSelectSite }: Moon
         <div className="relative min-h-[340px] sm:min-h-[480px]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.11),transparent_55%)]" />
           <div className="absolute inset-0">
-            <MoonCanvas className="!h-full !w-full" />
+            <MoonCanvas
+              className="!h-full !w-full"
+              selectedSite={selectedSite}
+              sites={sites}
+              onSelectSite={onSelectSite}
+            />
           </div>
           <div className="pointer-events-none absolute inset-x-[8%] top-1/2 h-px bg-white/10" />
           <div className="pointer-events-none absolute inset-y-[8%] left-1/2 w-px bg-white/10" />
           <div className="absolute bottom-3 right-2 text-right text-[7px] uppercase tracking-[2px] text-white/35">Mission markers · selectable</div>
-          <div className="pointer-events-none absolute inset-0" aria-label="Select a lunar mission">
-            {sites.map((site, index) => {
-              const angle = (index / sites.length) * Math.PI * 2 - Math.PI / 2;
-              const left = 50 + Math.cos(angle) * 40;
-              const top = 50 + Math.sin(angle) * 39;
-              const active = site.id === selectedSite.id;
-              return (
-                <button
-                  type="button"
-                  key={site.id}
-                  aria-label={`Select ${site.name}`}
-                  aria-pressed={active}
-                  onClick={() => onSelectSite(site.id)}
-                  style={{ left: `${left}%`, top: `${top}%` }}
-                  className={`pointer-events-auto absolute z-10 grid h-5 w-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${active ? "border-[#ff3b12] bg-[#ff3b12]/30 shadow-[0_0_14px_rgba(255,59,18,0.65)]" : "border-white/35 bg-black/70 hover:border-[#ff3b12]"}`}
-                >
-                  <span className={`h-1 w-1 rounded-full ${active ? "bg-[#ff3b12]" : "bg-white/70"}`} />
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
     </section>
