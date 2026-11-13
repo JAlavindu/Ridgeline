@@ -16,3 +16,8 @@ pipeline/data/
 *.tif
 *.TIF
 
+# Web
+node_modules/
+web/dist/
+
+
