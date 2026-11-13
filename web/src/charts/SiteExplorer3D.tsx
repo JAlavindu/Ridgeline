@@ -39,7 +39,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
 
     // 1. Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020617);
+    scene.background = new THREE.Color(0x000000);
     sceneRef.current = scene;
 
     // 2. Camera
@@ -269,7 +269,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
   }, [skyState, showVectors]);
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
@@ -278,7 +278,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
               <Box size={20} color="#38bdf8" />
               3D Site Topography & Directional Vector Explorer
             </h3>
-            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8' }}>
+            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#141414', color: '#ff4d2b' }}>
               {siteName}
             </span>
           </div>
@@ -296,8 +296,8 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
               style={{
                 background: colorMode === modeKey ? '#2563eb' : '#1e293b',
                 color: colorMode === modeKey ? '#ffffff' : '#94a3b8',
-                border: '1px solid #334155',
-                borderRadius: '6px',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                borderRadius: '0px',
                 padding: '5px 10px',
                 cursor: 'pointer',
                 textTransform: 'capitalize',
@@ -317,9 +317,9 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
           position: 'relative',
           width: '100%',
           height: '340px',
-          borderRadius: '8px',
+          borderRadius: '0px',
           overflow: 'hidden',
-          border: '1px solid #1e293b',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
           cursor: 'grab',
         }}
       />

@@ -26,7 +26,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
   const earthriseWindow = countdowns.find((c) => c.event === 'earthrise');
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
         <div>
@@ -38,7 +38,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
             {siteName} • {mode === 'explore' ? 'Instantaneous solar geometry & countdown windows' : 'Verified ephemeris state & uncertainty countdown bounds (F8)'}
           </p>
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#38bdf8', background: '#1e293b', padding: '3px 10px', borderRadius: '4px' }}>
+        <div style={{ fontSize: '0.75rem', color: '#ff4d2b', background: '#141414', padding: '3px 10px', borderRadius: '4px' }}>
           {isPolar ? 'Polar Site Mode (Windowed Events F8)' : 'Equatorial Mode'}
         </div>
       </div>
@@ -47,7 +47,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '16px' }}>
         
         {/* Card 1: Solar Elevation (Headline Challenge Metric) */}
-        <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ background: '#0a0a0a', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '0px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Solar Elevation
@@ -64,14 +64,14 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
             </span>
           </div>
 
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1e293b', paddingTop: '8px' }}>
+          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '8px' }}>
             <span>Terrain Skyline: <strong>{skyState.terrain_elev_at_sun_az.toFixed(2)}°</strong></span>
             <span>Azimuth: <strong>{skyState.sun.az_deg.toFixed(1)}°</strong></span>
           </div>
         </div>
 
         {/* Card 2: Solar Disc & Power Flux */}
-        <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ background: '#0a0a0a', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '0px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Sun Disc & Power Flux
@@ -88,14 +88,14 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
             </span>
           </div>
 
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1e293b', paddingTop: '8px' }}>
+          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '8px' }}>
             <span>Direct Flux: <strong style={{ color: '#fbbf24' }}>{skyState.solar_flux_w_m2} W/m²</strong></span>
             <span>Solar Constant: 1361 W/m²</span>
           </div>
         </div>
 
         {/* Card 3: Earth Elevation & Libration */}
-        <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ background: '#0a0a0a', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '0px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Earth LOS & Elevation
@@ -112,7 +112,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
             </span>
           </div>
 
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1e293b', paddingTop: '8px' }}>
+          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '8px' }}>
             <span>Range: <strong>{skyState.earth.dist_km.toLocaleString()} km</strong></span>
             <span>Parallax: <strong>0.28°</strong></span>
           </div>
@@ -134,7 +134,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
           
           {/* Sunset Window */}
           {sunsetWindow && (
-            <div style={{ background: '#020617', border: '1px solid #1e293b', borderLeft: '3px solid #f59e0b', borderRadius: '8px', padding: '10px' }}>
+            <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.12)', borderLeft: '3px solid #f59e0b', borderRadius: '0px', padding: '10px' }}>
               <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
                 <span>Next Sunset</span>
                 <span style={{ color: '#fbbf24' }}>±{sunsetWindow.uncertainty_hours}h band</span>
@@ -153,7 +153,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
 
           {/* Sunrise Window */}
           {sunriseWindow && (
-            <div style={{ background: '#020617', border: '1px solid #1e293b', borderLeft: '3px solid #3b82f6', borderRadius: '8px', padding: '10px' }}>
+            <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.12)', borderLeft: '3px solid #3b82f6', borderRadius: '0px', padding: '10px' }}>
               <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
                 <span>Next Sunrise</span>
                 <span style={{ color: '#60a5fa' }}>±{sunriseWindow.uncertainty_hours}h band</span>
@@ -172,7 +172,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
 
           {/* Earthset Window */}
           {earthsetWindow && (
-            <div style={{ background: '#020617', border: '1px solid #1e293b', borderLeft: '3px solid #06b6d4', borderRadius: '8px', padding: '10px' }}>
+            <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.12)', borderLeft: '3px solid #06b6d4', borderRadius: '0px', padding: '10px' }}>
               <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
                 <span>Next Earthset (DTE Loss)</span>
                 <span style={{ color: '#22d3ee' }}>±{earthsetWindow.uncertainty_hours}h band</span>
@@ -191,7 +191,7 @@ export const SolarElevationReadout: React.FC<SolarElevationReadoutProps> = ({
 
           {/* Earthrise Window */}
           {earthriseWindow && (
-            <div style={{ background: '#020617', border: '1px solid #1e293b', borderLeft: '3px solid #10b981', borderRadius: '8px', padding: '10px' }}>
+            <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.12)', borderLeft: '3px solid #10b981', borderRadius: '0px', padding: '10px' }}>
               <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
                 <span>Next Earthrise (DTE Reconnect)</span>
                 <span style={{ color: '#34d399' }}>±{earthriseWindow.uncertainty_hours}h band</span>

@@ -42,7 +42,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
   const hoveredData = hoverIndex !== null ? timelineData[hoverIndex] : timelineData[activeIndex];
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Title & Summary */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
@@ -50,7 +50,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: '#f1f5f9' }}>
               Mission Illumination & Contact Timelines
             </h3>
-            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8' }}>
+            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#141414', color: '#ff4d2b' }}>
               {siteName} (15 Days / 360h)
             </span>
           </div>
@@ -61,20 +61,20 @@ export const Timelines: React.FC<TimelinesProps> = ({
 
         {/* Quick summary badges */}
         <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
-          <div style={{ background: '#1e293b', padding: '4px 10px', borderRadius: '6px', borderLeft: '3px solid #fbbf24' }}>
+          <div style={{ background: '#141414', padding: '4px 10px', borderRadius: '0px', borderLeft: '3px solid #fbbf24' }}>
             <span style={{ color: '#94a3b8' }}>Sunlit: </span>
             <strong style={{ color: '#fbbf24' }}>{sunlitPct}%</strong>
           </div>
-          <div style={{ background: '#1e293b', padding: '4px 10px', borderRadius: '6px', borderLeft: '3px solid #38bdf8' }}>
+          <div style={{ background: '#141414', padding: '4px 10px', borderRadius: '0px', borderLeft: '3px solid #38bdf8' }}>
             <span style={{ color: '#94a3b8' }}>DTE Contact: </span>
-            <strong style={{ color: '#38bdf8' }}>{earthPct}%</strong>
+            <strong style={{ color: '#ff4d2b' }}>{earthPct}%</strong>
           </div>
-          <div style={{ background: '#1e293b', padding: '4px 10px', borderRadius: '6px', borderLeft: '3px solid #34d399' }}>
+          <div style={{ background: '#141414', padding: '4px 10px', borderRadius: '0px', borderLeft: '3px solid #34d399' }}>
             <span style={{ color: '#94a3b8' }}>Both (Prime): </span>
             <strong style={{ color: '#34d399' }}>{bothPct}%</strong>
           </div>
           {eclipseCount > 0 && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.15)', padding: '4px 10px', borderRadius: '6px', borderLeft: '3px solid #ef4444' }}>
+            <div style={{ background: 'rgba(239, 68, 68, 0.15)', padding: '4px 10px', borderRadius: '0px', borderLeft: '3px solid #ef4444' }}>
               <strong style={{ color: '#f87171' }}>Eclipse Event</strong>
             </div>
           )}
@@ -82,7 +82,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
       </div>
 
       {/* Main Timeline Graphic */}
-      <div style={{ background: '#020617', padding: '12px', borderRadius: '8px', border: '1px solid #1e293b', position: 'relative' }}>
+      <div style={{ background: '#000000', padding: '12px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)', position: 'relative' }}>
         
         {/* Layer 1: Sunlight Bar */}
         <div style={{ marginBottom: '10px' }}>
@@ -101,7 +101,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
               borderRadius: '4px',
               overflow: 'hidden',
               cursor: 'pointer',
-              border: '1px solid #334155',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
             {timelineData.map((d, idx) => {
@@ -146,7 +146,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
               borderRadius: '4px',
               overflow: 'hidden',
               cursor: 'pointer',
-              border: '1px solid #334155',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
             {timelineData.map((d, idx) => (
@@ -157,7 +157,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
                 onMouseLeave={() => setHoverIndex(null)}
                 style={{
                   flex: 1,
-                  background: d.is_earth_visible ? '#0284c7' : '#0f172a',
+                  background: d.is_earth_visible ? '#0284c7' : '#0a0a0a',
                   opacity: hoverIndex === idx ? 0.7 : 1,
                 }}
                 title={`Hour ${idx * stepHours}: Earth ${d.is_earth_visible ? 'Visible' : 'Occluded'}`}
@@ -183,7 +183,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
               borderRadius: '4px',
               overflow: 'hidden',
               cursor: 'pointer',
-              border: '1px solid #334155',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
             {timelineData.map((d, idx) => (
@@ -194,7 +194,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
                 onMouseLeave={() => setHoverIndex(null)}
                 style={{
                   flex: 1,
-                  background: d.is_both ? '#10b981' : '#0f172a',
+                  background: d.is_both ? '#10b981' : '#0a0a0a',
                   opacity: hoverIndex === idx ? 0.7 : 1,
                 }}
                 title={`Hour ${idx * stepHours}: ${d.is_both ? 'Both Available' : 'Not combined'}`}
@@ -246,9 +246,9 @@ export const Timelines: React.FC<TimelinesProps> = ({
         <div
           style={{
             marginTop: '12px',
-            background: '#0f172a',
-            border: '1px solid #1e293b',
-            borderRadius: '6px',
+            background: '#0a0a0a',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '0px',
             padding: '10px 14px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -271,7 +271,7 @@ export const Timelines: React.FC<TimelinesProps> = ({
               Sun El: <strong style={{ color: '#fbbf24' }}>{hoveredData.sun_el}°</strong> (disc: {Math.round(hoveredData.sun_fraction * 100)}%)
             </span>
             <span>
-              Earth El: <strong style={{ color: '#38bdf8' }}>{hoveredData.earth_el}°</strong> ({hoveredData.is_earth_visible ? 'Visible' : 'Blocked'})
+              Earth El: <strong style={{ color: '#ff4d2b' }}>{hoveredData.earth_el}°</strong> ({hoveredData.is_earth_visible ? 'Visible' : 'Blocked'})
             </span>
             <span>
               Status:{' '}

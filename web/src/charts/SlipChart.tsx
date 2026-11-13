@@ -67,7 +67,7 @@ export const SlipChart: React.FC<SlipChartProps> = ({
   }, [slipData]);
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
@@ -76,7 +76,7 @@ export const SlipChart: React.FC<SlipChartProps> = ({
               <TrendingUp size={20} color="#38bdf8" />
               Launch-Slip Scenario Sensitivity (±60 Days)
             </h3>
-            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8' }}>
+            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#141414', color: '#ff4d2b' }}>
               {siteName}
             </span>
           </div>
@@ -103,7 +103,7 @@ export const SlipChart: React.FC<SlipChartProps> = ({
       </div>
 
       {/* SVG Plot */}
-      <div style={{ position: 'relative', width: '100%', height: '230px', background: '#020617', borderRadius: '8px', border: '1px solid #1e293b' }}>
+      <div style={{ position: 'relative', width: '100%', height: '230px', background: '#000000', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
         <svg
           viewBox={`0 0 ${width} ${height}`}
           style={{ width: '100%', height: '100%', cursor: 'pointer' }}
@@ -228,7 +228,7 @@ export const SlipChart: React.FC<SlipChartProps> = ({
       </div>
 
       {/* Slip Slider Control Bar */}
-      <div style={{ marginTop: '14px', background: '#0f172a', padding: '12px 14px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+      <div style={{ marginTop: '14px', background: '#0a0a0a', padding: '12px 14px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
             <Sliders size={16} color="#38bdf8" />
@@ -250,7 +250,7 @@ export const SlipChart: React.FC<SlipChartProps> = ({
               fontSize: '0.75rem',
               fontWeight: 600,
               padding: '4px 10px',
-              borderRadius: '6px',
+              borderRadius: '0px',
               background: activePoint.is_viable ? 'rgba(52, 211, 153, 0.15)' : 'rgba(239, 68, 68, 0.15)',
               color: activePoint.is_viable ? '#34d399' : '#f87171',
               border: `1px solid ${activePoint.is_viable ? '#059669' : '#b91c1c'}`,
@@ -274,25 +274,25 @@ export const SlipChart: React.FC<SlipChartProps> = ({
 
         {/* Detailed Metrics Readout for Selected Slip */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '12px', fontSize: '0.8rem' }}>
-          <div style={{ background: '#020617', padding: '8px 10px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#000000', padding: '8px 10px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <div style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Sunlight Availability</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fbbf24' }}>
               {hoveredPoint.sunlight_percent}%
             </div>
           </div>
-          <div style={{ background: '#020617', padding: '8px 10px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#000000', padding: '8px 10px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <div style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Earth DTE Contact</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#38bdf8' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#ff4d2b' }}>
               {hoveredPoint.earth_visible_percent}%
             </div>
           </div>
-          <div style={{ background: '#020617', padding: '8px 10px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#000000', padding: '8px 10px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <div style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Combined (Power+Comms)</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#34d399' }}>
               {hoveredPoint.combined_percent}%
             </div>
           </div>
-          <div style={{ background: '#020617', padding: '8px 10px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#000000', padding: '8px 10px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <div style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Longest Darkness</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: hoveredPoint.longest_night_hours > 72 ? '#f87171' : '#cbd5e1' }}>
               {hoveredPoint.longest_night_hours}h ({(hoveredPoint.longest_night_hours / 24).toFixed(1)}d)

@@ -50,7 +50,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
     : null;
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
@@ -59,7 +59,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
               <Mountain size={20} color="#38bdf8" />
               6×6 km Polar Neighbourhood Map (NASA PGDA 69)
             </h3>
-            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8' }}>
+            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#141414', color: '#ff4d2b' }}>
               {siteName}
             </span>
           </div>
@@ -72,7 +72,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
         <div style={{ display: 'flex', gap: '8px', fontSize: '0.72rem', alignItems: 'center' }}>
           <span style={{ color: '#94a3b8' }}>Sunlight %:</span>
           <div style={{ display: 'flex', borderRadius: '3px', overflow: 'hidden', height: '12px', width: '90px' }}>
-            <div style={{ flex: 1, background: '#050a14' }} title="0% (PSR)" />
+            <div style={{ flex: 1, background: '#000000' }} title="0% (PSR)" />
             <div style={{ flex: 1, background: '#1e3a8a' }} title="20%" />
             <div style={{ flex: 1, background: '#0284c7' }} title="50%" />
             <div style={{ flex: 1, background: '#d97706' }} title="75%" />
@@ -86,7 +86,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: '14px', alignItems: 'center' }}>
         
         {/* Heatmap Matrix */}
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', maxHeight: '320px', background: '#020617', borderRadius: '8px', overflow: 'hidden', border: '1px solid #1e293b' }}>
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', maxHeight: '320px', background: '#000000', borderRadius: '0px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
           <div
             style={{
               display: 'grid',
@@ -163,7 +163,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
         {/* Info & Relocation Recommendation Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           
-          <div style={{ background: '#0f172a', padding: '12px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#0a0a0a', padding: '12px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Designated Landing Site</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#fbbf24', margin: '2px 0' }}>
               {sitePct}% Avg Sunlight
@@ -174,7 +174,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
           </div>
 
           {hoverDelta ? (
-            <div style={{ background: '#0f172a', padding: '12px', borderRadius: '8px', border: '1px solid #334155' }}>
+            <div style={{ background: '#0a0a0a', padding: '12px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
               <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Navigation size={13} color="#38bdf8" />
                 Hovered Location
@@ -196,7 +196,7 @@ export const NeighbourhoodMap: React.FC<NeighbourhoodMapProps> = ({
               )}
             </div>
           ) : (
-            <div style={{ background: '#0f172a', padding: '12px', borderRadius: '8px', border: '1px solid #1e293b', fontSize: '0.75rem', color: '#94a3b8' }}>
+            <div style={{ background: '#0a0a0a', padding: '12px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)', fontSize: '0.75rem', color: '#94a3b8' }}>
               Hover over nearby terrain on the map to evaluate alternative touchdown spots within 3 km.
             </div>
           )}

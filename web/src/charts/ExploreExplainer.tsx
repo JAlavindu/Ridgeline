@@ -12,7 +12,7 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
   const isPolar = Math.abs(siteLat) > 75;
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
@@ -21,7 +21,7 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
               <Sparkles size={20} color="#fbbf24" />
               Explore Mode — 30-Second "Moon vs Earth" Explainer (Diff 7)
             </h3>
-            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8' }}>
+            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#141414', color: '#ff4d2b' }}>
               Public & Educator Guide
             </span>
           </div>
@@ -31,14 +31,14 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
         </div>
 
         {/* Tab switch */}
-        <div style={{ display: 'flex', gap: '6px', background: '#020617', padding: '3px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+        <div style={{ display: 'flex', gap: '6px', background: '#000000', padding: '3px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
           <button
             onClick={() => setActiveTab('libration')}
             style={{
               background: activeTab === 'libration' ? '#2563eb' : 'transparent',
               color: activeTab === 'libration' ? '#fff' : '#94a3b8',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '0px',
               padding: '6px 12px',
               cursor: 'pointer',
               fontSize: '0.78rem',
@@ -53,7 +53,7 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
               background: activeTab === 'day_cycle' ? '#2563eb' : 'transparent',
               color: activeTab === 'day_cycle' ? '#fff' : '#94a3b8',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '0px',
               padding: '6px 12px',
               cursor: 'pointer',
               fontSize: '0.78rem',
@@ -70,18 +70,18 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', alignItems: 'center' }}>
           
           {/* Visual Canvas of Libration Box */}
-          <div style={{ background: '#020617', border: '1px solid #1e293b', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
+          <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', textAlign: 'center' }}>
             <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '8px' }}>
               Earth's Motion in the Lunar Sky (Libration Box)
             </div>
 
-            <div style={{ position: 'relative', width: '220px', height: '180px', margin: '0 auto', border: '2px dashed #38bdf8', borderRadius: '6px', background: 'rgba(56, 189, 248, 0.05)' }}>
+            <div style={{ position: 'relative', width: '220px', height: '180px', margin: '0 auto', border: '2px dashed #38bdf8', borderRadius: '0px', background: 'rgba(56, 189, 248, 0.05)' }}>
               
               {/* Box Dimension Labels */}
-              <span style={{ position: 'absolute', top: '-18px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', color: '#38bdf8' }}>
+              <span style={{ position: 'absolute', top: '-18px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', color: '#ff4d2b' }}>
                 ±8.16° East–West
               </span>
-              <span style={{ position: 'absolute', right: '-24px', top: '50%', transform: 'translateY(-50%) rotate(90deg)', fontSize: '0.7rem', color: '#38bdf8' }}>
+              <span style={{ position: 'absolute', right: '-24px', top: '50%', transform: 'translateY(-50%) rotate(90deg)', fontSize: '0.7rem', color: '#ff4d2b' }}>
                 ±6.87° N–S
               </span>
 
@@ -130,7 +130,7 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
       {activeTab === 'day_cycle' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', alignItems: 'center' }}>
           
-          <div style={{ background: '#020617', border: '1px solid #1e293b', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
+          <div style={{ background: '#000000', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', textAlign: 'center' }}>
             <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '8px' }}>
               Sidereal (27.3d) vs Synodic (29.5d) Lunar Cycle
             </div>
@@ -153,7 +153,7 @@ export const ExploreExplainer: React.FC<ExploreExplainerProps> = ({ siteLat, sit
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#0284c7', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px #38bdf8' }}>
                   <Globe size={22} color="#fff" />
                 </div>
-                <span style={{ fontSize: '0.72rem', color: '#38bdf8' }}>Earth + Moon Orbit</span>
+                <span style={{ fontSize: '0.72rem', color: '#ff4d2b' }}>Earth + Moon Orbit</span>
               </div>
             </div>
 

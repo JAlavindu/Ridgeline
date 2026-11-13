@@ -108,7 +108,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
   }, [skyState]);
 
   return (
-    <div style={{ background: '#0b1120', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px', color: '#f8fafc' }}>
+    <div style={{ background: '#040404', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '0px', padding: '16px', color: '#f8fafc' }}>
       {/* Header & Mode info */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div>
@@ -116,7 +116,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: '#f1f5f9' }}>
               360° Horizon Skyline Panorama
             </h3>
-            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8' }}>
+            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#141414', color: '#ff4d2b' }}>
               {siteName}
             </span>
           </div>
@@ -147,7 +147,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
       </div>
 
       {/* Panorama SVG Viewport */}
-      <div style={{ position: 'relative', width: '100%', height: '320px', background: 'linear-gradient(to top, #020617 0%, #090d16 60%, #030712 100%)', borderRadius: '8px', overflow: 'hidden', border: '1px solid #1e293b' }}>
+      <div style={{ position: 'relative', width: '100%', height: '320px', background: 'linear-gradient(to top, #000000 0%, #050505 60%, #000000 100%)', borderRadius: '0px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
         <svg
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="none"
@@ -328,7 +328,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
               transform: 'translateX(-50%)',
               background: 'rgba(15, 23, 42, 0.9)',
               border: '1px solid #38bdf8',
-              borderRadius: '6px',
+              borderRadius: '0px',
               padding: '4px 8px',
               fontSize: '0.75rem',
               color: '#f8fafc',
@@ -346,7 +346,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
         style={{
           marginTop: '10px',
           padding: '8px 12px',
-          borderRadius: '6px',
+          borderRadius: '0px',
           background: mode === 'explore' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(30, 41, 59, 0.5)',
           borderLeft: `3px solid ${skyState.sun_visible_fraction > 0 ? '#fbbf24' : '#64748b'}`,
           fontSize: '0.85rem',
@@ -364,14 +364,14 @@ export const Panorama: React.FC<PanoramaProps> = ({
       </div>
 
       {/* Time Animation Controls & Slider */}
-      <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '14px', background: '#0f172a', padding: '10px 14px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+      <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '14px', background: '#0a0a0a', padding: '10px 14px', borderRadius: '0px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           style={{
             background: isPlaying ? '#dc2626' : '#2563eb',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '0px',
             padding: '6px 12px',
             cursor: 'pointer',
             display: 'flex',
@@ -389,10 +389,10 @@ export const Panorama: React.FC<PanoramaProps> = ({
           onClick={() => onHoursChange(0)}
           title="Reset to Landing Time"
           style={{
-            background: '#1e293b',
+            background: '#141414',
             color: '#94a3b8',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '0px',
             padding: '6px 10px',
             cursor: 'pointer',
             display: 'flex',
@@ -405,7 +405,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
         <button
           onClick={() => onHoursChange(Math.max(0, hoursOffset - 6))}
           title="-6 Hours"
-          style={{ background: '#1e293b', color: '#cbd5e1', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer' }}
+          style={{ background: '#141414', color: '#cbd5e1', border: 'none', borderRadius: '0px', padding: '6px', cursor: 'pointer' }}
         >
           <ChevronLeft size={16} />
         </button>
@@ -413,7 +413,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
         <button
           onClick={() => onHoursChange(hoursOffset + 6)}
           title="+6 Hours"
-          style={{ background: '#1e293b', color: '#cbd5e1', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer' }}
+          style={{ background: '#141414', color: '#cbd5e1', border: 'none', borderRadius: '0px', padding: '6px', cursor: 'pointer' }}
         >
           <ChevronRight size={16} />
         </button>
@@ -422,7 +422,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8' }}>
             <span>Time Scrub (0h → +708h / Full 29.5-day Lunar Day)</span>
-            <span style={{ color: '#38bdf8', fontWeight: 600 }}>
+            <span style={{ color: '#ff4d2b', fontWeight: 600 }}>
               +{hoursOffset}h ({(hoursOffset / 24).toFixed(1)} Earth days) • {skyState.time_utc}
             </span>
           </div>
