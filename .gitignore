@@ -27,4 +27,8 @@ web/public/data/tiles/dev_*
    web/public/data/tiles/dev_*
    web/public/data/nbhd/dev_*
    *.tif
-   *.TIF
+   *.TIFpipeline/out/
+pipeline/dev_*.json
+web/public/data/masks/dev_*
+web/public/data/tiles/dev_*
+web/public/data/nbhd/dev_*
