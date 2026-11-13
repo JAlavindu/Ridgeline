@@ -19,7 +19,7 @@ import {
   ExploreExplainer,
 } from '../charts';
 import type { AppMode, HorizonMask, Site } from '../types';
-import { Rocket, Eye, Terminal, ArrowLeft } from 'lucide-react';
+import { Rocket, Eye, Terminal, ArrowLeft, Calendar, Clock } from 'lucide-react';
 
 interface NavigatorProps {
   onBack?: () => void;
@@ -59,6 +59,29 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
   const activeSite = useMemo(() => {
     return sites.find((s) => s.id === selectedSiteId) || sites[0] || SAMPLE_SITES[0];
   }, [sites, selectedSiteId]);
+
+  // Base landing epoch for the active site
+  const siteBaseEpochMs = useMemo(() => {
+    const raw = activeSite.date ? `${activeSite.date}T00:00:00Z` : '2026-11-14T09:00:00Z';
+    const parsed = Date.parse(raw);
+    return isNaN(parsed) ? Date.parse('2026-11-14T09:00:00Z') : parsed;
+  }, [activeSite.date]);
+
+  // Compute current UTC timestamp string for the input
+  const currentDateTimeISO = useMemo(() => {
+    const date = new Date(siteBaseEpochMs + hoursOffset * 3600 * 1000);
+    return date.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
+  }, [siteBaseEpochMs, hoursOffset]);
+
+  // Handle user picking an exact calendar date & time
+  const handleDateTimeChange = (newIsoString: string) => {
+    if (!newIsoString) return;
+    const selectedEpochMs = new Date(newIsoString + ':00Z').getTime();
+    if (isNaN(selectedEpochMs)) return;
+    const diffHours = (selectedEpochMs - siteBaseEpochMs) / (3600 * 1000);
+    // Keep within reasonable synodic bounds or arbitrary selected hour
+    setHoursOffset(Math.round(diffHours * 10) / 10);
+  };
 
   // Load real mask JSON if available (from M3 terrain outputs)
   useEffect(() => {
@@ -143,8 +166,8 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Controls: Site Selector & Mode Toggle */}
-          <div className="flex flex-wrap items-center gap-4">
+          {/* Controls: Site Selector, Date/Time Picker & Mode Toggle */}
+          <div className="flex flex-wrap items-center gap-3">
             {/* Site Dropdown */}
             <div className="flex items-center gap-2 bg-black/70 border border-white/20 px-3 py-1.5">
               <Rocket size={13} className="text-[#ff3d18]" />
@@ -168,6 +191,26 @@ export const Navigator: React.FC<NavigatorProps> = ({ onBack }) => {
                   LOLA DEM {loadedMask.az_step_deg}° ({loadedMask.elev_deg.length} PTS)
                 </span>
               )}
+            </div>
+
+            {/* Date & Time Picker */}
+            <div className="flex items-center gap-2 bg-black/70 border border-white/20 px-3 py-1.5">
+              <Calendar size={13} className="text-white/60" />
+              <div className="flex flex-col">
+                <span className="text-[7px] font-['Michroma'] uppercase tracking-[1px] text-white/40">
+                  UTC Epoch
+                </span>
+                <input
+                  type="datetime-local"
+                  value={currentDateTimeISO}
+                  onChange={(e) => handleDateTimeChange(e.target.value)}
+                  className="bg-transparent text-white text-[11px] font-mono outline-none cursor-pointer [color-scheme:dark]"
+                />
+              </div>
+              <div className="border-l border-white/15 pl-2 flex items-center gap-1 text-[10px] font-mono text-[#ff4d2b]">
+                <Clock size={11} />
+                <span>{hoursOffset >= 0 ? `+${hoursOffset.toFixed(1)}h` : `${hoursOffset.toFixed(1)}h`}</span>
+              </div>
             </div>
 
             {/* Mode Switch (Explore vs Plan) */}
