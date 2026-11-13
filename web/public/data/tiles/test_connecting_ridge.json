@@ -1,0 +1,16 @@
+{
+ "id": "test_connecting_ridge",
+ "lat": -89.4395,
+ "lon": 222.8066,
+ "projection": "aeqd centred on the site, R=1737400",
+ "n": 501,
+ "step_m": 60,
+ "half_m": 15000,
+ "dtype": "int16",
+ "byte_order": "little",
+ "units": "metres above the 1737.4 km reference sphere",
+ "nodata": -32768,
+ "orientation": "row 0 = north (top), column 0 = west (left); azimuth 0 = up",
+ "height_min_m": -2696.925537109375,
+ "height_max_m": 1958.62744140625
+}

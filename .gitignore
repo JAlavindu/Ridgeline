@@ -16,3 +16,6 @@ pipeline/data/
 *.tif
 *.TIF
 
+pipeline/dev_sites.json
+web/public/data/masks/dev_*
+web/public/data/tiles/dev_*

@@ -6,10 +6,10 @@ def angle_exact(s, h_terr, h_site, h_obs=2.0):            # F9
     r1, r2 = R + h_site + h_obs, R + h_terr
     return np.degrees(np.arctan2(r2 * np.cos(th) - r1, r2 * np.sin(th)))
 
-def ray_distances(s0, s1, pix):
+def ray_distances(s0, s1, pix, step_frac=0.01):
     s, out = s0, []
     while s <= s1:
-        out.append(s); s += max(pix, 0.01 * s)
+        out.append(s); s += max(pix, step_frac * s)
     return np.array(out)
 
 def dest_points(lat, lon, az_deg, s):                     # F10, true great circles
@@ -20,13 +20,13 @@ def dest_points(lat, lon, az_deg, s):                     # F10, true great circ
     l2 = l1 + np.arctan2(np.sin(az) * np.sin(th) * np.cos(p1), np.cos(th) - np.sin(p1) * np.sin(p2))
     return np.degrees(l2), np.degrees(p2)
 
-def horizon(lat, lon, rings, az, h_obs=2.0):
+def horizon(lat, lon, rings, az, h_obs=2.0, step_frac=0.01):
     """rings = [([finest, ..., coarsest], s_min_m, s_max_m), ...] nearest ring first."""
     h_site = sample_chain(rings[0][0], np.array([lon]), np.array([max(lat, -89.999999)]))[0]
     best = np.full(len(az), -90.0)
     for dems, s0, s1 in rings:
         pix = dems[0].src.res[0]
-        s = ray_distances(max(s0, pix), s1, pix)
+        s = ray_distances(max(s0, pix), s1, pix, step_frac)
         lon2, lat2 = dest_points(lat, lon, az, s)
         h = sample_chain(dems, lon2, lat2)
         ang = angle_exact(s[None, :], h, h_site, h_obs)
