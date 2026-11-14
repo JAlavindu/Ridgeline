@@ -28,3 +28,6 @@ export { earthVisibility, DEFAULT_EARTH_OPTIONS } from "./earth";
 export type { EarthOptions, EarthRule, EarthVisibility } from "./earth";
 export { skyState } from "./conditions";
 export type { SkyState } from "./conditions";
+export { outlook, findEvents, removeFlicker, maskEdges, formatMinuteUtc } from "./events";
+export type { Outlook, BodyOutlook, Countdown, SkyEvent, EventKind, Body } from "./events";
+
