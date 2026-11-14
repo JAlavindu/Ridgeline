@@ -5,9 +5,24 @@ const DATA_URL = import.meta.env.BASE_URL + "data/";
 
 /** M3's horizon mask files, keyed by the app's site ids. Other sites use the smooth-Moon horizon. */
 export const MASK_FILES: Record<string, string> = {
+  "apollo-11": "apollo11",
+  "apollo-12": "apollo12",
+  "apollo-14": "apollo14",
+  "apollo-15": "apollo15",
+  "apollo-16": "apollo16",
+  "apollo-17": "apollo17",
+  "change-4": "change4",
+  "chandrayaan-3": "chandrayaan3_isro",
+  "chandrayaan3-lroc": "chandrayaan3_lroc",
+  "slim": "slim",
   "im-1": "im1",
   "im-2": "im2",
+  "blue-ghost-1": "blueghost1",
+  "connecting-ridge": "connecting_ridge",
+  "shackleton-site004": "shackleton_site004",
+  "malapert-massif": "malapert_massif",
 };
+
 
 // Downloads are started once and shared: every component gets the same promise.
 let ephemerisPromise: Promise<Ephemeris> | null = null;
