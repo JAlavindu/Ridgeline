@@ -156,7 +156,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[100] bg-black/35 backdrop-blur-[2px]">
-      <aside className="pointer-events-auto absolute inset-x-0 bottom-0 max-h-[85dvh] w-full overflow-y-auto overscroll-contain border-t border-white/15 bg-[#050505]/95 backdrop-blur-xl lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[min(50vw,680px)] lg:border-l lg:border-t-0 flex flex-col">
+      <aside className="pointer-events-auto absolute inset-x-0 bottom-0 max-h-[85dvh] w-full overflow-y-auto overscroll-contain border-t border-white/15 bg-[#050505]/95 backdrop-blur-xl lg:inset-y-0 lg:top-14 lg:left-auto lg:right-0 lg:max-h-none lg:w-[min(50vw,680px)] lg:border-l lg:border-t-0 flex flex-col">
         {/* Sticky Header */}
         <header className="sticky top-0 z-20 shrink-0 border-b border-white/10 bg-[#050505]/95 px-5 py-4 backdrop-blur-xl sm:px-7">
           <div className="flex items-start justify-between gap-4">
