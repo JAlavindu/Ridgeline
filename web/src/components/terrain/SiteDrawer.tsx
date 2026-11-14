@@ -1,891 +1,230 @@
 import { useState } from "react";
 
-import type { NavigateSite } from "../../pages/TerrainPage";
+import type { LunarSite } from "../../data/lunarSites";
 
 const tabs = [
-  ["story", "STORY & NOW"],
-  ["terrain", "3D TERRAIN"],
-  ["horizon", "HORIZON MAP"],
-  ["neighbourhood", "NEIGHBOURHOOD"],
-  ["data", "TIMELINES & NASA"],
+  ["overview", "OVERVIEW"],
+  ["terrain", "TERRAIN"],
+  ["horizon", "HORIZON"],
+  ["science", "SCIENCE"],
 ] as const;
 
-type TabId =
-  (typeof tabs)[number][0];
+type TabId = (typeof tabs)[number][0];
 
 interface SiteDrawerProps {
-  site: NavigateSite;
+  site: LunarSite;
   onClose: () => void;
 }
 
-export default function SiteDrawer({
-  site,
-  onClose,
-}: SiteDrawerProps) {
-  const [tab, setTab] =
-    useState<TabId>("story");
+export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
+  const [tab, setTab] = useState<TabId>("overview");
+  const hasCoordinates =
+    site.latitude !== null && site.longitude !== null;
 
   return (
-    <div
-      className="
-        pointer-events-none
-        fixed
-        inset-0
-        z-[100]
-        bg-black/25
-      "
-    >
-
-      {/* =====================================================
-          DRAWER
-      ===================================================== */}
-
-      <aside
-        className="
-          absolute
-          inset-x-0
-          bottom-0
-          max-h-[55dvh]
-          w-full
-          overflow-y-auto
-          border-l
-          border-white/15
-          bg-[#050505]/95
-          pointer-events-auto
-          backdrop-blur-xl
-          lg:inset-y-0
-          lg:left-auto
-          lg:right-0
-          lg:max-h-none
-          lg:w-[min(36vw,460px)]
-        "
-      >
-
-        {/* ===================================================
-            HEADER
-        =================================================== */}
-
-        <header
-          className="
-            sticky
-            top-0
-            z-20
-            border-b
-            border-white/10
-            bg-[#050505]/95
-            px-6
-            py-5
-            backdrop-blur-xl
-            md:px-8
-          "
-        >
-
-          <div
-            className="
-              flex
-              items-start
-              justify-between
-            "
-          >
-
-            <div>
-
-              <p
-                className="
-                  text-[8px]
-                  uppercase
-                  tracking-[3px]
-                  text-[#ff3b12]
-                "
-              >
-                SELECTED SITE
+    <div className="pointer-events-none fixed inset-0 z-[100] bg-black/25">
+      <aside className="pointer-events-auto absolute inset-x-0 bottom-0 max-h-[40dvh] w-full overflow-y-auto overscroll-contain border-t border-white/15 bg-[#050505]/95 backdrop-blur-xl lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[min(38vw,520px)] lg:border-l lg:border-t-0">
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-[#050505]/95 px-5 py-4 backdrop-blur-xl sm:px-7">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[8px] uppercase tracking-[3px] text-[#ff3b12]">
+                MISSION SITE
               </p>
-
-              <h2
-                className="
-                  mt-2
-                  font-['Michroma']
-                  text-lg
-                  uppercase
-                "
-              >
-                {site.name ??
-                  "Lunar Landing Site"}
+              <h2 className="mt-2 truncate font-['Michroma'] text-base uppercase sm:text-lg">
+                {site.name}
               </h2>
-
-              <p
-                className="
-                  mt-2
-                  text-[9px]
-                  text-white/35
-                "
-              >
-                {site.mission ??
-                  "Mission information"}
-
-                {" · "}
-
-                {site.year ??
-                  "Year unavailable"}
+              <p className="mt-1 text-[9px] text-white/40">
+                {site.country} · {site.year}
               </p>
-
             </div>
-
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close site information"
-              className="
-                text-xl
-                text-white/45
-                transition
-                hover:text-white
-              "
+              aria-label="Exit site selection"
+              className="shrink-0 border border-white/15 px-3 py-1 text-lg leading-none text-white/55 transition hover:border-[#ff3b12] hover:text-white"
             >
               ×
             </button>
-
           </div>
 
-          {/* =================================================
-              TABS
-          ================================================= */}
-
-          <div
-            className="
-              mt-5
-              flex
-              gap-1
-              overflow-x-auto
-            "
-          >
-
-            {tabs.map(
-              ([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() =>
-                    setTab(id)
-                  }
-                  className={`
-                    whitespace-nowrap
-                    border
-                    px-3
-                    py-2
-                    text-[7px]
-                    uppercase
-                    tracking-[1.5px]
-                    transition
-                    ${
-                      tab === id
-                        ? `
-                          border-[#ff3b12]
-                          bg-[#ff3b12]/5
-                          text-white
-                        `
-                        : `
-                          border-white/10
-                          text-white/35
-                          hover:text-white
-                        `
-                    }
-                  `}
-                >
-                  {label}
-                </button>
-              )
-            )}
-
-          </div>
+          <nav aria-label="Site information" className="mt-4 flex gap-1 overflow-x-auto">
+            {tabs.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={tab === id}
+                onClick={() => setTab(id)}
+                className={`shrink-0 border px-3 py-2 text-[7px] uppercase tracking-[1.5px] transition ${
+                  tab === id
+                    ? "border-[#ff3b12] bg-[#ff3b12]/10 text-white"
+                    : "border-white/10 text-white/40 hover:text-white"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
         </header>
 
-        {/* ===================================================
-            CONTENT
-        =================================================== */}
-
-        <div className="p-6 md:p-8">
-
-          {/* =================================================
-              TAB 1 — STORY & NOW
-          ================================================= */}
-
-          {tab === "story" && (
-            <section>
-
-              <div
-                className="
-                  grid
-                  gap-3
-                  sm:grid-cols-3
-                "
-              >
-
-                <Metric
-                  label="SUNLIGHT"
-                  value="—"
-                />
-
-                <Metric
-                  label="EARTH SIGNAL"
-                  value="—"
-                />
-
-                <Metric
-                  label="STATUS"
-                  value={
-                    site.status ??
-                    "—"
-                  }
-                />
-
-              </div>
-
+        <div className="p-5 sm:p-7">
+          {tab === "overview" && (
+            <section aria-labelledby="site-overview-heading">
+              <p className="text-[8px] uppercase tracking-[2px] text-white/35">
+                A PLACE ON THE MOON
+              </p>
               <h3
-                className="
-                  mt-9
-                  font-['Michroma']
-                  text-base
-                "
+                id="site-overview-heading"
+                className="mt-2 font-['Michroma'] text-sm"
               >
-                Why this site matters
+                Meet {site.name}
               </h3>
-
-              <p
-                className="
-                  mt-4
-                  max-w-[560px]
-                  text-[10px]
-                  leading-[1.8]
-                  text-white/45
-                "
-              >
-                {site.description ??
-                  "Use the mission dataset to provide a short, kid-friendly explanation of why this location matters."}
+              <p className="mt-3 max-w-[440px] text-[10px] leading-[1.8] text-white/55">
+                This mission site is listed in {site.country}&apos;s lunar
+                exploration history. Choose another tab to learn what terrain
+                and horizon data would show.
               </p>
 
-              {/* KID FRIENDLY EXPLANATION */}
-
-              <div
-                className="
-                  mt-8
-                  border-l
-                  border-[#ff3b12]
-                  pl-4
-                  text-[10px]
-                  leading-[1.7]
-                  text-white/50
-                "
-              >
-                This location can be explored
-                using terrain, sunlight,
-                horizon and mission data.
-                The scientific values shown
-                here should come directly
-                from the validated mission
-                datasets.
+              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <Metric label="MISSION YEAR" value={site.year} />
+                <Metric label="COUNTRY" value={site.country} />
+                <Metric
+                  label="COORDINATES"
+                  value={hasCoordinates ? "Available" : "Not listed"}
+                />
               </div>
 
-              {/* LOCATION DATA */}
+              {hasCoordinates ? (
+                <div className="mt-6 grid gap-4 border-t border-white/10 pt-5 sm:grid-cols-2">
+                  <InfoRow label="LATITUDE" value={`${site.latitude}°`} />
+                  <InfoRow label="LONGITUDE" value={`${site.longitude}°`} />
+                </div>
+              ) : (
+                <p className="mt-5 border-l border-[#ff3b12] pl-3 text-[9px] leading-[1.7] text-white/45">
+                  Coordinates are not included in the current site dataset, so
+                  this mission has no globe marker.
+                </p>
+              )}
 
-              <div
-                className="
-                  mt-8
-                  grid
-                  gap-3
-                  sm:grid-cols-2
-                "
+              <button
+                type="button"
+                onClick={() => setTab("terrain")}
+                className="mt-7 border border-[#ff3b12]/60 bg-[#ff3b12]/10 px-4 py-3 text-[8px] uppercase tracking-[2px] text-white transition hover:bg-[#ff3b12]/20"
               >
-
-                <InfoRow
-                  label="LATITUDE"
-                  value={
-                    site.latitude ??
-                    "—"
-                  }
-                />
-
-                <InfoRow
-                  label="LONGITUDE"
-                  value={
-                    site.longitude ??
-                    "—"
-                  }
-                />
-
-                <InfoRow
-                  label="COUNTRY"
-                  value={
-                    site.country ??
-                    "—"
-                  }
-                />
-
-                <InfoRow
-                  label="MISSION"
-                  value={
-                    site.mission ??
-                    "—"
-                  }
-                />
-
-              </div>
-
+                Explore terrain data
+              </button>
             </section>
           )}
-
-          {/* =================================================
-              TAB 2 — TERRAIN
-          ================================================= */}
 
           {tab === "terrain" && (
-            <section>
-
-              <VisualPlaceholder
-                title="30 × 30 KM TERRAIN"
-                subtitle="
-                  Elevation · slope · sunlight · live shadows
-                "
+            <section aria-labelledby="terrain-heading">
+              <p className="text-[8px] uppercase tracking-[2px] text-white/35">
+                SURFACE VIEW
+              </p>
+              <h3 id="terrain-heading" className="mt-2 font-['Michroma'] text-sm">
+                Terrain overview
+              </h3>
+              <DataPlaceholder
+                title="Terrain map not connected"
+                description="A verified elevation or shaded-relief map is not available in the current web assets."
               />
-
-              <div
-                className="
-                  mt-5
-                  grid
-                  grid-cols-2
-                  gap-2
-                  sm:grid-cols-4
-                "
-              >
-
-                <LayerButton
-                  label="HEIGHT"
-                  active
-                />
-
-                <LayerButton
-                  label="SLOPE"
-                />
-
-                <LayerButton
-                  label="SUNLIGHT"
-                />
-
-                <LayerButton
-                  label="SHADOW"
-                />
-
-              </div>
-
+              <p className="mt-4 text-[9px] leading-[1.7] text-white/40">
+                Elevation maps show how high or low the ground is. No height or
+                slope measurements are shown here because site-specific terrain
+                data has not been loaded.
+              </p>
             </section>
           )}
-
-          {/* =================================================
-              TAB 3 — HORIZON
-          ================================================= */}
 
           {tab === "horizon" && (
-            <section>
-
-              <VisualPlaceholder
-                title="360° HORIZON"
-                subtitle="
-                  720-ray terrain mask · Sun · Earth
-                "
+            <section aria-labelledby="horizon-heading">
+              <p className="text-[8px] uppercase tracking-[2px] text-white/35">
+                VIEW FROM THE SURFACE
+              </p>
+              <h3 id="horizon-heading" className="mt-2 font-['Michroma'] text-sm">
+                Horizon view
+              </h3>
+              <DataPlaceholder
+                title="Horizon data not connected"
+                description="This preview is intentionally empty until a verified horizon profile is available."
               />
+              <p className="mt-4 text-[9px] leading-[1.7] text-white/40">
+                A horizon profile shows the hills and ridges that would appear
+                around the sky from this location.
+              </p>
+            </section>
+          )}
 
-              <div
-                className="
-                  mt-5
-                  border
-                  border-white/10
-                  p-5
-                "
-              >
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                  "
-                >
-
-                  <span
-                    className="
-                      text-[8px]
-                      uppercase
-                      tracking-[2px]
-                      text-white/35
-                    "
-                  >
-                    HORIZON COVERAGE
-                  </span>
-
-                  <span
-                    className="
-                      font-['Michroma']
-                      text-sm
-                      text-[#ff3b12]
-                    "
-                  >
-                    360°
-                  </span>
-
-                </div>
-
-                <div
-                  className="
-                    mt-5
-                    h-px
-                    w-full
-                    bg-white/10
-                  "
-                />
-
-                <p
-                  className="
-                    mt-4
-                    text-[9px]
-                    leading-[1.7]
-                    text-white/35
-                  "
-                >
-                  The final horizon
-                  visualization should use the
-                  validated terrain horizon-mask
-                  product.
+          {tab === "science" && (
+            <section aria-labelledby="science-heading">
+              <p className="text-[8px] uppercase tracking-[2px] text-white/35">
+                WHAT THE DATA CAN TELL US
+              </p>
+              <h3 id="science-heading" className="mt-2 font-['Michroma'] text-sm">
+                Science, simply
+              </h3>
+              <p className="mt-3 text-[10px] leading-[1.8] text-white/55">
+                Coordinates locate a site on the Moon. Terrain measurements
+                can describe the nearby ground, while horizon measurements
+                show which parts of the sky are blocked by ridges.
+              </p>
+              <div className="mt-5 border border-white/10 bg-white/[0.02] p-4">
+                <p className="text-[8px] uppercase tracking-[2px] text-[#ff3b12]">
+                  SITE-SPECIFIC MEASUREMENTS
                 </p>
-
-              </div>
-
-            </section>
-          )}
-
-          {/* =================================================
-              TAB 4 — NEIGHBOURHOOD
-          ================================================= */}
-
-          {tab === "neighbourhood" && (
-            <section>
-
-              <VisualPlaceholder
-                title="6 × 6 KM NEIGHBOURHOOD"
-                subtitle="
-                  Average illumination · traversable region
-                "
-              />
-
-              <div
-                className="
-                  mt-5
-                  grid
-                  gap-3
-                  sm:grid-cols-3
-                "
-              >
-
-                <Metric
-                  label="ILLUMINATION"
-                  value="—"
-                />
-
-                <Metric
-                  label="RIDGES"
-                  value="—"
-                />
-
-                <Metric
-                  label="TRAVERSE"
-                  value="—"
-                />
-
-              </div>
-
-            </section>
-          )}
-
-          {/* =================================================
-              TAB 5 — NASA DATA
-          ================================================= */}
-
-          {tab === "data" && (
-            <section>
-
-              <div
-                className="
-                  grid
-                  gap-2
-                  sm:grid-cols-2
-                "
-              >
-
-                <DataCard
-                  label="MOON_ME COORDINATES"
-                  value="—"
-                />
-
-                <DataCard
-                  label="SOLAR POWER FLUX"
-                  value="—"
-                />
-
-                <DataCard
-                  label="DEM UNCERTAINTY"
-                  value="—"
-                />
-
-                <DataCard
-                  label="JPL HORIZONS"
-                  value="NOT CONNECTED"
-                />
-
-              </div>
-
-              <div
-                className="
-                  mt-6
-                  border
-                  border-[#ff3b12]/20
-                  bg-[#ff3b12]/5
-                  p-5
-                "
-              >
-
-                <div
-                  className="
-                    text-[8px]
-                    uppercase
-                    tracking-[2px]
-                    text-[#ff3b12]
-                  "
-                >
-                  NASA VALIDATION
-                </div>
-
-                <p
-                  className="
-                    mt-3
-                    text-[9px]
-                    leading-[1.7]
-                    text-white/40
-                  "
-                >
-                  Scientific measurements
-                  should only be populated once
-                  the corresponding validated
-                  ephemeris, terrain and
-                  verification products are
-                  connected.
+                <p className="mt-2 text-[9px] leading-[1.7] text-white/45">
+                  Elevation, slope, sunlight, and horizon values are not
+                  currently loaded for this site. No estimates are displayed.
                 </p>
-
               </div>
-
             </section>
           )}
-
         </div>
       </aside>
     </div>
   );
 }
 
-/* ===========================================================
-   METRIC
-=========================================================== */
-
-function Metric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div
-      className="
-        border
-        border-white/10
-        p-4
-      "
-    >
-
-      <div
-        className="
-          text-[7px]
-          uppercase
-          tracking-[2px]
-          text-white/30
-        "
-      >
+    <div className="min-w-0 border border-white/10 p-3">
+      <p className="text-[7px] uppercase tracking-[1.5px] text-white/35">
         {label}
-      </div>
-
-      <div
-        className="
-          mt-4
-          font-['Michroma']
-          text-sm
-        "
-      >
-        {value}
-      </div>
-
+      </p>
+      <p className="mt-3 truncate font-['Michroma'] text-[10px]">{value}</p>
     </div>
   );
 }
 
-/* ===========================================================
-   INFO ROW
-=========================================================== */
-
-function InfoRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className="
-        border-t
-        border-white/10
-        pt-3
-      "
-    >
-
-      <div
-        className="
-          text-[7px]
-          uppercase
-          tracking-[2px]
-          text-white/30
-        "
-      >
+    <div className="border-t border-white/10 pt-3">
+      <p className="text-[7px] uppercase tracking-[2px] text-white/35">
         {label}
-      </div>
-
-      <div
-        className="
-          mt-2
-          text-[10px]
-          text-white/70
-        "
-      >
-        {value}
-      </div>
-
+      </p>
+      <p className="mt-2 text-[10px] text-white/70">{value}</p>
     </div>
   );
 }
 
-/* ===========================================================
-   DATA CARD
-=========================================================== */
-
-function DataCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div
-      className="
-        border
-        border-white/10
-        p-4
-      "
-    >
-
-      <div
-        className="
-          text-[7px]
-          uppercase
-          tracking-[2px]
-          text-white/30
-        "
-      >
-        {label}
-      </div>
-
-      <div
-        className="
-          mt-3
-          font-['Michroma']
-          text-[11px]
-        "
-      >
-        {value}
-      </div>
-
-    </div>
-  );
-}
-
-/* ===========================================================
-   LAYER BUTTON
-=========================================================== */
-
-function LayerButton({
-  label,
-  active = false,
-}: {
-  label: string;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      className={`
-        border
-        px-3
-        py-3
-        text-[7px]
-        uppercase
-        tracking-[2px]
-        transition
-        ${
-          active
-            ? `
-              border-[#ff3b12]
-              bg-[#ff3b12]/10
-              text-white
-            `
-            : `
-              border-white/10
-              text-white/35
-              hover:border-white/30
-              hover:text-white
-            `
-        }
-      `}
-    >
-      {label}
-    </button>
-  );
-}
-
-/* ===========================================================
-   VISUAL PLACEHOLDER
-=========================================================== */
-
-function VisualPlaceholder({
+function DataPlaceholder({
   title,
-  subtitle,
+  description,
 }: {
   title: string;
-  subtitle: string;
+  description: string;
 }) {
   return (
-    <div>
-
+    <div className="relative mt-5 flex min-h-44 items-end overflow-hidden border border-white/10 bg-[radial-gradient(ellipse_at_50%_90%,rgba(255,59,18,0.12),transparent_55%),linear-gradient(180deg,#0b0b0b,#030303)] p-4">
       <div
-        className="
-          relative
-          h-[340px]
-          overflow-hidden
-          border
-          border-white/10
-          bg-[#090909]
-        "
-      >
-
-        {/* GRID */}
-
-        <div
-          className="
-            absolute
-            inset-0
-            opacity-20
-            bg-[linear-gradient(rgba(255,255,255,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.1)_1px,transparent_1px)]
-            bg-[size:35px_35px]
-          "
-        />
-
-        {/* CENTRAL OBJECT */}
-
-        <div
-          className="
-            absolute
-            left-1/2
-            top-1/2
-            h-44
-            w-44
-            -translate-x-1/2
-            -translate-y-1/2
-            rounded-full
-            border
-            border-[#ff3b12]/30
-            shadow-[0_0_60px_rgba(255,59,18,0.08)]
-          "
-        />
-
-        {/* TARGET */}
-
-        <div
-          className="
-            absolute
-            left-1/2
-            top-1/2
-            h-2
-            w-2
-            -translate-x-1/2
-            -translate-y-1/2
-            rounded-full
-            bg-[#ff3b12]
-            shadow-[0_0_15px_rgba(255,59,18,0.8)]
-          "
-        />
-
-        {/* LABEL */}
-
-        <div
-          className="
-            absolute
-            bottom-5
-            left-5
-          "
-        >
-
-          <div
-            className="
-              font-['Michroma']
-              text-sm
-            "
-          >
-            {title}
-          </div>
-
-          <div
-            className="
-              mt-2
-              text-[8px]
-              text-white/35
-            "
-          >
-            {subtitle}
-          </div>
-
-        </div>
-
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:32px_32px]"
+      />
+      <div className="relative max-w-[340px]">
+        <p className="font-['Michroma'] text-[10px]">{title}</p>
+        <p className="mt-2 text-[9px] leading-[1.7] text-white/45">
+          {description}
+        </p>
       </div>
-
-      <p
-        className="
-          mt-4
-          text-[9px]
-          leading-[1.7]
-          text-white/35
-        "
-      >
-        Visualization shell. Connect
-        the validated terrain and
-        rendering products here.
-      </p>
-
     </div>
   );
 }

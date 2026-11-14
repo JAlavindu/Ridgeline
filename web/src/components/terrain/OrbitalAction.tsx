@@ -12,13 +12,13 @@ const positionClasses: Record<
   string
 > = {
   top:
-    "left-1/2 top-[49%] -translate-x-1/2 lg:top-[1%]",
+    "left-1/2 top-[56%] -translate-x-1/2 lg:top-[1%]",
 
   left:
-    "left-[2%] top-[59%] lg:left-[3%] lg:top-[36%]",
+    "left-[2%] top-[69%] lg:left-[3%] lg:top-[36%]",
 
   right:
-    "right-[2%] top-[59%] lg:right-[3%] lg:top-[36%]",
+    "right-[2%] top-[69%] lg:right-[3%] lg:top-[36%]",
 
   "bottom-left":
     "left-[2%] top-[70%] lg:left-[17%] lg:top-auto lg:bottom-[10%]",

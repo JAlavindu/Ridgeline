@@ -1,13 +1,13 @@
-import type { NavigateSite } from "../../pages/TerrainPage";
+import type { LunarSite } from "../../data/lunarSites";
 
 interface HistoryTimelineProps {
   year: number;
-  sites: NavigateSite[];
+  sites: LunarSite[];
   onYearChange: (
     year: number
   ) => void;
   onSelectSite: (
-    site: NavigateSite
+    site: LunarSite
   ) => void;
   onClose: () => void;
 }
@@ -19,6 +19,10 @@ export default function HistoryTimeline({
   onSelectSite,
   onClose,
 }: HistoryTimelineProps) {
+  const firstYear = Math.min(...sites.map((site) => site.year));
+  const lastYear = Math.max(...sites.map((site) => site.year));
+  const visibleSites = sites.filter((site) => site.year <= year);
+
   return (
     <div
       className="
@@ -26,7 +30,7 @@ export default function HistoryTimeline({
         inset-x-0
         bottom-0
         z-[95]
-        max-h-[55dvh]
+        max-h-[30dvh]
         overflow-y-auto
         overscroll-contain
         border-t
@@ -93,9 +97,9 @@ export default function HistoryTimeline({
                 text-white/40
               "
             >
-              Scrub through lunar exploration
-              history and see which sites
-              existed by each period.
+              Move through the years to see
+              which mission sites are in the
+              project dataset by that time.
             </p>
 
           </div>
@@ -119,7 +123,7 @@ export default function HistoryTimeline({
             >
 
               <span>
-                1969
+                {firstYear}
               </span>
 
               <span
@@ -132,7 +136,7 @@ export default function HistoryTimeline({
               </span>
 
               <span>
-                2027+
+                {lastYear}
               </span>
 
             </div>
@@ -144,8 +148,8 @@ export default function HistoryTimeline({
                 accent-[#ff3b12]
               "
               type="range"
-              min={1969}
-              max={2027}
+              min={firstYear}
+              max={lastYear}
               value={year}
               onChange={(event) =>
                 onYearChange(
@@ -169,8 +173,7 @@ export default function HistoryTimeline({
               "
             >
 
-              {sites
-                .slice(0, 8)
+              {visibleSites
                 .map((site) => (
                   <button
                     key={String(site.id)}

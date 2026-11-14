@@ -22,7 +22,7 @@ export default function SkyPanel({
           absolute
           inset-x-0
           bottom-0
-          max-h-[48dvh]
+          max-h-[30dvh]
           w-full
           overflow-y-auto
           border
@@ -84,9 +84,9 @@ export default function SkyPanel({
                 text-white/35
               "
             >
-              Explore how the Sun, Earth and
-              Moon geometry changes around a
-              lunar landing site.
+              A simple guide to the Sun and
+              Earth in the lunar sky. This
+              panel is not a live calculation.
             </p>
 
           </div>
@@ -120,20 +120,20 @@ export default function SkyPanel({
 
           <SkyCard
             title="SUN"
-            metric="SUB-SOLAR POINT"
-            source="Connect M2 ephemeris"
+            metric="Light and shadow"
+            source="Sunlight creates day and night."
           />
 
           <SkyCard
             title="EARTH"
-            metric="SIGNAL VISIBILITY"
-            source="Connect DSN / line-of-sight"
+            metric="Earth in the sky"
+            source="The view depends on the lunar location."
           />
 
           <SkyCard
             title="MOON"
-            metric="LIBRATION"
-            source="Connect ephemeris engine"
+            metric="Lunar day"
+            source="The Sun's position changes over time."
           />
 
         </div>
@@ -155,6 +155,10 @@ export default function SkyPanel({
         >
 
           {/* GRID */}
+
+          <span className="absolute left-3 top-3 z-10 text-[7px] uppercase tracking-[1.5px] text-white/35">
+            CONCEPTUAL DIAGRAM · NOT LIVE DATA
+          </span>
 
           <div
             className="
@@ -277,12 +281,10 @@ export default function SkyPanel({
             text-white/35
           "
         >
-          The final sky mechanics should
-          be driven by the validated
-          ephemeris and eclipse engine.
-          This interface is intentionally
-          separated from the scientific
-          calculation layer.
+          Site-specific Sun and Earth
+          positions are not connected in
+          this view. No visibility or
+          lighting measurements are shown.
         </p>
 
       </div>
