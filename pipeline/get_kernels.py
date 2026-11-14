@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import requests
@@ -11,6 +12,13 @@ KERNELS = [
     "pck/moon_pa_de440_200625.bpc",                       # Moon orientation, incl. libration
     "fk/satellites/moon_de440_250416.tf",                 # Moon frames, incl. MOON_ME
     "fk/satellites/a_old_versions/moon_de440_220930.tf",  # old frame file, only for comparison
+]
+
+# Extra kernels for DSN mode only (python pipeline/get_kernels.py --dsn). Names checked on NAIF 2026-11-15.
+DSN_KERNELS = [
+    "spk/stations/earthstns_itrf93_260814.bsp",           # Goldstone, Madrid, Canberra positions
+    "fk/stations/earth_topo_260814.tf",                   # each station's local up/north/east frame
+    "pck/earth_1962_260806_2126_combined.bpc",            # Earth's orientation, 1962-2126 (history + prediction)
 ]
 
 KERNEL_DIR = Path(__file__).resolve().parent / "kernels"
@@ -42,7 +50,8 @@ def download(remote_path: str) -> Path:
 
 def main() -> None:
     KERNEL_DIR.mkdir(exist_ok=True)
-    for remote_path in KERNELS:
+    wanted = KERNELS + (DSN_KERNELS if "--dsn" in sys.argv else [])
+    for remote_path in wanted:
         download(remote_path)
     print("All kernels present in", KERNEL_DIR)
 

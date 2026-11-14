@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadEphemeris, loadMask, type Ephemeris, type HorizonMask } from "../engine";
+import { loadDsn, loadEphemeris, loadMask, type Dsn, type Ephemeris, type HorizonMask } from "../engine";
 
 const DATA_URL = import.meta.env.BASE_URL + "data/";
 
@@ -81,4 +81,32 @@ export function useMask(siteId: string): { mask: HorizonMask | null; loading: bo
   if (!file) return { mask: null, loading: false };
   if (loaded?.siteId !== siteId) return { mask: null, loading: true };
   return { mask: loaded.mask, loading: false };
+}
+
+let dsnPromise: Promise<Dsn> | null = null;
+
+/** The DSN station data (3 MB). Downloaded only once `enabled` is true, then shared. */
+export function useDsn(enabled: boolean): { dsn: Dsn | null; error: string | null } {
+  const [dsn, setDsn] = useState<Dsn | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let active = true;
+    dsnPromise ??= loadDsn(DATA_URL);
+    dsnPromise.then(
+      (loaded) => {
+        if (active) setDsn(loaded);
+      },
+      (err: unknown) => {
+        dsnPromise = null; // allow a retry
+        if (active) setError(err instanceof Error ? err.message : String(err));
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [enabled]);
+
+  return { dsn, error };
 }

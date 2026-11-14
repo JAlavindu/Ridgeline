@@ -1,6 +1,9 @@
 import { useMemo, useState, type ReactNode } from "react";
 
 import {
+  DSN_LIMITS,
+  dsnContact,
+  dsnContactPercent,
   flatMask,
   isoToTdb,
   makeObserver,
@@ -9,19 +12,22 @@ import {
   skyState,
   summarize,
   type BodyOutlook,
+  type Dsn,
+  type DsnLimit,
   type Outlook,
+  type Series,
   type SkyState,
   type Summary,
 } from "../../engine";
 import type { LunarSite } from "../../data/lunarSites";
-import { useEphemeris, useMask } from "../../hooks/useEngine";
+import { useDsn, useEphemeris, useMask } from "../../hooks/useEngine";
 import { eventLabel, formatCountdown, formatDuration, nowUtcInput, utcInputToIso } from "../../lib/format";
 
 const DEFAULT_TIME = "2026-11-14T09:00"; // hackathon start, UTC
 const MISSION_HOURS = 14 * 24;
 
 type Result =
-  | { ok: true; state: SkyState; look: Outlook; summary: Summary | null }
+  | { ok: true; state: SkyState; look: Outlook; summary: Summary | null; series: Series | null; tdb: number }
   | { ok: false; message: string };
 
 /** Runs the real engine (JPL ephemeris + horizon mask) for one site and time. */
@@ -35,11 +41,14 @@ function useSky(site: LunarSite, timeInput: string, withSummary: boolean) {
       const obs = makeObserver(site.latitude, site.longitude, mask?.site_height_m ?? 0);
       const horizon = mask ?? flatMask(obs);
       const tdb = isoToTdb(utcInputToIso(timeInput));
+      const series = withSummary ? sampleSeries(eph, obs, horizon, tdb, MISSION_HOURS) : null;
       return {
         ok: true,
         state: skyState(eph, obs, horizon, tdb),
         look: outlook(eph, obs, horizon, tdb),
-        summary: withSummary ? summarize(sampleSeries(eph, obs, horizon, tdb, MISSION_HOURS)) : null,
+        summary: series ? summarize(series) : null,
+        series,
+        tdb,
       };
     } catch (err) {
       return { ok: false, message: err instanceof Error ? err.message : String(err) };
@@ -62,6 +71,9 @@ function nextChangeText(body: BodyOutlook): string {
 export default function SunEarthLive({ site }: { site: LunarSite }) {
   const [timeInput, setTimeInput] = useState(DEFAULT_TIME);
   const { result, error, terrain } = useSky(site, timeInput, true);
+  const [network, setNetwork] = useState<"any" | "dsn">("any");
+  const [limit, setLimit] = useState<DsnLimit>("receive");
+  const { dsn, error: dsnError } = useDsn(network === "dsn");
 
   return (
     <section aria-labelledby="sun-earth-heading">
@@ -93,6 +105,8 @@ export default function SunEarthLive({ site }: { site: LunarSite }) {
         </button>
       </div>
 
+      <GroundNetwork network={network} onNetwork={setNetwork} limit={limit} onLimit={setLimit} />
+
       {site.latitude === null || site.longitude === null ? (
         <Note>No coordinates are listed for this site, so its sky cannot be computed.</Note>
       ) : error ? (
@@ -102,14 +116,101 @@ export default function SunEarthLive({ site }: { site: LunarSite }) {
       ) : !result.ok ? (
         <Note>{result.message}</Note>
       ) : (
-        <LiveResult result={result} terrain={terrain} />
+        <LiveResult
+          result={result}
+          terrain={terrain}
+          ground={network === "dsn" ? { dsn, error: dsnError, limit } : null}
+        />
       )}
     </section>
   );
 }
 
-function LiveResult({ result, terrain }: { result: Extract<Result, { ok: true }>; terrain: boolean }) {
+/** Any network (Earth in view) is the default; DSN adds the Earth end of the radio link. */
+function GroundNetwork({
+  network,
+  onNetwork,
+  limit,
+  onLimit,
+}: {
+  network: "any" | "dsn";
+  onNetwork: (value: "any" | "dsn") => void;
+  limit: DsnLimit;
+  onLimit: (value: DsnLimit) => void;
+}) {
+  const options: ["any" | "dsn", string][] = [
+    ["any", "Any network (Earth in view)"],
+    ["dsn", "NASA DSN"],
+  ];
+  return (
+    <div className="mt-5">
+      <p className="text-[11px] text-white/45">Ground network</p>
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <div className="flex gap-4" role="group" aria-label="Ground network">
+          {options.map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={network === value}
+              onClick={() => onNetwork(value)}
+              className={`border-b-2 pb-1 text-[12px] transition ${
+                network === value
+                  ? "border-[#ff3b12] text-white"
+                  : "border-transparent text-white/45 hover:text-white/75"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {network === "dsn" && (
+          <label className="flex items-center gap-2 text-[11px] text-white/45">
+            Moon at least
+            <select
+              value={limit}
+              onChange={(event) => onLimit(event.target.value as DsnLimit)}
+              className="h-8 rounded-md border border-white/[0.12] bg-[#0a0a0a] px-2 text-[12px] tabular-nums text-white outline-none [color-scheme:dark] focus:border-white/35"
+            >
+              <option value="receive">{DSN_LIMITS.receive}° (receive)</option>
+              <option value="command_low">{DSN_LIMITS.command_low}° (low-power commands)</option>
+              <option value="command_high">{DSN_LIMITS.command_high}° (high-power commands)</option>
+            </select>
+          </label>
+        )}
+      </div>
+      <p className="mt-2 max-w-[60ch] text-[11px] leading-[1.6] text-white/35">
+        Many commercial landers use other ground networks, so the default only needs Earth in view. DSN also needs
+        the Moon above the limit at Goldstone, Madrid or Canberra (DSN 810-005, Rev. O).
+        {network === "dsn" &&
+          " Earthrise and Earthset times below stay based on Earth in view, not on station visibility."}
+      </p>
+    </div>
+  );
+}
+
+function dsnNow(dsn: Dsn, result: Extract<Result, { ok: true }>, limitDeg: number) {
+  try {
+    return dsnContact(dsn, result.tdb, result.state.is_earth_visible, limitDeg);
+  } catch {
+    return null; // time outside 2023-2032
+  }
+}
+
+type Ground = { dsn: Dsn | null; error: string | null; limit: DsnLimit } | null;
+
+function LiveResult({
+  result,
+  terrain,
+  ground,
+}: {
+  result: Extract<Result, { ok: true }>;
+  terrain: boolean;
+  ground: Ground;
+}) {
   const { state, look, summary } = result;
+  const limitDeg = ground ? DSN_LIMITS[ground.limit] : 0;
+  const nowDsn = ground?.dsn ? dsnNow(ground.dsn, result, limitDeg) : null;
+  const dsnPercent = ground?.dsn && result.series ? dsnContactPercent(ground.dsn, result.series, limitDeg) : null;
   return (
     <>
       <SectionLabel>At this moment</SectionLabel>
@@ -121,6 +222,26 @@ function LiveResult({ result, terrain }: { result: Extract<Result, { ok: true }>
         <Stat label="Earth contact" value={state.is_earth_visible ? "Yes" : "No"} />
         <Stat label="Sun rising at" value={`${state.sun_elevation_rate_deg_per_hr.toFixed(2)}°/h`} />
       </StatGrid>
+      {ground && (
+        <>
+          {ground.error ? (
+            <Note>Could not load the DSN data: {ground.error}</Note>
+          ) : !ground.dsn ? (
+            <p className="mt-3 text-[12px] text-white/40">Loading DSN station data…</p>
+          ) : nowDsn ? (
+            <StatGrid>
+              <Stat label="DSN contact now" value={nowDsn.contact ? "Yes" : "No"} />
+              <Stat
+                label="Stations with the Moon up"
+                value={nowDsn.stations.length > 0 ? nowDsn.stations.map((s) => s.id).join(", ") : "None"}
+              />
+              <Stat label="Best Moon height" value={`${nowDsn.max_elevation_deg.toFixed(1)}°`} />
+            </StatGrid>
+          ) : (
+            <Note>DSN data covers 2023 to 2032.</Note>
+          )}
+        </>
+      )}
       {state.is_eclipse && <Note>Earth is passing in front of the Sun (an eclipse seen from the Moon).</Note>}
 
       <SectionLabel>What changes next</SectionLabel>
@@ -143,6 +264,7 @@ function LiveResult({ result, terrain }: { result: Extract<Result, { ok: true }>
             <Stat label="Average sunlight" value={`${(100 * summary.mean_sun_fraction).toFixed(0)}%`} />
             <Stat label="Earth visible" value={`${summary.percent_earth_visible.toFixed(0)}%`} />
             <Stat label="Power and contact" value={`${summary.percent_both.toFixed(0)}%`} />
+            {dsnPercent !== null && <Stat label="DSN contact" value={`${dsnPercent.toFixed(0)}%`} />}
             <Stat label="Longest night" value={formatDuration(summary.longest_night_hours)} />
             <Stat label="Longest comms gap" value={formatDuration(summary.longest_comms_gap_hours)} />
           </StatGrid>
