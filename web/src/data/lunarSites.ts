@@ -19,5 +19,9 @@ export const lunarSites: LunarSite[] = [
   { id: "slim", name: "SLIM", country: "Japan", year: 2024, latitude: -13.3164, longitude: 25.251 },
   { id: "im-1", name: "IM-1", country: "USA", year: 2024, latitude: -80.13, longitude: 1.44 },
   { id: "blue-ghost-1", name: "Blue Ghost 1", country: "USA", year: 2025, latitude: 18.56, longitude: 61.81 },
-  { id: "im-2", name: "IM-2", country: "USA", year: 2025, latitude: null, longitude: null },
+  { id: "im-2", name: "IM-2", country: "USA", year: 2025, latitude: -84.7906, longitude: 29.1957 },
+  { id: "connecting-ridge", name: "Connecting Ridge", country: "USA", year: 2025, latitude: -89.4395, longitude: 222.8066 },
+  { id: "shackleton-site004", name: "Site 004", country: "USA", year: 2025, latitude: -89.78, longitude: 204.27 },
+  { id: "malapert-massif", name: "Malapert Massif", country: "USA", year: 2025, latitude: -85.964, longitude: 357.681 },
+  { id: "chandrayaan3-lroc", name: "Chandrayaan-3 (LROC)", country: "India", year: 2023, latitude: -69.3741, longitude: 32.32 },
 ];

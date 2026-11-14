@@ -628,7 +628,7 @@ export default function TerrainPage() {
       </section>
 
       {/* =====================================================
-          SITE SELECTION LIST
+          SWIPEABLE SITE STRIP (visible when SELECT SITE is active)
           ===================================================== */}
 
       {mode === "select" &&
@@ -642,7 +642,7 @@ export default function TerrainPage() {
               z-20
               mx-auto
               -mt-24
-              max-w-[1000px]
+              max-w-[1100px]
               px-4
               pb-8
               sm:-mt-20
@@ -651,7 +651,7 @@ export default function TerrainPage() {
           >
             <p
               className="
-                mb-2
+                mb-3
                 text-center
                 text-[8px]
                 uppercase
@@ -659,69 +659,123 @@ export default function TerrainPage() {
                 text-white/40
               "
             >
-              Tap a Moon marker or
-              choose a site
+              Tap a Moon marker or swipe to choose a site
             </p>
 
             <div
               className="
+                -mx-4
                 flex
-                gap-2
+                snap-x
+                snap-mandatory
+                gap-2.5
                 overflow-x-auto
-                pb-2
+                scroll-smooth
+                px-4
+                pb-3
+                scrollbar-none
+
+                [&::-webkit-scrollbar]:hidden
+                [-ms-overflow-style:none]
+                [scrollbar-width:none]
               "
             >
-              {lunarSites.map(
-                (site) => (
-                  <button
-                    key={String(
-                      site.id
-                    )}
-                    type="button"
-                    onClick={() =>
-                      selectSite(
-                        site
-                      )
-                    }
-                    className="
-                      shrink-0
-                      border
-                      border-white/15
-                      bg-black/70
-                      px-3
-                      py-2
-                      text-left
-                      transition
-                      hover:border-[#ff3b12]
-                    "
-                  >
-                    <span
-                      className="
-                        block
-                        text-[9px]
-                        text-white/80
-                      "
-                    >
-                      {site.name}
-                    </span>
+              {[...lunarSites]
+                .sort((a, b) => a.year - b.year || String(a.id).localeCompare(String(b.id)))
+                .map(
+                (site) => {
+                  const isActive =
+                    selectedSite?.id === site.id;
 
-                    <span
-                      className="
-                        mt-1
-                        block
-                        text-[7px]
-                        text-white/35
-                      "
+                  return (
+                    <button
+                      key={String(
+                        site.id
+                      )}
+                      type="button"
+                      onClick={() =>
+                        selectSite(
+                          site
+                        )
+                      }
+                      className={`
+                        snap-start
+                        shrink-0
+                        border
+                        rounded
+                        bg-black/70
+                        backdrop-blur-sm
+                        px-4
+                        py-2.5
+                        text-left
+                        transition-all
+                        duration-200
+                        min-w-[130px]
+
+                        ${
+                          isActive
+                            ? "border-[#ff3b12] bg-[#ff3b12]/10 shadow-[0_0_20px_rgba(255,59,18,0.12)]"
+                            : "border-white/15 hover:border-[#ff3b12]/60 hover:bg-white/[0.03]"
+                        }
+                      `}
                     >
-                      {site.year} ·{" "}
-                      {site.latitude ===
-                      null
-                        ? "NO COORDINATES"
-                        : site.country}
-                    </span>
-                  </button>
-                )
+                      <span
+                        className={`
+                          block
+                          text-[9px]
+                          font-medium
+                          uppercase
+                          tracking-[0.5px]
+                          ${isActive ? "text-[#ff3b12]" : "text-white/80"}
+                        `}
+                      >
+                        {site.name}
+                      </span>
+
+                      <span
+                        className="
+                          mt-1.5
+                          flex
+                          items-center
+                          gap-1.5
+                          text-[7px]
+                          text-white/35
+                        "
+                      >
+                        <span
+                          className={`
+                            inline-block
+                            h-1
+                            w-1
+                            rounded-full
+                            ${isActive ? "bg-[#ff3b12]" : "bg-white/25"}
+                          `}
+                        />
+                        {site.country} · {site.year}
+                      </span>
+                    </button>
+                  );
+                }
               )}
+            </div>
+
+            {/* Scroll hint arrows */}
+            <div
+              className="
+                mt-1
+                flex
+                items-center
+                justify-center
+                gap-2
+                text-[7px]
+                text-white/20
+              "
+            >
+              <span>←</span>
+              <span className="uppercase tracking-[2px]">
+                swipe
+              </span>
+              <span>→</span>
             </div>
           </section>
         )}
