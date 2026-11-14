@@ -38,7 +38,7 @@ export interface ScenarioResult {
 }
 
 export type ScenarioState =
-  | { status: "loading" }
+  | { status: "loading"; message?: string }
   | { status: "error"; message: string }
   | { status: "ready"; result: ScenarioResult };
 
@@ -58,7 +58,11 @@ export function useScenario(card: ScenarioCard | null, customMask?: HorizonMask 
   return useMemo((): ScenarioState => {
     if (!card) return { status: "loading" };
     if (error) return { status: "error", message: `Could not load the ephemeris: ${error}` };
-    if (!eph || loading || (card.site.kind === "custom" && customMask === undefined)) return { status: "loading" };
+    if (!eph) return { status: "loading", message: "Downloading the Sun and Earth positions (2.8 MB, first visit only)…" };
+    if (loading) return { status: "loading", message: "Loading the terrain horizon…" };
+    if (card.site.kind === "custom" && customMask === undefined) {
+      return { status: "loading", message: "Building the horizon from the polar terrain (6.7 MB the first time)…" };
+    }
 
     let name: string, lat: number, lon: number;
     if (card.site.kind === "preset") {

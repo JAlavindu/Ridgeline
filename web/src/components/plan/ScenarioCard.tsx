@@ -88,7 +88,7 @@ export default function ScenarioCard({
         </div>
       </div>
 
-      {state.status === "loading" && <p className="mt-4 text-[12px] text-white/40">Working out the sky…</p>}
+      {state.status === "loading" && <p className="mt-4 text-[12px] leading-[1.6] text-white/40">{state.message ?? "Working out the sky…"}</p>}
       {state.status === "error" && (
         <p className="mt-4 border-l-2 border-[#ff3b12]/70 pl-3 text-[12px] leading-[1.6] text-white/60">{state.message}</p>
       )}
