@@ -10,6 +10,8 @@ Ridgeline is a web app for the NASA Space Apps Challenge 2026 *Lunar Landing Sit
 
 Every position is checked against NASA JPL Horizons, and the checks are shown in the app.
 
+**Live app:** https://ridgeline-lavindu-pereras-projects.vercel.app/ (no login; validation results at [/validation](https://ridgeline-lavindu-pereras-projects.vercel.app/validation))
+
 > **Status:** working build (Nov 15, 2026). The Sun/Earth engine, sunlight, Earth visibility, countdowns, mission summaries, mission replays, an optional DSN mode and a **Plan page** (scenario board, launch-slip chart, mission timeline, window finder, custom coordinates and mission rules) run live in the browser, and every validation test is published on the app's `/validation` page. Real terrain horizons exist for five polar sites; custom points between about 75° S and the pole get an approximate horizon from 500 m terrain; every other site uses a smooth Moon, and the app says so. Features marked *not built* below are not in the app yet.
 
 ---
