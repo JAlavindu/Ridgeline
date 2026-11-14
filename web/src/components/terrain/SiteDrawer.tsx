@@ -1,13 +1,17 @@
 import { useState } from "react";
 
 import type { LunarSite } from "../../data/lunarSites";
+import SunEarthLive from "./SunEarthLive";
+
 
 const tabs = [
   ["overview", "OVERVIEW"],
+  ["sky", "SUN & EARTH"],
   ["terrain", "TERRAIN"],
   ["horizon", "HORIZON"],
   ["science", "SCIENCE"],
 ] as const;
+
 
 type TabId = (typeof tabs)[number][0];
 
@@ -115,6 +119,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
             </section>
           )}
 
+          {tab === "sky" && <SunEarthLive site={site} />}
           {tab === "terrain" && (
             <section aria-labelledby="terrain-heading">
               <p className="text-[8px] uppercase tracking-[2px] text-white/35">
