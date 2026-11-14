@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TerrainPage from "./pages/TerrainPage";
 import MoonNav from "../src/components/Nav";
+import TeamPage from "./pages/TeamPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
 
           <Route path="/terrain" element={<TerrainPage />} />
+          <Route path="/team" element={<TeamPage />} />
 
           <Route path="*" element={<HomePage />} />
         </Routes>
