@@ -1,0 +1,16 @@
+{
+ "id": "apollo12",
+ "lat": -3.0128,
+ "lon": 336.5781,
+ "projection": "aeqd centred on the site, R=1737400",
+ "n": 501,
+ "step_m": 60,
+ "half_m": 15000,
+ "dtype": "int16",
+ "byte_order": "little",
+ "units": "metres above the 1737.4 km reference sphere",
+ "nodata": -32768,
+ "orientation": "row 0 = north (top), column 0 = west (left); azimuth 0 = up",
+ "height_min_m": -2038.4847412109375,
+ "height_max_m": -512.5371704101562
+}
