@@ -1,231 +1,134 @@
-import { earthVisibility, DEFAULT_EARTH_OPTIONS, type EarthOptions } from "./../earth";
-import { coverage, type Ephemeris } from "./../ephemeris";
-import { skyAt, type Observer } from "./../geometry";
-import type { HorizonMask } from "./../mask";
-import { sunlight } from "./../sunlight";
-import { tdbToIso } from "./../time";
+import { describe, expect, it } from "vitest";
+import { makeObserver } from "../geometry";
+import { flatMask } from "../mask";
+import { sampleSeries, slipScan, summarize, timelineRows, type Series } from "../series";
+import { isoToTdb } from "../time";
+import { loadEphemerisFromDisk, loadMaskFromDisk } from "./loadFromDisk";
 
-/** One array per quantity; index i is the same moment in every array. */
-export interface Series {
-  step_s: number;
-  tdb: number[];
-  sun_el_deg: number[];
-  earth_el_deg: number[];
-  sun_horizon_deg: number[];
-  earth_horizon_deg: number[];
-  sun_fraction: number[];       // 0..1, terrain and eclipse combined
-  irradiance_w_m2: number[];
-  earth_visible: boolean[];
-  eclipse: boolean[];           // Sun above the terrain but partly or fully covered by Earth
-}
+const eph = loadEphemerisFromDisk();
+const LUNAR_DAY_H = 29.530589 * 24;
 
-export interface Summary {
-  hours: number;
-  percent_sunlit: number;
-  percent_full_sun: number;     // whole disc visible
-  mean_sun_fraction: number;    // average visible part of the disc, 0..1 (NASA PGDA / Glaser measure)
-  percent_earth_visible: number;
-  percent_both: number;         // sunlight AND Earth: power and direct contact together
-  longest_night_hours: number;  // within the period (a night cut off by the period's ends counts as shown)
-  longest_comms_gap_hours: number;
-  nights_over_24h: number;
-  mean_irradiance_w_m2: number;
-  eclipse_hours: number;
-}
-
-export const DEFAULT_STEP_MIN = 10;
-const FULL_SUN = 0.999;
-
-/** Sample conditions from startTdb for `hours`, every `stepMinutes` (stops at the ephemeris end). */
-export function sampleSeries(
-  eph: Ephemeris,
-  obs: Observer,
-  mask: HorizonMask,
-  startTdb: number,
-  hours: number,
-  stepMinutes: number = DEFAULT_STEP_MIN,
-  earthOptions: EarthOptions = DEFAULT_EARTH_OPTIONS,
-): Series {
-  const step = stepMinutes * 60;
-  const end = Math.min(startTdb + hours * 3600, coverage(eph).lastTdb);
-  const s: Series = {
-    step_s: step,
-    tdb: [],
-    sun_el_deg: [],
-    earth_el_deg: [],
-    sun_horizon_deg: [],
-    earth_horizon_deg: [],
-    sun_fraction: [],
-    irradiance_w_m2: [],
-    earth_visible: [],
-    eclipse: [],
-  };
-
-  for (let t = startTdb; t < end; t += step) {
-    const view = skyAt(eph, obs, t);
-    const light = sunlight(view.sun, view.earth, view.sun_earth_sep_deg, mask);
-    const dte = earthVisibility(view.earth, mask, earthOptions);
-    s.tdb.push(t);
-    s.sun_el_deg.push(view.sun.el_deg);
-    s.earth_el_deg.push(view.earth.el_deg);
-    s.sun_horizon_deg.push(light.horizon_deg);
-    s.earth_horizon_deg.push(dte.horizon_deg);
-    s.sun_fraction.push(light.visible_fraction);
-    s.irradiance_w_m2.push(light.irradiance_w_m2);
-    s.earth_visible.push(dte.visible);
-    s.eclipse.push(light.terrain_fraction > 0 && light.eclipse_fraction < 1);
-  }
-  return s;
-}
-
-/** Longest run of `true` values, counted in samples. */
-function longestRun(flags: boolean[]): number {
-  let best = 0;
-  let current = 0;
-  for (const flag of flags) {
-    current = flag ? current + 1 : 0;
-    best = Math.max(best, current);
-  }
-  return best;
-}
-
-/** Number of runs of `true` that are at least `minSamples` long. */
-function countRuns(flags: boolean[], minSamples: number): number {
-  let count = 0;
-  let current = 0;
-  for (const flag of [...flags, false]) {
-    if (flag) {
-      current += 1;
-    } else {
-      if (current >= minSamples) count += 1;
-      current = 0;
-    }
-  }
-  return count;
-}
-
-/** All the headline numbers for a period, in one pass over the samples. */
-export function summarize(s: Series): Summary {
-  const n = s.tdb.length;
-  const hoursPerSample = s.step_s / 3600;
-  if (n === 0) {
-    return {
-      hours: 0, percent_sunlit: 0, percent_full_sun: 0, mean_sun_fraction: 0,
-      percent_earth_visible: 0, percent_both: 0,
-      longest_night_hours: 0, longest_comms_gap_hours: 0, nights_over_24h: 0,
-      mean_irradiance_w_m2: 0, eclipse_hours: 0,
-    };
-  }
-
-  const sunlit = s.sun_fraction.map((f) => f > 0);
-  const percent = (flags: boolean[]) => (100 * flags.filter(Boolean).length) / n;
-  const dark = sunlit.map((lit) => !lit);
-  const noEarth = s.earth_visible.map((v) => !v);
-  const average = (xs: number[]) => xs.reduce((sum, x) => sum + x, 0) / n;
-
+/** A hand-made series: 1 sample per hour, sunlit pattern given as a string of "#" (lit) and "." (dark). */
+function fakeSeries(pattern: string, earth = true): Series {
+  const fractions = [...pattern].map((c) => (c === "#" ? 1 : 0));
+  const n = fractions.length;
   return {
-    hours: n * hoursPerSample,
-    percent_sunlit: percent(sunlit),
-    percent_full_sun: percent(s.sun_fraction.map((f) => f >= FULL_SUN)),
-    mean_sun_fraction: average(s.sun_fraction),
-    percent_earth_visible: percent(s.earth_visible),
-    percent_both: percent(sunlit.map((lit, i) => lit && s.earth_visible[i])),
-    longest_night_hours: longestRun(dark) * hoursPerSample,
-    longest_comms_gap_hours: longestRun(noEarth) * hoursPerSample,
-    nights_over_24h: countRuns(dark, Math.ceil(24 / hoursPerSample)),
-    mean_irradiance_w_m2: average(s.irradiance_w_m2),
-    eclipse_hours: s.eclipse.filter(Boolean).length * hoursPerSample,
+    step_s: 3600,
+    tdb: fractions.map((_, i) => i * 3600),
+    sun_el_deg: new Array(n).fill(0),
+    earth_el_deg: new Array(n).fill(0),
+    sun_horizon_deg: new Array(n).fill(0),
+    earth_horizon_deg: new Array(n).fill(0),
+    sun_fraction: fractions,
+    irradiance_w_m2: fractions.map((f) => 1361 * f),
+    earth_visible: new Array(n).fill(earth),
+    eclipse: new Array(n).fill(false),
   };
 }
 
-/** Same fields as M4's TimelineHour. `every` = keep one row in every N samples. */
-export interface TimelineRow {
-  time_utc: string;
-  sun_el: number;
-  earth_el: number;
-  sun_terrain_el: number;
-  earth_terrain_el: number;
-  sun_fraction: number;
-  is_sunlit: boolean;
-  is_partial: boolean;
-  is_dark: boolean;
-  is_earth_visible: boolean;
-  is_eclipse: boolean;
-  is_both: boolean;
-}
+describe("summarize (hand-made cases)", () => {
+  it("counts percentages, the longest night and long nights", () => {
+    const summary = summarize(fakeSeries("##" + ".".repeat(30) + "##" + ".".repeat(5) + "#"));
+    expect(summary.hours).toBe(40);
+    expect(summary.percent_sunlit).toBeCloseTo((5 / 40) * 100, 9);
+    expect(summary.longest_night_hours).toBe(30);
+    expect(summary.nights_over_24h).toBe(1);
+    expect(summary.mean_irradiance_w_m2).toBeCloseTo((1361 * 5) / 40, 9);
+  });
 
-export function timelineRows(s: Series, every = 1): TimelineRow[] {
-  const rows: TimelineRow[] = [];
-  for (let i = 0; i < s.tdb.length; i += every) {
-    const f = s.sun_fraction[i];
-    rows.push({
-      time_utc: tdbToIso(s.tdb[i]),
-      sun_el: s.sun_el_deg[i],
-      earth_el: s.earth_el_deg[i],
-      sun_terrain_el: s.sun_horizon_deg[i],
-      earth_terrain_el: s.earth_horizon_deg[i],
-      sun_fraction: f,
-      is_sunlit: f >= FULL_SUN,
-      is_partial: f > 0 && f < FULL_SUN,
-      is_dark: f === 0,
-      is_earth_visible: s.earth_visible[i],
-      is_eclipse: s.eclipse[i],
-      is_both: f > 0 && s.earth_visible[i],
-    });
-  }
-  return rows;
-}
+  it("no Earth at all: comms gap is the whole period", () => {
+    const summary = summarize(fakeSeries("#####", false));
+    expect(summary.percent_earth_visible).toBe(0);
+    expect(summary.percent_both).toBe(0);
+    expect(summary.longest_comms_gap_hours).toBe(5);
+  });
 
-/** Same fields as M4's SlipDataPoint. */
-export interface SlipPoint {
-  slip_days: number;
-  target_date: string;
-  sunlight_percent: number;
-  earth_visible_percent: number;
-  combined_percent: number;
-  longest_night_hours: number;
-  is_viable: boolean;
-}
+  it("an empty period gives zeros, not NaN", () => {
+    expect(summarize(fakeSeries("")).percent_sunlit).toBe(0);
+  });
+});
 
-/** What counts as "viable" on the slip chart. These are user settings, not physics. */
-export interface Viability {
-  min_sunlight_percent: number;
-  max_night_hours: number;
-}
+describe("equator (0, 0), smooth Moon, 12 lunar days (plan V5)", () => {
+  const obs = makeObserver(0, 0);
+  const summary = summarize(sampleSeries(eph, obs, flatMask(obs), isoToTdb("2027-01-01T00:00:00Z"), 12 * LUNAR_DAY_H));
 
-export const DEFAULT_VIABILITY: Viability = { min_sunlight_percent: 65, max_night_hours: 72 };
+  it("Sun up about 50% of the time (+/- 0.5 points)", () => {
+    expect(Math.abs(summary.percent_sunlit - 50)).toBeLessThan(0.5);
+  });
 
-/**
- * The mission summary for each launch slip (in days) from a planned start, using hourly samples
- * so the whole chart takes well under a second. Slips outside 2023-2032 are skipped.
- */
-export function slipScan(
-  eph: Ephemeris,
-  obs: Observer,
-  mask: HorizonMask,
-  plannedStartTdb: number,
-  missionHours: number,
-  slipDays: number[],
-  viability: Viability = DEFAULT_VIABILITY,
-  earthOptions: EarthOptions = DEFAULT_EARTH_OPTIONS,
-): SlipPoint[] {
-  const { firstTdb, lastTdb } = coverage(eph);
-  const points: SlipPoint[] = [];
-  for (const slip of slipDays) {
-    const start = plannedStartTdb + slip * 86400;
-    if (start < firstTdb || start + missionHours * 3600 > lastTdb) continue;
-    const summary = summarize(sampleSeries(eph, obs, mask, start, missionHours, 60, earthOptions));
-    points.push({
-      slip_days: slip,
-      target_date: tdbToIso(start).slice(0, 10),
-      sunlight_percent: summary.percent_sunlit,
-      earth_visible_percent: summary.percent_earth_visible,
-      combined_percent: summary.percent_both,
-      longest_night_hours: summary.longest_night_hours,
-      is_viable:
-        summary.percent_sunlit >= viability.min_sunlight_percent &&
-        summary.longest_night_hours <= viability.max_night_hours,
-    });
-  }
-  return points;
-}
+  it("longest night about 14.7 days, 12 nights", () => {
+    expect(summary.longest_night_hours / 24).toBeGreaterThan(14.4);
+    expect(summary.longest_night_hours / 24).toBeLessThan(15.0);
+    expect(summary.nights_over_24h).toBe(12);
+  });
+
+  it("Earth always visible", () => {
+    expect(summary.percent_earth_visible).toBe(100);
+    expect(summary.longest_comms_gap_hours).toBe(0);
+  });
+});
+
+describe("eclipse day 2025-03-14 at (0, 0), 1-minute samples (plan V7)", () => {
+  const obs = makeObserver(0, 0);
+  const s = sampleSeries(eph, obs, flatMask(obs), isoToTdb("2025-03-14T00:00:00Z"), 24, 1);
+  const summary = summarize(s);
+
+  it("about 5 hours of Earth crossing the Sun, and a short 'night' in the middle", () => {
+    expect(summary.eclipse_hours).toBeGreaterThan(4);
+    expect(summary.eclipse_hours).toBeLessThan(6);
+    expect(summary.longest_night_hours).toBeGreaterThan(1);
+    expect(summary.longest_night_hours).toBeLessThan(3);
+  });
+
+  it("the timeline marks those rows as eclipse and dark", () => {
+    const rows = timelineRows(s, 5);
+    const at = (utc: string) => rows.find((r) => r.time_utc.startsWith(utc));
+    expect(at("2025-03-14T07:00")?.is_eclipse).toBe(true);
+    expect(at("2025-03-14T07:00")?.is_dark).toBe(true);
+    expect(at("2025-03-14T00:00")?.is_eclipse).toBe(false);
+  });
+});
+
+describe("Connecting Ridge with M3's terrain, 2023-2032 hourly (plan V10)", () => {
+  const mask = loadMaskFromDisk("connecting_ridge");
+  const obs = makeObserver(-89.4395, -137.1934, mask.site_height_m ?? 0);
+  const summary = summarize(sampleSeries(eph, obs, mask, isoToTdb("2023-01-01T00:00:00Z"), 10 * 8766, 60));
+
+  it("average sunlight within 5 points of Glaser 2018's ~88%", () => {
+    expect(Math.abs(100 * summary.mean_sun_fraction - 88)).toBeLessThan(5);
+  });
+
+  it("longest darkness of a few days (Glaser 2014: 4.58 d)", () => {
+    expect(summary.longest_night_hours / 24).toBeGreaterThan(3);
+    expect(summary.longest_night_hours / 24).toBeLessThan(7);
+  });
+});
+
+describe("slip chart", () => {
+  const mask = loadMaskFromDisk("connecting_ridge");
+  const obs = makeObserver(-89.4395, -137.1934, mask.site_height_m ?? 0);
+  const slips = Array.from({ length: 61 }, (_, i) => -60 + 2 * i);
+  const points = slipScan(eph, obs, mask, isoToTdb("2026-11-14T09:00:00Z"), 14 * 24, slips);
+
+  it("one point per slip, dates move with the slip", () => {
+    expect(points).toHaveLength(61);
+    expect(points[30].slip_days).toBe(0);
+    expect(points[30].target_date).toBe("2026-11-14");
+    expect(points[31].target_date).toBe("2026-11-16");
+  });
+
+  it("all percentages are between 0 and 100, and 'viable' follows the rule", () => {
+    for (const p of points) {
+      for (const pct of [p.sunlight_percent, p.earth_visible_percent, p.combined_percent]) {
+        expect(pct).toBeGreaterThanOrEqual(0);
+        expect(pct).toBeLessThanOrEqual(100);
+      }
+      expect(p.is_viable).toBe(p.sunlight_percent >= 65 && p.longest_night_hours <= 72);
+    }
+  });
+
+  it("skips slips that fall outside 2023-2032", () => {
+    const late = slipScan(eph, obs, mask, isoToTdb("2032-12-01T00:00:00Z"), 14 * 24, [0, 30]);
+    expect(late.map((p) => p.slip_days)).toEqual([0]);
+  });
+});
