@@ -21,6 +21,7 @@ import {
 } from "../../engine";
 import type { LunarSite } from "../../data/lunarSites";
 import { useDsn, useEphemeris, useMask } from "../../hooks/useEngine";
+import { MASK_MAST_M, earthOptionsOf, useSettings } from "../../lib/settings";
 import { eventLabel, formatCountdown, formatDuration, nowUtcInput, utcInputToIso } from "../../lib/format";
 
 const DEFAULT_TIME = "2026-11-14T09:00"; // hackathon start, UTC
@@ -34,18 +35,20 @@ type Result =
 function useSky(site: LunarSite, timeInput: string, withSummary: boolean) {
   const { eph, error } = useEphemeris();
   const { mask, loading } = useMask(site.id);
+  const { settings } = useSettings();
 
   const result = useMemo((): Result | null => {
     if (!eph || loading || site.latitude === null || site.longitude === null) return null;
     try {
-      const obs = makeObserver(site.latitude, site.longitude, mask?.site_height_m ?? 0);
+      const obs = makeObserver(site.latitude, site.longitude, mask?.site_height_m ?? 0, mask ? MASK_MAST_M : settings.mastM);
+      const earth = earthOptionsOf(settings);
       const horizon = mask ?? flatMask(obs);
       const tdb = isoToTdb(utcInputToIso(timeInput));
-      const series = withSummary ? sampleSeries(eph, obs, horizon, tdb, MISSION_HOURS) : null;
+      const series = withSummary ? sampleSeries(eph, obs, horizon, tdb, MISSION_HOURS, undefined, earth) : null;
       return {
         ok: true,
-        state: skyState(eph, obs, horizon, tdb),
-        look: outlook(eph, obs, horizon, tdb),
+        state: skyState(eph, obs, horizon, tdb, earth),
+        look: outlook(eph, obs, horizon, tdb, undefined, earth),
         summary: series ? summarize(series) : null,
         series,
         tdb,
@@ -53,7 +56,7 @@ function useSky(site: LunarSite, timeInput: string, withSummary: boolean) {
     } catch (err) {
       return { ok: false, message: err instanceof Error ? err.message : String(err) };
     }
-  }, [eph, mask, loading, site, timeInput, withSummary]);
+  }, [eph, mask, loading, site, timeInput, withSummary, settings]);
 
   return { result, error, terrain: mask !== null };
 }
@@ -138,6 +141,7 @@ function GroundNetwork({
   limit: DsnLimit;
   onLimit: (value: DsnLimit) => void;
 }) {
+  const { settings } = useSettings();
   const options: ["any" | "dsn", string][] = [
     ["any", "Any network (Earth in view)"],
     ["dsn", "NASA DSN"],
@@ -179,6 +183,7 @@ function GroundNetwork({
         )}
       </div>
       <p className="mt-2 max-w-[60ch] text-[11px] leading-[1.6] text-white/35">
+        Earth counts as in view when {settings.earthRule === "any_part" ? "any part of it is above the hills" : "its centre is above the hills"}; change this in the Plan page's mission rules.
         Many commercial landers use other ground networks, so the default only needs Earth in view. DSN also needs
         the Moon above the limit at Goldstone, Madrid or Canberra (DSN 810-005, Rev. O).
         {network === "dsn" &&

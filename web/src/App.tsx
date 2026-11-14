@@ -6,9 +6,11 @@ import TerrainPage from "./pages/TerrainPage";
 import MoonNav from "../src/components/Nav";
 import TeamPage from "./pages/TeamPage";
 import ValidationPage from "./pages/ValidationPage";
+import SettingsProvider from "./lib/SettingsProvider";
 
 function App() {
   return (
+    <SettingsProvider>
     <BrowserRouter>
       <div className="ridgeline-page">
 
@@ -27,6 +29,7 @@ function App() {
 
       </div>
     </BrowserRouter>
+    </SettingsProvider>
   );
 }
 
