@@ -474,7 +474,7 @@ const moonScale = useTransform(
             />
 
             <span>
-              NASA BACK UP PLAN
+              by NASA's Backup Plan
             </span>
 
           </div>
