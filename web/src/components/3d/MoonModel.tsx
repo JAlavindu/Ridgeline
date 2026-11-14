@@ -381,7 +381,7 @@ export default function MoonModel({
      */
     if (
       !isInteracting &&
-      !selectionMode &&
+      !focusedSite &&
       !historyMode &&
       autoRotationSpeed !== 0
     ) {
