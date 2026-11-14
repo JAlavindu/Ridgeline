@@ -20,7 +20,7 @@ export type { Observer, BodyPosition, SkyView } from "./geometry";
 export type { Vec3 } from "./vec3";
 
 // Modules 6 and 7
-export { loadMask, checkMask, flatMask, horizonAt } from "./mask";
+export { loadMask, checkMask, flatMask, horizonAt, isRealMask } from "./mask";
 export type { HorizonMask, MaskEdge } from "./mask";
 export { sunlight, eclipseFraction, irradianceWm2, discFractionAbove, SOLAR_CONSTANT_W_M2 } from "./sunlight";
 export type { Sunlight } from "./sunlight";

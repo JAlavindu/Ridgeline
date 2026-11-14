@@ -43,6 +43,23 @@ def load_mask(site_id: str) -> dict:
     return json.loads((MASK_DIR / f"{site_id}.json").read_text())
 
 
+def is_real_mask(mask: dict) -> bool:
+    """False for placeholder masks (label or DEM name contains 'synthetic'). Twin of isRealMask in mask.ts."""
+    text = " ".join([str(mask.get("label") or "")] + [str(d) for d in mask.get("dems_used") or []]).lower()
+    return "synthetic" not in text
+
+
+def load_site_mask(site_id: str, site: Site) -> tuple[dict, str]:
+    """The real terrain mask for a site, or a smooth-Moon mask. Returns (mask, 'LOLA terrain' | 'smooth Moon')."""
+    try:
+        mask = load_mask(site_id)
+    except FileNotFoundError:
+        return flat_mask(site), "smooth Moon"
+    if not is_real_mask(mask):
+        return flat_mask(site), "smooth Moon"
+    return mask, "LOLA terrain"
+
+
 def horizon_at(mask: dict, az_deg: np.ndarray) -> np.ndarray:
     """Terrain height (deg) at each azimuth, blending the two nearest samples; wraps past 360."""
     elev = np.asarray(mask["elev_deg"], dtype=float)

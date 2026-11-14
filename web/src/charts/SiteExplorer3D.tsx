@@ -1034,7 +1034,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
             </span>
             {realDemLoaded ? (
               <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#064e3b', color: '#34d399', border: '1px solid #059669' }}>
-                Real Moon Height Data Active
+                Terrain tile loaded (60 m grid)
               </span>
             ) : loadingDem ? (
               <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#1e293b', color: '#94a3b8' }}>
@@ -1180,7 +1180,7 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
           pointerEvents: 'none',
         }}>
           <div>Map Size: 30 km × 30 km Area</div>
-          <div>Ground Heights: {`${loadedTile.minElev.toFixed(0)}m to +${loadedTile.maxElev.toFixed(0)}m`}</div>
+          <div>Ground Heights: {`${loadedTile.minElev.toFixed(0)} m to ${loadedTile.maxElev > 0 ? "+" : ""}${loadedTile.maxElev.toFixed(0)} m`}</div>
           <div>Sun in Sky: {skyState.sun.el_deg.toFixed(1)}° ({skyState.is_sun_visible ? 'Direct Sunlight' : 'Shadow / Night'})</div>
           <div>Earth Signal: {skyState.earth.el_deg.toFixed(1)}° ({skyState.is_earth_visible ? 'Clear Connection' : 'Blocked by Hills'})</div>
         </div>

@@ -810,22 +810,22 @@ const moonScale = useTransform(
               [
                 "DIAMETER →",
                 diameter.toLocaleString(),
-                "Km",
+                "Km · NASA NSSDC",
               ],
               [
                 "GRAVITY",
                 gravity.toFixed(2),
-                "m/s²",
+                "m/s² · NASA NSSDC",
               ],
               [
                 "DENSITY",
                 density.toLocaleString(),
-                "kg/m³",
+                "kg/m³ · NASA NSSDC",
               ],
               [
-                "INCLINATION",
+                "EQUATOR TILT TO ORBIT",
                 inclination.toFixed(2),
-                "degrees",
+                "degrees · NASA NSSDC",
               ],
             ].map(
               ([label, value, unit]) => (

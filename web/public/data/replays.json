@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-14T20:00:36Z",
+  "generated_utc": "2026-11-14T20:30:23Z",
   "generator": "pipeline/replays.py",
   "label": "plausibility",
   "note": "Plausibility check, not proof. Landers stop for many reasons besides sunset, so the end of operations is shown beside the computed Sun, never called a sunset.",
@@ -34,6 +34,7 @@
       "python": {
         "im1": {
           "site_id": "im1",
+          "horizon": "LOLA terrain",
           "sun_fraction_at_landing": 1.0,
           "mean_sun_fraction": 0.737,
           "dark_periods": [
@@ -72,7 +73,8 @@
           "lat": -80.13,
           "lon": 1.44,
           "height_m": 2592.0,
-          "mask": "im1"
+          "mask": "im1",
+          "horizon": "LOLA terrain"
         }
       }
     },
@@ -108,20 +110,21 @@
       "python": {
         "chandrayaan3_isro": {
           "site_id": "chandrayaan3_isro",
+          "horizon": "smooth Moon",
           "sun_fraction_at_landing": 1.0,
-          "mean_sun_fraction": 0.542,
+          "mean_sun_fraction": 0.556,
           "dark_periods": [
             {
               "from": "2023-09-04T18:10:00Z",
-              "to": "2023-09-20T05:40:00Z",
-              "hours": 371.5,
+              "to": "2023-09-19T17:30:00Z",
+              "hours": 359.3,
               "ends_in_window": true
             }
           ],
           "eclipse_min_fraction": 1.0,
           "eclipse_min_utc": "2023-08-23T00:00:00Z",
-          "earth_margin_min_deg": 7.21,
-          "earth_margin_max_deg": 22.29,
+          "earth_margin_min_deg": 9.46,
+          "earth_margin_max_deg": 24.68,
           "sun_el_daily_deg": {
             "2023-08-23T00:00:00Z": 6.57,
             "2023-08-24T00:00:00Z": 10.4,
@@ -161,20 +164,21 @@
         },
         "chandrayaan3_lroc": {
           "site_id": "chandrayaan3_lroc",
+          "horizon": "smooth Moon",
           "sun_fraction_at_landing": 1.0,
-          "mean_sun_fraction": 0.537,
+          "mean_sun_fraction": 0.556,
           "dark_periods": [
             {
-              "from": "2023-09-04T18:30:00Z",
-              "to": "2023-09-20T09:40:00Z",
-              "hours": 375.2,
+              "from": "2023-09-04T18:10:00Z",
+              "to": "2023-09-19T17:30:00Z",
+              "hours": 359.3,
               "ends_in_window": true
             }
           ],
           "eclipse_min_fraction": 1.0,
           "eclipse_min_utc": "2023-08-23T00:00:00Z",
-          "earth_margin_min_deg": 6.49,
-          "earth_margin_max_deg": 22.1,
+          "earth_margin_min_deg": 9.46,
+          "earth_margin_max_deg": 24.68,
           "sun_el_daily_deg": {
             "2023-08-23T00:00:00Z": 6.56,
             "2023-08-24T00:00:00Z": 10.38,
@@ -218,15 +222,17 @@
           "app_id": "chandrayaan-3",
           "lat": -69.367621,
           "lon": 32.348126,
-          "height_m": -1500,
-          "mask": "chandrayaan3_isro"
+          "height_m": 0.0,
+          "mask": "chandrayaan3_isro",
+          "horizon": "smooth Moon"
         },
         "chandrayaan3_lroc": {
           "app_id": "chandrayaan3-lroc",
           "lat": -69.3741,
           "lon": 32.32,
-          "height_m": -1500,
-          "mask": "chandrayaan3_lroc"
+          "height_m": 0.0,
+          "mask": "chandrayaan3_lroc",
+          "horizon": "smooth Moon"
         }
       }
     },
@@ -260,6 +266,7 @@
       "python": {
         "im2": {
           "site_id": "im2",
+          "horizon": "LOLA terrain",
           "sun_fraction_at_landing": 1.0,
           "mean_sun_fraction": 0.907,
           "dark_periods": [
@@ -306,7 +313,8 @@
           "lat": -84.7906,
           "lon": 29.1957,
           "height_m": 5321.9,
-          "mask": "im2"
+          "mask": "im2",
+          "horizon": "LOLA terrain"
         }
       }
     },
@@ -341,7 +349,8 @@
           "lat": 0.67408,
           "lon": 23.47297,
           "height_m": 0.0,
-          "mask": "apollo11"
+          "mask": "apollo11",
+          "horizon": "smooth Moon"
         }
       }
     }
