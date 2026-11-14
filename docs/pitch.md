@@ -12,9 +12,10 @@ Numbers below are read from `web/public/data/validation.json` (generated 2026-11
 | | IM-2 → Mission replay | "The 14 March 2025 eclipse shows as a dip: Earth in front of the Sun." |
 | | Sun & Earth tab → NASA DSN | "Optional DSN mode also needs a NASA antenna to see the Moon. Many commercial landers use other networks, so the default only needs Earth in view." |
 | 3:30–4:30 | `/validation` | See next section |
+| (if time) | Plan page: Connecting Ridge vs IM-2 side by side → Duplicate → slip slider "+21 days" → Use this date → window finder | "Launch slipped three weeks? Compare the new date, a nearby site, and every start date in the next year, in seconds." |
 | 4:30–5:00 | Close | "Fast, validated planning and teaching tool; not mission-grade, and we say so. Everything is open on GitHub." |
 
-Do **not** show: scenario board, slip slider, window finder, custom coordinates, neighbourhood map. They are not built.
+Do **not** show: the neighbourhood map or CSV export (not built). Custom coordinates are approximate: say so if you show them.
 
 ## Validation page: what to say
 

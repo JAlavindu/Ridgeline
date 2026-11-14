@@ -23,5 +23,5 @@ From the plan, section 16. Deadline: submitted by 22:30 Sunday, hard limit 23:59
 - [ ] V9 is described as pending (unless 0 m masks were built and the test now passes).
 - [ ] No claim of mission-grade accuracy, single sunset times near the pole, or exact power in watts.
 - [ ] Mission replay facts are checked against a primary source, or described as "from our plan".
-- [ ] The scenario board, slip slider, window finder, custom coordinates and neighbourhood map are not shown or promised in the demo (they are not built).
+- [ ] The neighbourhood map and CSV export are not shown or promised (not built), and custom coordinates are called approximate.
 - [ ] The team name on the site footer ("NASA's Backup Plan", "LUNA") matches what is submitted; the app itself is called Ridgeline.

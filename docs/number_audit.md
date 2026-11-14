@@ -51,6 +51,20 @@ All times on screen are UTC and say so.
 | Earth drifts "a few degrees" (libration up to about 8°) | plan §7.1 | OK |
 | Sketch of low Sun and Earth | labelled "not to scale" | OK |
 
+## Plan page (`/plan`)
+
+| Label | Source | Formula | Checked by | Status |
+|---|---|---|---|---|
+| Sun up, average sunlight, Earth in view, power and contact | engine `sampleSeries` + `summarize` (10-minute samples) | F11, F12, F16 | V2, V5, S3, `series.test.ts` | OK |
+| Sunlight on the panel (W/m²) and electric (W/m²) | S × f × panel factor; × efficiency (labelled "example") | F13, F14 | `power.test.ts` | OK |
+| Longest night, longest comms gap, eclipse hours | engine `summarize` | D10 | `series.test.ts` | OK |
+| Next sunset / Earthset | engine `outlook`, a window poleward of 75° | F8 | `events.test.ts`, S1 | OK |
+| Horizon line ("LOLA terrain", "approximate (500 m terrain)", "smooth Moon") | mask source | F9, F10 | V14, `customHorizon.test.ts` | OK |
+| Slip chart: sunlight %, longest night per start date | engine `slipScan` (hourly samples) | as above | `series.test.ts` | OK |
+| Window finder: start dates that meet the rule | engine `slipScan`, 365 daily starts | as above | browser check | OK |
+| Timeline values (UTC) | engine `timelineRows` | as above | `series.test.ts` | OK |
+| Custom point latitude/longitude from the map | south polar stereographic inverse | n/a | `polarMap.test.ts` (matches M3's check pixel) | OK |
+
 ## Validation page (`/validation`)
 
 All values are read from `validation.json` at load time; nothing is typed on the page. Statuses come from `lib/validation.ts` (tested).

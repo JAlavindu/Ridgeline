@@ -10,7 +10,7 @@ Ridgeline is a web app for the NASA Space Apps Challenge 2026 *Lunar Landing Sit
 
 Every position is checked against NASA JPL Horizons, and the checks are shown in the app.
 
-> **Status:** working build (Nov 15, 2026). The Sun/Earth engine, sunlight, Earth visibility, countdowns, mission summaries, mission replays and an optional DSN mode run live in the browser, and every validation test is published on the app's `/validation` page. Real terrain horizons exist for five polar sites; every other site uses a smooth Moon, and the app says so. Features marked *not built* below are not in the app yet.
+> **Status:** working build (Nov 15, 2026). The Sun/Earth engine, sunlight, Earth visibility, countdowns, mission summaries, mission replays, an optional DSN mode and a **Plan page** (scenario board, launch-slip chart, mission timeline, window finder, custom coordinates and mission rules) run live in the browser, and every validation test is published on the app's `/validation` page. Real terrain horizons exist for five polar sites; custom points between about 75° S and the pole get an approximate horizon from 500 m terrain; every other site uses a smooth Moon, and the app says so. Features marked *not built* below are not in the app yet.
 
 ---
 
@@ -36,12 +36,12 @@ Every position is checked against NASA JPL Horizons, and the checks are shown in
 | **Neighbourhood map**: NASA's average sunlight (PGDA 69) around polar sites | Where are the best few hundred metres? |
 | **Window finder**: a calendar of landing dates that meet your mission rules | When should we land? |
 | **Validation panel**: our error against JPL Horizons and our agreement with NASA's maps | Can I trust these numbers? |
-**Built:** site library and Explore Moon page; site panel with Overview, Sun & Earth (live countdown windows, 14-day summary, optional DSN contact), 3D terrain explorer, horizon panorama and science numbers; mission replays (IM-1, IM-2, Chandrayaan-3, Apollo 11); mission history timeline; validation page.
+**Built:** site library and Explore Moon page; site panel with Overview, Sun & Earth (live countdown windows, 14-day summary, optional DSN contact), 3D terrain explorer, horizon panorama and science numbers; mission replays (IM-1, IM-2, Chandrayaan-3, Apollo 11); mission history timeline; **Plan page** at `/plan` with a scenario board (up to 4 site + date cards), launch-slip chart (±60 days), mission timeline, window finder (a year of start dates), custom coordinates (approximate, polar only) and mission rules (Earth rule and margin, panel type and efficiency, mast height); validation page.
 
-**Not built yet:** scenario board and slip slider, window finder, custom coordinates, summary timelines, neighbourhood map, CSV export, panel-power settings, and the Explore/Plan mode switch. The engine functions for some of these exist (for example `slipScan`) but have no screen.
+**Not built yet:** neighbourhood map, CSV export, the "power-limited" label, and a separate Explore/Plan mode switch (the Plan page plays that role).
 
 
-Planned for two modes (not built): **Explore** (public and educators) with plain-language captions and a "Moon vs Earth" explainer, and **Plan** (engineers) with panel settings, the Earth-visibility rule and margin, and CSV export. The optional Deep Space Network (DSN) mode is built.
+The **Plan page** holds the engineering tools; the Explore Moon page and the guide hold the plain-language ones. The optional Deep Space Network (DSN) mode is on the site panel's Sun & Earth tab.
 
 ---
 
@@ -120,7 +120,7 @@ We publish every test with its tolerance, its result and the reason for any gap,
 | V11 | Replay: IM-1 Odysseus, 22 Feb – 6 Mar 2024 | Operations ended on or before the computed Sun loss | Sun lost 2 Mar 18:00 UTC, **66 h** after operations ended (it tipped over) | ✅ |
 | V12 | Replay: Chandrayaan-3 Vikram (ISRO and LROC coordinates) | Sunset after the 4 Sep sleep; sunrise within 3 days of ISRO's 22 Sep | Smooth Moon (no terrain data): sunset 4 Sep 18:10 UTC; sunrise 19 Sep 17:30 UTC, **2.27 days** before ISRO's date | ✅ |
 | V13 | Replay: IM-2 Athena and the 14 Mar 2025 eclipse | Sun covered by Earth on 14 Mar | Fully covered 05:40–08:20 UTC (geometry only) | ✅ |
-| V14 | Custom-coordinate horizons vs precise horizons (M3) | Sets the accuracy label | Worst-site 95th percentile **9.3°**; custom coordinates would be labelled approximate and are not in the app | ℹ️ |
+| V14 | Custom-coordinate horizons vs precise horizons (M3) | Sets the accuracy label | Worst-site 95th percentile **9.3°**; custom coordinates are labelled approximate in the app | ℹ️ |
 | H1 | Hand check at (0°, 0°): first sunset and sunlit share by formula F5 vs the engine | Sunset within 2 min, share within 0.5 points | **0.08 min** and **0.00 points** apart | ✅ |
 | S1 | A 0.1° horizon error vs sunset time (formula F8), at 0°, 80°S, 85°S, 89°S | Within 10% of F8 | Shifts of **0.2, 1.2, 2.4 and 11.9 h**; worst gap **3%** | ✅ |
 | S2 | Earth centre rule vs any-part rule, 3 polar sites | Any-part never less than centre | Differ by up to **9.9 points** of the decade; first Earthset up to 34 h later | ✅ |
@@ -136,7 +136,7 @@ We publish every test with its tolerance, its result and the reason for any gap,
 - **Mission replay facts are not yet checked against primary sources.** Landing and shutdown dates in `replays.json` come from the team plan and are marked as such in the app. Check them before the video.
 - **V12 ran on a smooth Moon.** Chandrayaan-3 has no real terrain data yet, so its two coordinate sets give identical times and the 360 m sensitivity is not tested.
 - **Placeholder terrain was removed.** Eleven horizon masks (Apollo, Chandrayaan-3, Chang'e-4, SLIM, Blue Ghost) were made-up placeholders marked "synthetic". The app now treats those sites as a smooth Moon and says so on screen.
-- The browser engine has 98 automated tests and the Python pipeline 98 (run on every change).
+- The browser engine has 118 automated tests and the Python pipeline 98 (run on every change).
 
 ## Limits — what we do and don't claim
 
@@ -148,7 +148,8 @@ We publish every test with its tolerance, its result and the reason for any gap,
 - **Sun model:** the Sun is treated as a uniformly bright disc (no limb darkening), as in NASA's illumination maps. Light refracted through Earth's atmosphere during an eclipse is ignored.
 - **Earth visibility is geometry only.** Real contact also needs a ground antenna; that is checked only in the optional DSN mode.
 - **DSN mode is an option, not the default.** It needs the Moon above 6°, 10.1° or 13.6° at Goldstone, Madrid or Canberra (DSN 810-005, Rev. O) as well as Earth above the lander's horizon. Many commercial landers use other ground networks. Earthrise and Earthset countdowns stay based on Earth in view. The three stations together see the Moon above 6° for 99.9% of the decade, so the 6° limit rarely changes the answer; the stricter limits do.
-- **Custom coordinates are not built.** M3's test (V14) shows coarse terrain would differ by up to about 9° at some polar sites.
+- **Custom coordinates are approximate.** They use 500 m terrain and work only between about 75° S and the pole (a smooth Moon elsewhere). M3's test (V14) shows such horizons can differ from the precise ones by up to about 9°, so the app labels them approximate.
+- **Slow connections.** The first visit downloads a 2.8 MB Sun and Earth table. Measured on the production build with a 4× slower CPU: about 9 s to the first Plan numbers on fast 4G, about 20 s on slow 4G.
 - **Non-polar sites have no terrain.** Apollo, Chandrayaan-3, Chang'e-4, SLIM and Blue Ghost use a smooth-Moon horizon, so hills near them are not included.
 - **Date range:** the app covers 2023–2032.
 
@@ -177,7 +178,9 @@ web/                 TypeScript app (Vite + React + Tailwind)
   src/engine/        geometry, sunlight, eclipses, Earth visibility, events, series
   src/worker/        custom-site horizon (Web Worker)
   src/charts/        panorama, timelines, slip chart, 3D explorer
-  src/ui/            maps, scenario board, cards, validation panel
+  src/pages/         Home, Explore Moon, Plan, Validation, Team
+  src/components/plan/  scenario cards, slip chart, timeline, window finder, custom-site picker, mission rules
+  src/worker/        custom-coordinate horizons (Web Worker)
 docs/                validation report, kernel checks, screenshots
 ```
 
@@ -205,15 +208,15 @@ python pipeline/validate.py              # all validation tests → web/public/d
 cd web
 npm install
 npm run dev        # local dev server
-npm test           # engine tests (98): time, ephemeris, geometry, V2 golden file, sunlight, Earth, events, series, replays, DSN
-npm run build      # production build (deployed to GitHub Pages from main)
+npm test           # engine tests (118): time, ephemeris, geometry, V2 golden file, sunlight, Earth, events, series, replays, DSN, panel power, custom horizons, plan board
+npm run build      # production build (deployed by Vercel from main; GitHub Actions runs the checks)
 ```
 
 ## Tech stack
 
 - **Science:** Python, SpiceyPy, NumPy, rasterio/GDAL, pyproj, requests, pytest.
 - **App:** TypeScript, Vite, React, Tailwind CSS, Plotly.js, Leaflet, three.js (stretch), Web Workers and Vitest.
-- **Delivery:** GitHub Actions and GitHub Pages.
+- **Delivery:** Vercel (hosting) and GitHub Actions (type check, tests and build on every pull request).
 
 ## Team
 

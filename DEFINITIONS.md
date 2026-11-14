@@ -25,7 +25,7 @@ The rules Ridgeline follows, in plain words. Each rule says where it lives in th
 | **Sunset / sunrise** | The moment any part of the Sun last / first clears the horizon. Found by hourly scan, then refined to about 1 minute. | `engine/events.ts` `findEvents` |
 | **Flicker rule** | A set and rise less than 1 hour apart (a Sun grazing a ridge) are dropped, so there are no dozens of fake sunsets. | `engine/events.ts` `removeFlicker` |
 | **Eclipse** | Earth in front of the Sun. It darkens a site but is not a sunset: it is shown separately. | `engine/series.ts`, mission replay panel |
-| **Earth visible** | Default: Earth's centre is above the horizon. Option: any part of its disc (matches NASA PGDA 69). The engine also supports an extra margin. The app currently uses the default; the margin option is not in the interface. | `engine/earth.ts` |
+| **Earth visible** | Default: Earth's centre is above the horizon. Option: any part of its disc (matches NASA PGDA 69). The engine also supports an extra margin. Both the rule and the margin are set in the mission rules on the Plan page and apply to every page. | `engine/earth.ts` |
 | **Earthrise / Earthset** | The same events for Earth, under the chosen rule. | `engine/events.ts` |
 | **Direct-to-Earth (DTE) contact** | Earth visible under the chosen rule. Optional DSN mode also needs the Moon above 6° (receive), 10.1° (low-power commands) or 13.6° (high-power commands) at Goldstone, Madrid or Canberra (DSN 810-005 Rev. O). Default is "any network", which needs only Earth in view. | `engine/earth.ts`, `engine/dsn.ts` |
 | **Night** | A run of samples with no part of the Sun visible. "Longest night" is the longest such run in the period. Eclipses are counted as dark. | `engine/series.ts` |
@@ -52,7 +52,7 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | F11 | Visible fraction of the Sun's disc. The gap to the horizon is divided by √(1+slope²), the perpendicular distance to a sloping horizon line. | in app | `illumination.py` | `engine/sunlight.ts` | V5, V10 |
 | F12 | Earth covering the Sun | in app | `illumination.py` `eclipse_fraction` | `eclipseFraction` | V7 |
 | F13 | Sunlight strength, 1361 W/m² × (1 AU / distance)² × f | in app | n/a | `irradianceWm2` | `sunlight.test.ts` |
-| F14 | Panel power by panel type | **not built** | n/a | n/a | only the headline W/m² (S × f) is shown, per decision D9 |
+| F14 | Panel power by panel type (tracks the Sun, upright turning, upright fixed, flat) | in app (Plan page) | n/a | `engine/power.ts` `panelFactor` | `power.test.ts`; the headline W/m² (S × f) is unchanged, per D9 |
 | F15 | Earth's and the Sun's size in the sky | in app | `angular_radius_deg` | `angularRadiusDeg` | `geometry.test.ts` ("disc sizes") |
 | F16 | DTE availability | in app | n/a | `earth.ts`, `dsn.ts` | V6, V15 |
 | F17 | Time and light-time | in app | `str2et`, `CN+S` | `time.ts` | V1, V2, V3 |
@@ -86,8 +86,8 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | V12 sunrise within 1 day of ISRO's date | Within 3 days | The first result needed it; the rule was widened after seeing it and the gap is reported (see V12) |
 | Kernel file names in the plan for DSN | `*_260814` versions | NAIF published newer files; names are pinned in `pipeline/get_kernels.py` |
 | V9 vs PGDA 69 | Pending | Needs masks rebuilt for a 0 m mast |
-| Panel types (F14), observer-height slider, margin slider, "power-limited" label | Not built | Out of scope for the first release |
-| Scenario board, slip slider, window finder, custom coordinates | Not built in the app | Engine functions exist (`slipScan`, `outlook`); no screens yet |
+| "Power-limited" label | Not built | Out of scope for the first release |
+| Mast-height slider for sites with NASA terrain | Smooth-Moon and custom sites only | Those horizons were built for a 2 m mast |
 
 ## 6. Decisions register (final status)
 
@@ -97,15 +97,15 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | D2 | UTC on screen, TDB inside | Done |
 | D3 | `MOON_ME` everywhere | Done |
 | D4 | `CN+S` | Done |
-| D5 | 2 m mast; 0 m only when comparing with PGDA 69 | 2 m done; slider not built; 0 m pending (V9) |
+| D5 | 2 m mast; 0 m only when comparing with PGDA 69 | 2 m for NASA-terrain sites; slider (0–10 m) for smooth-Moon and custom sites; 0 m pending (V9) |
 | D6 | Show visible fraction; sunset needs 1 hour apart; "power-limited" below 0.5 | Fraction and flicker rule done; "power-limited" label not built |
-| D7 | Earth rule: centre default, any-part option, margin | Engine done; only default in the interface |
+| D7 | Earth rule: centre default, any-part option, margin | Done: mission rules on the Plan page apply everywhere |
 | D8 | Geometry only; DSN as option | Done (DSN option built) |
 | D9 | Headline W/m² (S × f) | Done |
 | D10 | Longest night and nights over 24 h | Done (`engine/series.ts`) |
 | D11–D12 | Terrain nesting, azimuth step | M3; step is 0.25° |
 | D13 | Eclipses via total-cover model, combined with `min()` | Done |
-| D14 | Custom coordinates by Web Worker | Not built |
+| D14 | Custom coordinates by Web Worker | Done: 500 m polar terrain, 75–90° S, labelled approximate (V14); smooth Moon elsewhere |
 | D15 | One coordinate source per site, frame noted | Done (`sites.json`); Chandrayaan-3 shows both sets |
 | D16 | "Lunar day" = 29.5 d, "lunar season" = 346.6 d | "Lunar day" is used in the site panel and guide; "lunar season" is not used on screen |
 | D17 | Windows poleward of 75° | Done |

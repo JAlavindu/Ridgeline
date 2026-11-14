@@ -14,7 +14,7 @@ interface LunarMarkersProps {
  * current Moon model. The GLTF sphere is viewed from +Z, so longitude 0 sits
  * on the front face and positive longitude swings to the right.
  */
-export function latLonToVector3(
+function latLonToVector3(
   latitude: number,
   longitude: number,
   radius: number
