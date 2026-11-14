@@ -3,11 +3,11 @@ import type { MouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { number: "01", label: "HOME", ariaLabel: "Go to home page", link: "/" },
-  { number: "02", label: "EXPLORE MOON", ariaLabel: "Explore the Moon", link: "/terrain" },
-  { number: "03", label: "PLAN", ariaLabel: "Plan and compare landings", link: "/plan" },
-  { number: "04", label: "VALIDATION", ariaLabel: "See how the numbers are validated", link: "/validation" },
-  { number: "05", label: "TEAM", ariaLabel: "Meet the team", link: "/team" },
+  { number: "01", label: "HOME", short: "HOME", ariaLabel: "Go to home page", link: "/" },
+  { number: "02", label: "EXPLORE MOON", short: "EXPLORE", ariaLabel: "Explore the Moon", link: "/terrain" },
+  { number: "03", label: "PLAN", short: "PLAN", ariaLabel: "Plan and compare landings", link: "/plan" },
+  { number: "04", label: "VALIDATION", short: "CHECKS", ariaLabel: "See how the numbers are validated", link: "/validation" },
+  { number: "05", label: "TEAM", short: "TEAM", ariaLabel: "Meet the team", link: "/team" },
 ];
 
 // Only Chromium renders SVG filters inside backdrop-filter (the refraction).
@@ -150,6 +150,8 @@ export default function MoonNav() {
         type="button"
         onClick={() => navigate("/")}
         className="
+          hidden
+          sm:block
           font-['Michroma']
           text-[13px]
           tracking-[2px]
@@ -202,14 +204,16 @@ export default function MoonNav() {
                 relative
                 rounded-full
 
-                px-3
+                px-2
                 py-1.5
+                sm:px-3
                 md:px-4
 
                 font-['Michroma']
                 text-[10px]
                 uppercase
-                tracking-[1.5px]
+                tracking-[1px]
+                sm:tracking-[1.5px]
                 md:text-[12px]
                 md:tracking-[2.5px]
 
@@ -224,7 +228,9 @@ export default function MoonNav() {
                 }
               `}
             >
-              {item.label}
+              {/* phones get short labels so all five fit in the pill */}
+              <span className="sm:hidden">{item.short}</span>
+              <span className="hidden sm:inline">{item.label}</span>
             </button>
           );
         })}
