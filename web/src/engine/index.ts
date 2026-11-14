@@ -36,3 +36,5 @@ export type { Series, Summary, TimelineRow, SlipPoint, Viability } from "./serie
 
 export { loadDsn, parseDsn, dsnElevationsAt, dsnContact, dsnContactPercent, DSN_LIMITS } from "./dsn";
 export type { Dsn, DsnMeta, DsnStation, DsnContact, DsnLimit } from "./dsn";
+export { panelFactor, panelIrradianceWm2, meanPanelIrradiance, PANEL_LABEL } from "./power";
+export type { PanelType } from "./power";

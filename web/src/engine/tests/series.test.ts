@@ -16,6 +16,7 @@ function fakeSeries(pattern: string, earth = true): Series {
     step_s: 3600,
     tdb: fractions.map((_, i) => i * 3600),
     sun_el_deg: new Array(n).fill(0),
+    sun_az_deg: new Array(n).fill(0),
     earth_el_deg: new Array(n).fill(0),
     sun_horizon_deg: new Array(n).fill(0),
     earth_horizon_deg: new Array(n).fill(0),
