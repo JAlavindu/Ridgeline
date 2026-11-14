@@ -5,14 +5,25 @@ from pathlib import Path
 from terrain import Dem
 from horizon import horizon
 
+import argparse
+
 ROOT = Path(__file__).resolve().parent.parent
 T = ROOT / "pipeline" / "data" / "terrain"
-OUT = ROOT / "web" / "public" / "data" / "masks"
-SITES = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "web" / "public" / "data" / "sites.json"
+# Defaults reproduce the original run. For V9 (PGDA 69 is ground level), M3 runs:
+#   python pipeline/write_masks.py --h-obs 0 --out web/public/data/masks_0m --only connecting_ridge,im2,malapert_massif,shackleton_site004
+_ap = argparse.ArgumentParser()
+_ap.add_argument("sites", nargs="?", help="path to sites.json")
+_ap.add_argument("--h-obs", type=float, default=2.0, help="observer (mast) height in metres")
+_ap.add_argument("--out", help="output folder (default web/public/data/masks)")
+_ap.add_argument("--only", help="comma-separated site ids")
+_args = _ap.parse_args()
+OUT = (ROOT / _args.out) if _args.out else ROOT / "web" / "public" / "data" / "masks"
+SITES = Path(_args.sites) if _args.sites else ROOT / "web" / "public" / "data" / "sites.json"
+ONLY = set(_args.only.split(",")) if _args.only else None
 
 AZ_STEP = 0.25                  # 1440 directions; confirm with M5, the contract says az_step_deg
 STEP_FRAC = 0.005
-H_OBS = 2.0
+H_OBS = _args.h_obs
 
 d20, d80, d240 = (Dem(T / f) for f in ("LDEM_80S_20MPP_ADJ.TIF", "LDEM_80S_80MPP_ADJ.TIF", "LDEM_60S_240MPP_ADJ.TIF"))
 az = np.arange(0, 360, AZ_STEP)
@@ -26,6 +37,8 @@ else:
 
 OUT.mkdir(parents=True, exist_ok=True)
 for s in sites:
+    if ONLY is not None and s["id"] not in ONLY:
+        continue
     lat, lon = s["lat"], s["lon"] % 360
     if lat > -80:                               # needs the 118 m USGS map or smooth-Moon handling
         print(f"skip {s['id']}: latitude {lat} is outside the 80-90S files")

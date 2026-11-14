@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import TerrainPage from "./pages/TerrainPage";
 import MoonNav from "../src/components/Nav";
 import TeamPage from "./pages/TeamPage";
+import ValidationPage from "./pages/ValidationPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
 
           <Route path="/terrain" element={<TerrainPage />} />
           <Route path="/team" element={<TeamPage />} />
+          <Route path="/validation" element={<ValidationPage />} />
 
           <Route path="*" element={<HomePage />} />
         </Routes>

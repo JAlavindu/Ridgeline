@@ -21,6 +21,12 @@ const menuItems = [
     ariaLabel: "Meet the team",
     link: "/team",
   },
+  {
+    number: "04",
+    label: "VALIDATION",
+    ariaLabel: "See how the numbers are validated",
+    link: "/validation",
+  },
 ];
 
 // Only Chromium renders SVG filters inside backdrop-filter (the refraction).
