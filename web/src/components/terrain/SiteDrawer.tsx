@@ -4,13 +4,17 @@ import type { Site, HorizonMask, TileData3D, SkyState } from "../../types";
 import { computeSkyState, generateHorizonMask, generate3DTile } from "../../utils/mockData";
 import { SiteExplorer3D } from "../../charts/SiteExplorer3D";
 import { Panorama } from "../../charts/Panorama";
+import SunEarthLive from "./SunEarthLive";
+
 
 const tabs = [
   ["overview", "OVERVIEW"],
+  ["sky", "SUN & EARTH"],
   ["terrain", "TERRAIN"],
   ["horizon", "HORIZON"],
   ["science", "SCIENCE"],
 ] as const;
+
 
 type TabId = (typeof tabs)[number][0];
 
@@ -332,6 +336,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
             </section>
           )}
 
+          {tab === "sky" && <SunEarthLive site={site} />}
           {tab === "terrain" && (
             <section aria-labelledby="terrain-heading" className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">

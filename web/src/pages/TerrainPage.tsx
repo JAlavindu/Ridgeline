@@ -684,8 +684,10 @@ export default function TerrainPage() {
                 .sort((a, b) => a.year - b.year || String(a.id).localeCompare(String(b.id)))
                 .map(
                 (site) => {
-                  const isActive =
-                    selectedSite?.id === site.id;
+                  // const isActive =
+                  //   selectedSite?.id === site.id;
+                  const isActive = false; // this list only appears when no site is selected
+
 
                   return (
                     <button
