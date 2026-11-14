@@ -8,17 +8,24 @@ import type { LunarSite } from "../../data/lunarSites";
 interface NavigateMoonProps {
   sites: LunarSite[];
   selectionMode: boolean;
+  historyMode: boolean;
   selectedSite: LunarSite | null;
+  focusedSite: LunarSite | null;
   onSelectSite: (site: LunarSite) => void;
 }
 
 export default function NavigateMoon({
   sites,
   selectionMode,
+  historyMode,
   selectedSite,
+  focusedSite,
   onSelectSite,
 }: NavigateMoonProps) {
-  const [isInteracting, setIsInteracting] = useState(false);
+  const [
+    isInteracting,
+    setIsInteracting,
+  ] = useState(false);
 
   return (
     <div
@@ -32,14 +39,20 @@ export default function NavigateMoon({
         -translate-y-1/2
         transition-all
         duration-500
+
         sm:h-[min(55vw,480px)]
         sm:w-[min(55vw,480px)]
+
         lg:top-1/2
         lg:h-[480px]
         lg:w-[480px]
+
         ${selectionMode ? "scale-[1.05]" : ""}
       `}
     >
+
+      {/* FOCUS RING */}
+
       <div
         aria-hidden="true"
         className={`
@@ -48,36 +61,75 @@ export default function NavigateMoon({
           -inset-5
           rounded-full
           transition-all
-          duration-500
+          duration-700
           ${
-            selectionMode
-              ? "border border-[#ff3b12]/60 shadow-[0_0_70px_rgba(255,59,18,0.16)]"
-              : "border border-white/[0.05]"
+            focusedSite
+              ? `
+                border
+                border-[#ff3b12]/50
+                shadow-[0_0_70px_rgba(255,59,18,0.14)]
+              `
+              : `
+                border
+                border-white/[0.05]
+              `
           }
         `}
       />
+
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-10 rounded-full border border-white/[0.025]"
+        className="
+          pointer-events-none
+          absolute
+          -inset-10
+          rounded-full
+          border
+          border-white/[0.025]
+        "
       />
 
       <Canvas
-        aria-label="Interactive 3D Moon. Drag to rotate and pinch or scroll to zoom."
-        camera={{ position: [0, 0, 5], fov: 38, near: 0.1, far: 100 }}
+        aria-label="
+          Interactive 3D Moon.
+          Drag to rotate and pinch or scroll to zoom.
+        "
+        camera={{
+          position: [0, 0, 5],
+          fov: 38,
+          near: 0.1,
+          far: 100,
+        }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
+        gl={{
+          antialias: true,
+          alpha: true,
+        }}
         className="!h-full !w-full touch-none"
       >
+
         <ambientLight intensity={1.1} />
-        <directionalLight position={[-4, 3, 5]} intensity={2.5} />
-        <directionalLight position={[4, -2, 3]} intensity={0.35} />
+
+        <directionalLight
+          position={[-4, 3, 5]}
+          intensity={2.5}
+        />
+
+        <directionalLight
+          position={[4, -2, 3]}
+          intensity={0.35}
+        />
 
         <MoonModel
           sites={sites}
           selectionMode={selectionMode}
           selectedSite={selectedSite}
+          focusedSite={focusedSite}
+          historyMode={historyMode}
           isInteracting={isInteracting}
-          autoRotationSpeed={0.12}
+          autoRotationSpeed={
+            historyMode ? 0 : 0.12
+          }
           onSelectSite={onSelectSite}
         />
 
@@ -89,10 +141,16 @@ export default function NavigateMoon({
           rotateSpeed={0.55}
           minDistance={4.2}
           maxDistance={7}
-          onStart={() => setIsInteracting(true)}
-          onEnd={() => setIsInteracting(false)}
+          onStart={() =>
+            setIsInteracting(true)
+          }
+          onEnd={() =>
+            setIsInteracting(false)
+          }
         />
       </Canvas>
+
+      {/* INSTRUCTION */}
 
       <div
         className="
@@ -108,7 +166,13 @@ export default function NavigateMoon({
           text-white/30
         "
       >
-        {selectionMode ? "DRAG TO ROTATE · SELECT A SITE" : "DRAG TO ROTATE · PINCH TO ZOOM"}
+        {historyMode
+          ? focusedSite
+            ? `FOCUS · ${focusedSite.name}`
+            : "MOVE THROUGH MISSION HISTORY"
+          : selectionMode
+            ? "DRAG TO ROTATE · SELECT A SITE"
+            : "DRAG TO ROTATE · PINCH TO ZOOM"}
       </div>
     </div>
   );
