@@ -6,6 +6,9 @@ import { flatMask, makeObserver, skyState as computeSkyState, unixMsToTdb } from
 import { useEphemeris, useMask } from "../../hooks/useEngine";
 import { SiteExplorer3D } from "../../charts/SiteExplorer3D";
 import { Panorama } from "../../charts/Panorama";
+import { useNavigate } from "react-router-dom";
+import { MAX_CARDS, thisUtcHour, usePlan } from "../../lib/plan";
+import { normalizeSiteId } from "../../lib/siteIds";
 import MissionReplay from "./MissionReplay";
 import SunEarthLive, { SkyNow } from "./SunEarthLive";
 
@@ -26,15 +29,17 @@ interface SiteDrawerProps {
   onClose: () => void;
 }
 
-export function normalizeSiteId(id: string): string {
-  const clean = id.toLowerCase().replace(/[^a-z0-9_]/g, "");
-  if (clean === "chandrayaan3") return "chandrayaan3_isro";
-  if (clean === "blueghost1") return "blueghost1";
-  return clean;
-}
 
 export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
   const [tab, setTab] = useState<TabId>("overview");
+  const navigate = useNavigate();
+  const { state: plan, dispatch } = usePlan();
+  const addToPlan = () => {
+    if (plan.cards.length < MAX_CARDS) {
+      dispatch({ type: "add", card: { site: { kind: "preset", siteId: site.id }, startUtc: thisUtcHour(), missionDays: 14 } });
+    }
+    navigate("/plan");
+  };
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [hoursOffset, setHoursOffset] = useState<number>(12);
   const [catalogSites, setCatalogSites] = useState<Site[]>([]);
@@ -277,6 +282,15 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
               >
                 View the horizon
               </button>
+              {site.latitude !== null && (
+                <button
+                  type="button"
+                  onClick={addToPlan}
+                  className="h-10 rounded-md border border-white/[0.14] px-4 text-[13px] text-white/80 transition hover:border-white/30 hover:text-white"
+                >
+                  {plan.cards.length < MAX_CARDS ? "Add to plan" : "Open plan (board full)"}
+                </button>
+              )}
             </div>
           </div>
         )}
