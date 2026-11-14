@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import {
+  flatMask,
+  isRealMask,
   isoToTdb,
   loadMask,
   makeObserver,
@@ -49,11 +51,15 @@ function loadReplays(): Promise<Replays> {
   return replaysPromise;
 }
 
-const maskPromises = new Map<string, Promise<HorizonMask>>();
-function loadReplayMask(file: string): Promise<HorizonMask> {
+/** A real terrain mask, or null (placeholder or missing) meaning a smooth Moon. */
+const maskPromises = new Map<string, Promise<HorizonMask | null>>();
+function loadReplayMask(file: string): Promise<HorizonMask | null> {
   let promise = maskPromises.get(file);
   if (!promise) {
-    promise = loadMask(DATA_URL, file);
+    promise = loadMask(DATA_URL, file).then(
+      (m) => (isRealMask(m) ? m : null),
+      () => null,
+    );
     maskPromises.set(file, promise);
   }
   return promise;
@@ -186,17 +192,19 @@ function LiveReplay({ mission, site }: { mission: Mission; site: ReplaySite }) {
   const hours = (endMs - landingMs) / 3_600_000;
 
   const computed = useMemo(() => {
-    if (!eph || !mask || mask.file !== site.mask || !mask.mask) return null;
-    const obs = makeObserver(site.lat, site.lon, mask.mask.site_height_m ?? 0);
+    if (!eph || !mask || mask.file !== site.mask) return null;
+    const terrain = mask.mask;
+    const obs = makeObserver(site.lat, site.lon, terrain ? (terrain.site_height_m ?? 0) : site.height_m);
+    const horizon = terrain ?? flatMask(obs);
     const tdb0 = isoToTdb(mission.landing_utc);
-    const series = sampleSeries(eph, obs, mask.mask, tdb0, hours, STEP_MIN);
-    return { tdb0, series, summary: summarize(series), look: outlook(eph, obs, mask.mask, tdb0, hours) };
+    const series = sampleSeries(eph, obs, horizon, tdb0, hours, STEP_MIN);
+    return { tdb0, series, summary: summarize(series), look: outlook(eph, obs, horizon, tdb0, hours), terrain: terrain !== null };
   }, [eph, mask, site, mission.landing_utc, hours]);
 
   if (error) return <p className="mt-3 text-[12px] text-white/45">Could not load the ephemeris: {error}</p>;
   if (!computed) return <p className="mt-3 text-[12px] text-white/40">Replaying the landing…</p>;
 
-  const { look, series, summary, tdb0 } = computed;
+  const { look, series, summary, tdb0, terrain } = computed;
   const next = look.sun.next && look.sun.next.event === "sunset" ? look.sun.next : null;
   const sunsetEvent = look.sun.events.find((e) => e.kind === "sunset");
   const sunriseEvent = sunsetEvent ? look.sun.events.find((e) => e.kind === "sunrise" && e.tdb > sunsetEvent.tdb) : undefined;
@@ -250,6 +258,11 @@ function LiveReplay({ mission, site }: { mission: Mission; site: ReplaySite }) {
           <Line label="Earth in front of the Sun" value={formatDuration(summary.eclipse_hours)} />
         )}
       </dl>
+      <p className="mt-3 text-[11px] leading-[1.6] text-white/35">
+        {terrain
+          ? "Horizon: NASA LOLA terrain around the site (2 m mast)."
+          : "Horizon: smooth Moon (no terrain data for this site yet), so hills are not included."}
+      </p>
       {gapText && <p className="mt-3 text-[12px] leading-[1.65] text-white/60">{gapText} A shutdown is not a sunset.</p>}
     </>
   );

@@ -11,6 +11,16 @@ export interface HorizonMask {
   site_height_m?: number | null;
   radius_km?: number;
   dems_used?: string[];
+  label?: string;
+}
+
+/**
+ * False for placeholder masks (label or DEM name contains "synthetic"). They are not NASA terrain,
+ * so the app treats those sites as a smooth Moon. Python twin: is_real_mask in illumination.py.
+ */
+export function isRealMask(mask: HorizonMask): boolean {
+  const text = [mask.label ?? "", ...(mask.dems_used ?? [])].join(" ").toLowerCase();
+  return !text.includes("synthetic");
 }
 
 /** Check a mask's numbers make sense; throw a clear error if not. */

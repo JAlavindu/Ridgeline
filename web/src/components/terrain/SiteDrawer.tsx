@@ -1,9 +1,14 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import type { LunarSite } from "../../data/lunarSites";
 import type { Site, HorizonMask, TileData3D, SkyState } from "../../types";
-import { computeSkyState, generateHorizonMask, generate3DTile } from "../../utils/mockData";
+import { generate3DTile } from "../../utils/mockData";
+import { flatMask, makeObserver, skyState as computeSkyState, unixMsToTdb } from "../../engine";
+import { useEphemeris, useMask } from "../../hooks/useEngine";
 import { SiteExplorer3D } from "../../charts/SiteExplorer3D";
 import { Panorama } from "../../charts/Panorama";
+import { useNavigate } from "react-router-dom";
+import { MAX_CARDS, thisUtcHour, usePlan } from "../../lib/plan";
+import { normalizeSiteId } from "../../lib/siteIds";
 import MissionReplay from "./MissionReplay";
 import SunEarthLive, { SkyNow } from "./SunEarthLive";
 
@@ -24,19 +29,22 @@ interface SiteDrawerProps {
   onClose: () => void;
 }
 
-export function normalizeSiteId(id: string): string {
-  const clean = id.toLowerCase().replace(/[^a-z0-9_]/g, "");
-  if (clean === "chandrayaan3") return "chandrayaan3_isro";
-  if (clean === "blueghost1") return "blueghost1";
-  return clean;
-}
 
 export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
   const [tab, setTab] = useState<TabId>("overview");
+  const navigate = useNavigate();
+  const { state: plan, dispatch } = usePlan();
+  const addToPlan = () => {
+    if (plan.cards.length < MAX_CARDS) {
+      dispatch({ type: "add", card: { site: { kind: "preset", siteId: site.id }, startUtc: thisUtcHour(), missionDays: 14 } });
+    }
+    navigate("/plan");
+  };
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [hoursOffset, setHoursOffset] = useState<number>(12);
   const [catalogSites, setCatalogSites] = useState<Site[]>([]);
-  const [loadedMask, setLoadedMask] = useState<HorizonMask | null>(null);
+  // Time-lapse starts at the top of the current hour; the sky is computed by the real engine
+  const [startMs] = useState(() => Math.floor(Date.now() / 3_600_000) * 3_600_000);
 
   // Auto-play lunar time progression across synodic month (708 hours)
   useEffect(() => {
@@ -93,50 +101,28 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
     };
   }, [catalogSites, catalogId, site]);
 
-  // Load verified LOLA Horizon Mask for this site
-  useEffect(() => {
-    let isMounted = true;
+  // Real terrain horizon, or null: placeholder and missing masks mean a smooth Moon
+  const { mask: terrainMask } = useMask(site.id);
+  const { eph } = useEphemeris();
 
-    async function loadMask() {
-      const candidates = [
-        `/data/masks/${catalogId}.json`,
-        `/data/masks/test_${catalogId}.json`,
-      ];
+  const observer = useMemo(
+    () => makeObserver(siteObj.lat, siteObj.lon, terrainMask ? (terrainMask.site_height_m ?? 0) : (siteObj.height_m ?? 0)),
+    [siteObj.lat, siteObj.lon, siteObj.height_m, terrainMask],
+  );
 
-      for (const url of candidates) {
-        try {
-          const res = await fetch(url);
-          if (res.ok) {
-            const data: HorizonMask = await res.json();
-            if (isMounted && data.elev_deg && data.elev_deg.length > 0) {
-              setLoadedMask(data);
-              return;
-            }
-          }
-        } catch {
-          // Try next candidate
-        }
-      }
-
-      if (isMounted) {
-        setLoadedMask(null);
-      }
-    }
-
-    loadMask();
-    return () => {
-      isMounted = false;
-    };
-  }, [catalogId]);
-
-  // Derived datasets for live components
   const mask: HorizonMask = useMemo(() => {
-    return loadedMask || generateHorizonMask(siteObj);
-  }, [loadedMask, siteObj]);
+    const engineMask = terrainMask ?? flatMask(observer);
+    return { ...engineMask, radius_km: engineMask.radius_km ?? 0, dems_used: engineMask.dems_used ?? ["smooth Moon"] };
+  }, [terrainMask, observer]);
 
-  const skyState: SkyState = useMemo(() => {
-    return computeSkyState(siteObj, hoursOffset, mask);
-  }, [siteObj, hoursOffset, mask]);
+  const skyState: SkyState | null = useMemo(() => {
+    if (!eph) return null;
+    try {
+      return computeSkyState(eph, observer, mask, unixMsToTdb(startMs + hoursOffset * 3_600_000));
+    } catch {
+      return null; // time outside the 2023-2032 ephemeris
+    }
+  }, [eph, observer, mask, startMs, hoursOffset]);
 
   const tileData: TileData3D = useMemo(() => {
     const base = generate3DTile(siteObj);
@@ -150,14 +136,10 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
 
   // Elevation readout formatted
   const elevationDisplay = useMemo(() => {
-    if (siteObj.height_m != null) {
-      return `${siteObj.height_m > 0 ? "+" : ""}${Math.round(siteObj.height_m).toLocaleString()} m`;
-    }
-    if (mask.site_height_m != null) {
-      return `${mask.site_height_m > 0 ? "+" : ""}${Math.round(mask.site_height_m).toLocaleString()} m`;
-    }
-    return "0 m (Datum)";
-  }, [siteObj.height_m, mask.site_height_m]);
+    const height = terrainMask?.site_height_m ?? siteObj.height_m;
+    if (height == null) return "Not available";
+    return `${height > 0 ? "+" : ""}${Math.round(height).toLocaleString()} m`;
+  }, [siteObj.height_m, terrainMask]);
 
   const latText =
     siteObj.lat >= 0 ? `${siteObj.lat.toFixed(4)}° N` : `${Math.abs(siteObj.lat).toFixed(4)}° S`;
@@ -165,7 +147,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
     siteObj.lon > 180 ? `${(360 - siteObj.lon).toFixed(4)}° W` : `${siteObj.lon.toFixed(4)}° E`;
   const signed = (v: number) => `${v > 0 ? "+" : ""}${v}°`;
 
-  // The play/pause control only drives the animated tabs (simplified model)
+  // The play/pause control only drives the time-lapse tabs
   const showAnimationToggle = tab === "terrain" || tab === "horizon" || tab === "science";
 
   return (
@@ -214,7 +196,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
                 aria-pressed={isPlaying}
-                title="Animate the simplified sky through one lunar day"
+                title="Animate the sky through one lunar day"
                 className="flex h-8 items-center gap-2 rounded-md px-2.5 text-[12px] text-white/55 transition hover:bg-white/[0.06] hover:text-white"
               >
                 <span aria-hidden="true" className="text-[10px]">
@@ -277,7 +259,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
               <FactGrid>
                 <Fact label="Latitude" value={latText} />
                 <Fact label="Longitude" value={lonText} />
-                <Fact label="Elevation (LOLA)" value={elevationDisplay} />
+                <Fact label="Elevation" value={elevationDisplay} />
               </FactGrid>
               <p className="mt-3 break-words text-[11px] leading-[1.6] text-white/35">
                 Frame {siteObj.coord_frame || "MOON_ME"} · Source:{" "}
@@ -300,6 +282,15 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
               >
                 View the horizon
               </button>
+              {site.latitude !== null && (
+                <button
+                  type="button"
+                  onClick={addToPlan}
+                  className="h-10 rounded-md border border-white/[0.14] px-4 text-[13px] text-white/80 transition hover:border-white/30 hover:text-white"
+                >
+                  {plan.cards.length < MAX_CARDS ? "Add to plan" : "Open plan (board full)"}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -311,17 +302,21 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
             <TabIntro
               id="terrain-heading"
               title="Terrain around the site"
-              meta="LOLA DEM · 501 × 501"
+              meta="501 × 501 grid · 60 m"
             />
 
             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#020202]">
-              <SiteExplorer3D tileData={tileData} skyState={skyState} siteName={site.name} mode="explore" />
+              {skyState ? (
+                <SiteExplorer3D tileData={tileData} skyState={skyState} siteName={site.name} mode="explore" />
+              ) : (
+                <p className="p-6 text-[12px] text-white/40">Loading the ephemeris…</p>
+              )}
             </div>
 
             <FactGrid>
-              <Fact label="Surface resolution" value="50–60 m" />
+              <Fact label="Grid spacing" value="60 m" sub="30 × 30 km tile" />
               <Fact label="Site elevation" value={elevationDisplay} />
-              <Fact label="Dataset" value="LOLA PDS GDR" />
+              <Fact label="Horizon" value={terrainMask ? "LOLA terrain" : "Smooth Moon"} />
             </FactGrid>
 
             <p className="text-[12px] leading-[1.7] text-white/50">
@@ -336,32 +331,39 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
             <TabIntro
               id="horizon-heading"
               title="What you would see standing here"
-              meta="360° horizon · 1,440 rays"
+              meta={terrainMask ? `360° horizon · ${mask.elev_deg.length.toLocaleString()} rays` : "No terrain data yet"}
             />
 
             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#020202]">
-              <Panorama
-                mask={mask}
-                skyState={skyState}
-                hoursOffset={hoursOffset}
-                onHoursChange={setHoursOffset}
-                mode="explore"
-                siteName={site.name}
-                isPlaying={isPlaying}
-                onTogglePlay={() => setIsPlaying((p) => !p)}
-              />
+              {skyState ? (
+                <Panorama
+                  mask={mask}
+                  skyState={skyState}
+                  hoursOffset={hoursOffset}
+                  onHoursChange={setHoursOffset}
+                  mode="explore"
+                  siteName={site.name}
+                  isPlaying={isPlaying}
+                  onTogglePlay={() => setIsPlaying((p) => !p)}
+                />
+              ) : (
+                <p className="p-6 text-[12px] text-white/40">Loading the ephemeris…</p>
+              )}
             </div>
 
             <FactGrid>
-              <Fact label="Angular step" value="0.25°" />
-              <Fact label="Observer height" value="2.0 m" />
-              <Fact label="Ridge toward Sun" value={signed(skyState.terrain_elev_at_sun_az)} />
-              <Fact label="Ridge toward Earth" value={signed(skyState.terrain_elev_at_earth_az)} />
+              <Fact label="Angular step" value={`${mask.az_step_deg}°`} />
+              <Fact label="Observer height" value={`${mask.observer_height_m} m`} />
+              <Fact label="Horizon toward Sun" value={skyState ? signed(skyState.terrain_elev_at_sun_az) : "…"} />
+              <Fact label="Horizon toward Earth" value={skyState ? signed(skyState.terrain_elev_at_earth_az) : "…"} />
             </FactGrid>
 
             <p className="text-[12px] leading-[1.7] text-white/50">
-              The skyline is the real ridge and crater-rim profile around {site.name}. Hover a compass heading to
-              read the ridge height, and drag the time slider to move through a lunar day.
+              {terrainMask
+                ? `The skyline is built from NASA LOLA terrain around ${site.name}.`
+                : `No terrain data for ${site.name} yet, so the horizon is a smooth Moon: hills are not included.`}{" "}
+              Sun and Earth positions come from the JPL ephemeris. Drag the time slider to move through a lunar day
+              from {new Date(startMs).toISOString().slice(0, 16).replace("T", " ")} UTC.
             </p>
           </section>
         )}
@@ -370,8 +372,12 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
           <section aria-labelledby="science-heading" className="space-y-8">
             <TabIntro id="science-heading" title="The numbers behind it" />
 
+            {!skyState ? (
+              <p className="text-[12px] text-white/40">Loading the ephemeris…</p>
+            ) : (
+            <>
             <FactGrid>
-              <Fact label="Solar flux" value={`${skyState.solar_flux_w_m2} W/m²`} sub="Direct incident flux" />
+              <Fact label="Solar flux" value={`${Math.round(skyState.solar_flux_w_m2)} W/m²`} sub="Sun strength × visible fraction (F13)" />
               <Fact
                 label="Sun disc visible"
                 value={`${(skyState.sun_visible_fraction * 100).toFixed(1)}%`}
@@ -379,22 +385,24 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
               />
               <Fact
                 label="Sun–Earth separation"
-                value={`${skyState.sun_earth_sep_deg}°`}
+                value={`${skyState.sun_earth_sep_deg.toFixed(2)}°`}
                 sub={skyState.is_eclipse ? "Eclipse" : "No eclipse"}
               />
-              <Fact label="Sun elevation rate" value={`${skyState.sun_elevation_rate_deg_per_hr}°/h`} />
+              <Fact label="Sun height change" value={`${skyState.sun_elevation_rate_deg_per_hr.toFixed(3)}°/h`} />
               <Fact label="Earth distance" value={`${Math.round(skyState.earth.dist_km).toLocaleString()} km`} />
               <Fact
-                label="Model time"
+                label="Time shown"
                 value={skyState.time_utc.slice(0, 10)}
                 sub={`${skyState.time_utc.slice(11, 16)} UTC`}
               />
             </FactGrid>
 
             <p className="border-l-2 border-white/15 pl-3 text-[12px] leading-[1.6] text-white/45">
-              These values come from a simplified sky model that drives the animation. For values from the JPL
-              ephemeris, use the Sun &amp; Earth tab.
+              Computed by the same engine as the Sun &amp; Earth tab (JPL ephemeris,{" "}
+              {terrainMask ? "NASA LOLA terrain" : "smooth Moon, no terrain data for this site yet"}).
             </p>
+            </>
+            )}
 
             <section aria-labelledby="science-why-heading">
               <SectionTitle id="science-why-heading">Why these matter</SectionTitle>
@@ -407,7 +415,7 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
                 <p>
                   <span className="text-white">Line of sight to Earth.</span> High ridges can block radio contact
                   with ground stations. While Earth is above the local skyline (
-                  {signed(skyState.terrain_elev_at_earth_az)} at this azimuth), a lander can talk to Earth directly.
+                  {skyState ? signed(skyState.terrain_elev_at_earth_az) : "…"} at this azimuth), a lander can talk to Earth directly.
                 </p>
               </div>
             </section>

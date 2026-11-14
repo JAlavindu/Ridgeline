@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadDsn, loadEphemeris, loadMask, type Dsn, type Ephemeris, type HorizonMask } from "../engine";
+import { isRealMask, loadDsn, loadEphemeris, loadMask, type Dsn, type Ephemeris, type HorizonMask } from "../engine";
 
 const DATA_URL = import.meta.env.BASE_URL + "data/";
 
@@ -67,7 +67,7 @@ export function useMask(siteId: string): { mask: HorizonMask | null; loading: bo
     }
     promise.then(
       (mask) => {
-        if (active) setLoaded({ siteId, mask });
+        if (active) setLoaded({ siteId, mask: isRealMask(mask) ? mask : null }); // placeholder terrain = smooth Moon
       },
       () => {
         if (active) setLoaded({ siteId, mask: null }); // missing file: fall back to smooth Moon

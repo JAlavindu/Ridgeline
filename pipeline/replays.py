@@ -16,7 +16,7 @@ import numpy as np
 import spiceypy as sp
 
 from geometry import Site, sky_view_at
-from illumination import conditions, load_mask, runs
+from illumination import conditions, is_real_mask, load_mask, load_site_mask, runs
 from spice_setup import load_kernels
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -84,9 +84,9 @@ APP_IDS = {"im1": "im-1", "chandrayaan3_isro": "chandrayaan-3", "chandrayaan3_lr
 
 
 def site_info(site_id: str) -> dict:
-    site, _ = load_site(site_id)
+    site, _, horizon = load_site(site_id)
     return {"app_id": APP_IDS[site_id], "lat": site.lat_deg, "lon": site.lon_deg,
-            "height_m": site.ground_height_m, "mask": site_id}
+            "height_m": site.ground_height_m, "mask": site_id, "horizon": horizon}
 
 
 APOLLO11 = {
@@ -117,16 +117,23 @@ def et_of(utc: str) -> float:
     return sp.str2et(utc)
 
 
-def load_site(site_id: str) -> tuple[Site, dict]:
+def load_site(site_id: str) -> tuple[Site, dict, str]:
+    """(site, horizon mask, 'LOLA terrain' | 'smooth Moon'). Placeholder masks become a smooth Moon."""
     sites = {s["id"]: s for s in json.loads((DATA_DIR / "sites.json").read_text())}
     s = sites[site_id]
-    mask = load_mask(site_id)
-    return Site(s["lat"], s["lon"], mask.get("site_height_m") or 0.0, 2.0), mask
+    try:
+        raw = load_mask(site_id)
+    except FileNotFoundError:
+        raw = None
+    height = (raw.get("site_height_m") or 0.0) if raw and is_real_mask(raw) else (s.get("height_m") or 0.0)
+    site = Site(s["lat"], s["lon"], height, 2.0)
+    mask, horizon = load_site_mask(site_id, site)
+    return site, mask, horizon
 
 
 def analyse(site_id: str, start: str, stop: str, landing: str) -> dict:
     """Sunlight, dark periods, eclipse and Earth margin for one site over one window."""
-    site, mask = load_site(site_id)
+    site, mask, horizon = load_site(site_id)
     ets = np.arange(et_of(start), et_of(stop), STEP_S)
     c = conditions(site, ets, mask)
     fraction = c["sun_fraction"]
@@ -142,6 +149,7 @@ def analyse(site_id: str, start: str, stop: str, landing: str) -> dict:
     sun_el = c["sun_el"]
     return {
         "site_id": site_id,
+        "horizon": horizon,
         "sun_fraction_at_landing": round(float(fraction[landing_index]), 3),
         "mean_sun_fraction": round(float(fraction.mean()), 3),
         "dark_periods": dark,
@@ -200,7 +208,7 @@ def build() -> dict:
     apollo["landing_utc"] = iso(parse(apollo["landing_utc"]))
     apollo["offline"] = apollo11_numbers()
     apollo["sites"] = {"apollo11": {"app_id": "apollo-11", "lat": 0.67408, "lon": 23.47297, "height_m": 0.0,
-                                    "mask": "apollo11"}}
+                                    "mask": "apollo11", "horizon": "smooth Moon"}}
     missions.append(apollo)
     return {
         "generated_utc": f"{datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ}",

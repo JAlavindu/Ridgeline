@@ -13,34 +13,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from terrain import R
 from horizon import horizon
+from terrain_polar import PolarBin
+from illumination import is_real_mask
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "web" / "public" / "data"
 OUT = ROOT / "docs" / "validation"
 OUT.mkdir(parents=True, exist_ok=True)
 STEP_FRAC, H_OBS = 0.005, 2.0                     # same as write_masks.py
-
-class PolarBin:
-    """The 500 m polar terrain, read with the SAME formulas M5 will use in the browser."""
-    def __init__(self):
-        m = json.load(open(DATA / "dem_polar_500m.json"))
-        self.n, self.step, self.nodata = m["n"], m["step_m"], m["nodata"]
-        m = json.load(open(DATA / "dem_polar_500m.json"))
-        self.n, self.step, self.nodata = m["n"], m["step_m"], m["nodata"]
-        from types import SimpleNamespace
-        self.src = SimpleNamespace(res=(float(self.step), float(self.step)))
-        raw = np.fromfile(DATA / "dem_polar_500m.bin", dtype="<i2").reshape(self.n, self.n)
-        raw = np.fromfile(DATA / "dem_polar_500m.bin", dtype="<i2").reshape(self.n, self.n)
-        self.z = np.where(raw == self.nodata, np.nan, raw).astype("float32")
-    def sample(self, lon, lat):
-        lon, lat = np.asarray(lon, float), np.asarray(lat, float)
-        shape = lon.shape
-        rho = 2 * R * np.tan(np.radians(90 + np.ravel(lat)) / 2)
-        x, y = rho * np.sin(np.radians(np.ravel(lon))), rho * np.cos(np.radians(np.ravel(lon)))
-        col = x / self.step + self.n / 2 - 0.5
-        row = self.n / 2 - 0.5 - y / self.step
-        out = map_coordinates(self.z, [row, col], order=1, mode="constant", cval=np.nan)
-        return out.astype("float32").reshape(shape)
 
 sites_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DATA / "sites.json"
 data = json.loads(sites_path.read_text()); sites = data["sites"] if isinstance(data, dict) else data
@@ -52,6 +32,8 @@ for s in sites:
     if not mp.exists() or s["id"].startswith("dev_"):
         continue
     mask = json.load(open(mp))
+    if not is_real_mask(mask):                    # placeholder masks are not terrain: nothing to compare
+        continue
     az = np.arange(0.0, 360.0, mask["az_step_deg"])
     far_km = 250 if s["lat"] <= -88 else 150
     best, h_site = horizon(s["lat"], s["lon"] % 360, [([polar], 0, far_km * 1000)], az, h_obs=H_OBS, step_frac=STEP_FRAC)

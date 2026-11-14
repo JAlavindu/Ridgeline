@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { isRealMask } from "../mask";
+import { flatMask } from "../mask";
 import { makeObserver } from "../geometry";
 import { outlook } from "../events";
 import { isoToTdb } from "../time";
@@ -28,8 +30,10 @@ const hoursApart = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse
 
 function browserEvents(m: Mission, siteId: string) {
   const s = m.sites[siteId];
-  const mask = loadMaskFromDisk(s.mask);
-  const obs = makeObserver(s.lat, s.lon, mask.site_height_m ?? 0);
+  const raw = loadMaskFromDisk(s.mask);
+  const terrain = isRealMask(raw) ? raw : null;
+  const obs = makeObserver(s.lat, s.lon, terrain ? (raw.site_height_m ?? 0) : s.height_m);
+  const mask = terrain ?? flatMask(obs);
   const hours = (Date.parse(m.window.end) - Date.parse(m.landing_utc)) / 3_600_000;
   return outlook(eph, obs, mask, isoToTdb(m.landing_utc), hours).sun.events;
 }

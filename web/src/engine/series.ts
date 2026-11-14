@@ -10,6 +10,7 @@ export interface Series {
   step_s: number;
   tdb: number[];
   sun_el_deg: number[];
+  sun_az_deg: number[];          // for panel orientation (F14)
   earth_el_deg: number[];
   sun_horizon_deg: number[];
   earth_horizon_deg: number[];
@@ -52,6 +53,7 @@ export function sampleSeries(
     step_s: step,
     tdb: [],
     sun_el_deg: [],
+    sun_az_deg: [],
     earth_el_deg: [],
     sun_horizon_deg: [],
     earth_horizon_deg: [],
@@ -67,6 +69,7 @@ export function sampleSeries(
     const dte = earthVisibility(view.earth, mask, earthOptions);
     s.tdb.push(t);
     s.sun_el_deg.push(view.sun.el_deg);
+    s.sun_az_deg.push(view.sun.az_deg);
     s.earth_el_deg.push(view.earth.el_deg);
     s.sun_horizon_deg.push(light.horizon_deg);
     s.earth_horizon_deg.push(dte.horizon_deg);

@@ -12,12 +12,15 @@ from horizons import az_el_table, moon_from_station_table
 from illumination import conditions, load_mask, runs
 from spice_setup import load_dsn_kernels, load_kernels
 import dsn
+import hand_check
 import replays
+import sensitivity
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUT_FILE = REPO_ROOT / "web" / "public" / "data" / "validation.json"
 GOLDEN_FILE = REPO_ROOT / "web" / "src" / "engine" / "tests" / "golden_v2.json"
 V2_RESULT = REPO_ROOT / "docs" / "validation" / "v2_result.json"
+V14_RESULT = REPO_ROOT / "docs" / "validation" / "v14_custom_vs_precise.json"
 
 START_UTC = "2026-01-01 00:00"
 STOP_UTC = "2026-06-01 00:00"
@@ -366,8 +369,22 @@ def run_v12() -> dict:
                          "sunrise_vs_isro_days": round(sunrise_gap_d, 2)}
         worst = max(worst, abs(sunrise_gap_d))
         ok = ok and a["sun_fraction_at_landing"] > 0 and sunset_after_sleep and abs(sunrise_gap_d) <= 3
-    isro = m["python"]["chandrayaan3_isro"]["sun_el_daily_deg"]
-    print(f"  V12 Chandrayaan-3: computed sunrise differs from ISRO's 22 Sep by {worst:.1f} d")
+    isro = m["python"]["chandrayaan3_isro"]
+    horizon = isro["horizon"]
+    day = lambda utc: f"{utc[:10]}T00:00:00Z"  # noqa: E731
+    el_expected = isro["sun_el_daily_deg"].get(day(expected))
+    gaps = {k: v["sunrise_vs_isro_days"] for k, v in rows.items()}
+    print(f"  V12 Chandrayaan-3: computed sunrise differs from ISRO's date by {worst:.1f} d ({horizon})")
+    explanation = (f"Horizon: {horizon}"
+                   + (" (no real terrain data for this site yet, so hills are not included)" if horizon == "smooth Moon" else "")
+                   + f". Computed sunrise vs ISRO's expected {expected[:10]}: "
+                   + ", ".join(f"{k} {v:+.2f} days" for k, v in gaps.items())
+                   + f". Sun height at 00:00 UTC on {expected[:10]}: {el_expected} deg"
+                   + (". With a smooth Moon the two coordinate sets cannot differ, so the 360 m sensitivity is not tested"
+                      if horizon == "smooth Moon" else "")
+                   + ". The plan allowed 1 day; we use 3 days because sunrise at this latitude is slow and ISRO's "
+                     "date is a rounded forecast. That rule was widened after seeing the first result, and the gap is "
+                     "reported, not hidden.")
     return {
         "id": "V12",
         "name": "Mission replay: Chandrayaan-3 Vikram",
@@ -379,11 +396,7 @@ def run_v12() -> dict:
         "unit": "days (computed sunrise vs ISRO's 22 Sep)",
         "expected_outcome": "pass",
         "outcome": "pass" if ok else "fail",
-        "explanation": ("The Sun reaches the horizon about 1.8 days before ISRO's date (0.85 deg high on 20 Sep, "
-                        f"{isro['2023-09-22T00:00:00Z']} deg on 22 Sep), so 22 Sep matches when it is usefully "
-                        "high. The plan allowed 1 day; we use 3 days because sunrise at this latitude is slow "
-                        "and ISRO's date is a rounded forecast, and we say so rather than hide the 1.8-day gap. "
-                        "The two coordinate sets differ by only a few hours."),
+        "explanation": explanation,
         "details": rows,
     }
 
@@ -446,14 +459,102 @@ def run_v15() -> dict | None:
     }
 
 
+V9_SITES = ["connecting_ridge", "im2", "malapert_massif", "shackleton_site004"]
+MASKS_0M = REPO_ROOT / "web" / "public" / "data" / "masks_0m"
+
+
+def run_v9() -> dict:
+    """V9: our average sunlight and Earth visibility vs NASA PGDA 69 at four polar sites.
+
+    PGDA 69 is measured at ground level, so this needs masks built with a 0 m mast (masks_0m/).
+    Until M3 provides them the test is reported as pending, not guessed.
+    """
+    base = {
+        "id": "V9",
+        "name": "Average sunlight and Earth visibility vs NASA PGDA 69",
+        "what": ("Our decade averages (2023-2032, hourly, 0 m mast, any-part Earth rule) at four polar sites against "
+                 "NASA PGDA 69 (Mazarico et al. 2011) at the same points."),
+        "tolerance": "median gap within 5 points, 90th percentile within 10 points",
+        "unit": "points (median gap)",
+        "expected_outcome": "pass",
+    }
+    missing = [i for i in V9_SITES if not (MASKS_0M / f"{i}.json").exists()]
+    if missing:
+        print("  V9 pending: no 0 m masks yet (python pipeline/write_masks.py --h-obs 0 --out web/public/data/masks_0m)")
+        return {**base, "result": None, "outcome": "pending",
+                "explanation": ("Not run yet. PGDA 69 is measured at ground level, but our horizon masks were built for a "
+                                "2 m mast, so the comparison would not be like for like. It needs the four polar masks "
+                                "rebuilt with a 0 m mast: python pipeline/write_masks.py --h-obs 0 --out "
+                                "web/public/data/masks_0m --only " + ",".join(V9_SITES) + ".")}
+
+    ets = decade(3600)
+    gaps, rows = [], {}
+    for site_id in V9_SITES:
+        mask = json.loads((MASKS_0M / f"{site_id}.json").read_text())
+        ref = json.loads((REPO_ROOT / "web" / "public" / "data" / "nbhd" / f"{site_id}.json").read_text())
+        site = Site(ref["lat"], ref["lon"] % 360, mask.get("site_height_m") or 0.0, 0.0)
+        c = conditions(site, ets, mask)
+        sun_mean = float(c["terrain_fraction"].mean())
+        sun_any = float(np.mean(c["terrain_fraction"] > 0))
+        earth_any = float(np.mean(c["earth_margin_any_part"] > 0))
+        gap_sun, gap_earth = 100 * (sun_mean - ref["sun_at_site"]), 100 * (earth_any - ref["earth_at_site"])
+        gaps += [abs(gap_sun), abs(gap_earth)]
+        rows[site_id] = {
+            "ours_sun_mean_fraction": round(100 * sun_mean, 2), "ours_sun_any_part_up": round(100 * sun_any, 2),
+            "pgda69_sun": round(100 * ref["sun_at_site"], 2), "sun_gap_points": round(gap_sun, 2),
+            "ours_earth_any_part": round(100 * earth_any, 2),
+            "pgda69_earth": round(100 * ref["earth_at_site"], 2), "earth_gap_points": round(gap_earth, 2),
+        }
+    median, p90 = float(np.median(gaps)), float(np.percentile(gaps, 90))
+    print(f"  V9 vs PGDA 69: median gap {median:.1f} points, 90th percentile {p90:.1f}")
+    return {
+        **base,
+        "result": round(median, 2),
+        "outcome": "pass" if median <= 5 and p90 <= 10 else "fail",
+        "explanation": (f"Median gap {median:.1f} points, 90th percentile {p90:.1f} (limits 5 and 10), over "
+                        f"{len(gaps)} comparisons. Not like for like in three ways: our 10-year window vs PGDA's "
+                        "18.6-year average, our hourly point at the site vs a 60 m pixel, and our horizon built from "
+                        "LOLA maps of different resolution. Our Sun value is the average visible part of the Sun's "
+                        "disc; the any-part share is in the details."),
+        "details": rows,
+    }
+
+
+def run_v14() -> dict:
+    """V14 is M3's accuracy test for custom-coordinate horizons (coarse terrain vs precise terrain)."""
+    data = json.loads(V14_RESULT.read_text())
+    sites = data["sites"]
+    worst_p95 = max(x["p95_abs_deg"] for x in sites)
+    rows = {x["id"]: {"rms_deg": round(x["rms_deg"], 2), "p95_abs_deg": round(x["p95_abs_deg"], 2)} for x in sites}
+    print(f"  V14 custom vs precise horizon (M3): worst 95th percentile {worst_p95:.1f} deg")
+    return {
+        "id": "V14",
+        "name": "Custom-coordinate horizon vs precise horizon (M3)",
+        "what": ("M3 compared horizons built from the coarse whole-polar terrain, as custom coordinates would use, "
+                 "with the precise horizons, at five polar sites."),
+        "tolerance": "none: this sets the accuracy label for custom coordinates",
+        "result": round(worst_p95, 1),
+        "unit": "deg (worst-site 95th percentile of the horizon difference)",
+        "expected_outcome": "info",
+        "outcome": "info",
+        "explanation": (f"Horizon differences are large (suggested label +/-{data['suggested_label_deg']} deg, "
+                        "worst at Shackleton Site 004), so custom coordinates would have to be labelled approximate. "
+                        "The app does not offer custom coordinates yet, so this result is not used on screen."),
+        "details": rows,
+    }
+
+
 def main() -> None:
     load_kernels()
     print("Running validation (Horizons replies are cached in pipeline/cache/horizons/) ...")
-    tests = [run_v1(), run_v2(), run_v3(), run_v4(), run_v5(), run_v6(), run_v7(), run_v8(), run_v10(), run_v11(), run_v12(), run_v13(), run_v15()]
+    tests = [run_v1(), run_v2(), run_v3(), run_v4(), run_v5(), run_v6(), run_v7(), run_v8(), run_v9(), run_v10(), run_v11(), run_v12(), run_v13(), run_v14(), run_v15(),
+             hand_check.run_h1(), sensitivity.run_s1(), sensitivity.run_s2(), sensitivity.run_s3()]
     tests = [t for t in tests if t is not None]
 
+    # "pending" (not run yet) and "info" (reported, no pass rule) never fail the run
     for test in tests:
         test["passed"] = test["outcome"] == test["expected_outcome"]
+    failed = [t for t in tests if not t["passed"] and t["outcome"] != "pending"]
 
     report = {
         "generated_utc": f"{datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ}",
@@ -465,12 +566,12 @@ def main() -> None:
 
     print()
     for test in tests:
-        mark = "PASS" if test["passed"] else "FAIL"
+        mark = "PASS" if test["passed"] else ("PENDING" if test["outcome"] == "pending" else "FAIL")
         print(f"[{mark}] {test['id']} {test['name']}: {test['result']} {test['unit']} "
               f"(expected to {test['expected_outcome']}, did {test['outcome']})")
     print("Wrote", OUT_FILE.relative_to(REPO_ROOT).as_posix())
 
-    if not all(test["passed"] for test in tests):
+    if failed:
         sys.exit(1)
 
 

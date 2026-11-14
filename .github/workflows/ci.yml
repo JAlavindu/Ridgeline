@@ -1,0 +1,35 @@
+# Checks every pull request and every push to main. Deploys are done by Vercel, not here.
+#
+# Python tests (pipeline/tests) are not run here: they need the NAIF kernels, which are large and
+# git-ignored. Run them locally with `pytest pipeline/tests` after `python pipeline/get_kernels.py`.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Type check
+        run: npx tsc -b
+      - name: Tests (engine, golden files, validation helpers)
+        run: npx vitest run
+      - name: Build
+        run: npm run build
+      # Four existing errors remain in charts/SiteExplorer3D.tsx (M4); lint reports but does not block yet.
+      - name: Lint (report only)
+        run: npx eslint .
+        continue-on-error: true
