@@ -1,17 +1,28 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import HomePage from "./pages/HomePage";
-import NavigatePage from "./pages/NavigatePage";
+import TerrainPage from "./pages/TerrainPage";
+import MoonNav from "../src/components/Nav";
+import TeamPage from "./pages/TeamPage";
 
 function App() {
   return (
     <BrowserRouter>
       <div className="ridgeline-page">
+
+        {/* Global Lunar Navigation */}
+        <MoonNav />
+
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/navigate" element={<NavigatePage />} />
+
+          <Route path="/terrain" element={<TerrainPage />} />
+          <Route path="/team" element={<TeamPage />} />
+
           <Route path="*" element={<HomePage />} />
         </Routes>
+
       </div>
     </BrowserRouter>
   );
