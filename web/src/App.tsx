@@ -1,7 +1,9 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import { lunarSites } from "./data/lunarSites";
 import HomePage from "./pages/HomePage";
-import NavigatePage from "./pages/NavigatePage";
+import TerrainPage from "./pages/TerrainPage";
 
 function App() {
   return (
@@ -9,7 +11,9 @@ function App() {
       <div className="ridgeline-page">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/navigate" element={<NavigatePage />} />
+
+          <Route path="/terrain" element={<TerrainPage sites={lunarSites} />} />
+
           <Route path="*" element={<HomePage />} />
         </Routes>
       </div>
