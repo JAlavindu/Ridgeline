@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-12T15:29:03Z",
+  "generated_utc": "2026-11-14T10:36:40Z",
   "generator": "pipeline/validate.py",
   "tests": [
     {
@@ -7,7 +7,8 @@
       "name": "Sun and Earth positions vs NASA JPL Horizons",
       "what": "Azimuth and elevation of the Sun and Earth from 6 sites, every 7h from 2026-01-01 00:00 to 2026-06-01 00:00 UTC (6216 comparisons). Ours: SPICE (DE440, MOON_ME, CN+S) + pipeline/geometry.py. Horizons: coord@301, QUANTITIES 4, airless.",
       "tolerance": "target <= 0.002 deg; hard fail > 0.01 deg",
-      "result_deg": 2.7e-05,
+      "result": 2.7e-05,
+      "unit": "deg",
       "expected_outcome": "pass",
       "outcome": "pass",
       "explanation": "Largest angle on the sky between our direction and Horizons'. Small remaining differences come from light-time measured from the Moon's centre (ours) vs from the site (Horizons) and from Horizons' gravitational light bending.",
@@ -92,10 +93,88 @@
       "name": "Time trap: UTC fed in as TDB",
       "what": "V1 for the equator Sun again, but every time is shifted by -69.184 s, the mistake of treating clock time (UTC) as TDB.",
       "tolerance": "must exceed the V1 target of 0.002 deg (expected about 0.0098 deg)",
-      "result_deg": 0.009802,
+      "result": 0.009802,
+      "unit": "deg",
       "expected_outcome": "fail",
       "outcome": "fail",
       "explanation": "The Sun crosses the lunar sky at about 0.0085 deg per minute, so a 69.2 s clock mistake moves it about 0.0098 deg. This test failing proves V1 is sensitive enough to catch time-scale bugs.",
+      "passed": true
+    },
+    {
+      "id": "V4",
+      "name": "Sun height at the exact pole (smooth Moon)",
+      "what": "Sun height every 6 h, 2023-2032, a hair from 90 S, no terrain, no mast.",
+      "tolerance": "max |Sun height| = 1.59 +/- 0.02 deg",
+      "result": 1.5875,
+      "unit": "deg",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "At the pole the Sun never rises more than the tilt of the Moon's equator allows. The plan expected 1.54 deg (the mean tilt, 1.543 deg); the true maximum is larger because of physical libration and the Moon's orbital tilt. The day-one kernel check found 1.587 deg in both MOON_ME and IAU_MOON (docs/kernel_checks.txt), so the expected value was corrected to 1.59 deg. Against the original 1.54 deg this test would fail.",
+      "passed": true
+    },
+    {
+      "id": "V5",
+      "name": "Equator (0, 0), smooth Moon",
+      "what": "Every 10 minutes, 2023-2032, 2 m mast, any part of the Sun counts as up.",
+      "tolerance": "Sun up 50 +/- 0.5 %; mean day 14.77 +/- 0.4 d; Earth always up, at least ~79 deg high",
+      "result": 50.36,
+      "unit": "% of time Sun up",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Mean day 14.85 d over 122 complete lunar days (slightly over 14.77 d because the Sun's edge and the mast add minutes at each end). Earth stays at least 79.56 deg high. Eclipses (72.8 h in the decade) darken the Sun but are not counted as sunsets.",
+      "details": {
+        "mean_day_days": 14.847,
+        "earth_min_deg": 79.56,
+        "eclipse_hours": 72.8
+      },
+      "passed": true
+    },
+    {
+      "id": "V6",
+      "name": "Far side (Chang'e-4): Earth never visible",
+      "what": "Earth's height every hour, 2023-2032, at 45.4446 S, 177.5991 E (Liu et al. 2019), smooth Moon.",
+      "tolerance": "no part of Earth ever above the horizon; centre about -37 to -53 deg",
+      "result": -37.13,
+      "unit": "deg (highest Earth centre)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Earth's centre stays between -51.6 and -37.1 deg (mean -44.5 deg): libration rocks it up and down but never brings it close to the horizon. Direct-to-Earth contact is impossible there, which is why Chang'e-4 needed the Queqiao relay satellite.",
+      "details": {
+        "min_deg": -51.57,
+        "max_deg": -37.13,
+        "mean_deg": -44.53
+      },
+      "passed": true
+    },
+    {
+      "id": "V7",
+      "name": "Total lunar eclipse of 2025-03-14 seen from the Moon",
+      "what": "Fraction of the Sun not covered by Earth, every minute 06:26-07:31 UTC, at (0, 0).",
+      "tolerance": "f_E = 0 throughout (NASA GSFC totality 06:26-07:31 UT)",
+      "result": 0.0,
+      "unit": "largest uncovered fraction",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "During totality the whole Moon is in Earth's shadow, so Earth hides the Sun completely. At this single point the Sun is covered from 2025-03-14T05:45:00 to 2025-03-14T08:10:00 UTC, longer than totality, which needs the whole Moon inside the shadow. Earth is drawn as a solid disc (no atmosphere).",
+      "details": {
+        "fully_covered_from_utc": "2025-03-14T05:45:00",
+        "fully_covered_to_utc": "2025-03-14T08:10:00"
+      },
+      "passed": true
+    },
+    {
+      "id": "V10",
+      "name": "Connecting Ridge average sunlight vs published research",
+      "what": "Average visible part of the Sun's disc, every hour 2023-2032, at 89.4395 S, 222.8066 E, 2 m mast, using M3's LOLA horizon mask.",
+      "tolerance": "within 5 points of about 88% (Glaser et al. 2018)",
+      "result": 87.9,
+      "unit": "% average sunlight",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Ours 87.9% vs about 88% published. Longest continuous darkness 4.71 d vs 4.58 d in Glaser et al. 2014, who used a different period. Differences come from the terrain model and the years averaged.",
+      "details": {
+        "longest_dark_days": 4.71
+      },
       "passed": true
     }
   ]
