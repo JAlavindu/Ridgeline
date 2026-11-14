@@ -426,7 +426,7 @@ const moonScale = useTransform(
               md:text-[15px]
             "
           >
-            LUNA
+            RIDGE
 
             <span
               className="
@@ -434,7 +434,7 @@ const moonScale = useTransform(
                 opacity-50
               "
             >
-              SPACE
+              LINE
             </span>
           </div>
 
@@ -480,38 +480,7 @@ const moonScale = useTransform(
           </div>
 
 
-          {/* MENU */}
-
-          <button
-            type="button"
-            className="
-              flex
-              items-center
-              gap-5
-
-              bg-white
-
-              px-4
-              py-3
-
-              text-[10px]
-              font-medium
-
-              text-black
-
-              transition
-
-              hover:bg-[#ff3b12]
-              hover:text-white
-            "
-          >
-            MENU
-
-            <span className="text-xs">
-              ☰
-            </span>
-
-          </button>
+          
 
         </header>
 
