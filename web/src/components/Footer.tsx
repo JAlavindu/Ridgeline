@@ -301,6 +301,8 @@ export default function Footer() {
         >
           <div
             className="
+              w-full
+              text-center
               whitespace-nowrap
               font-['Michroma']
               text-[clamp(34px,8vw,120px)]
@@ -311,7 +313,7 @@ export default function Footer() {
               text-white/90
             "
           >
-            NASA BACKUP PLAN
+             RIDGELINE
           </div>
         </div>
 
@@ -337,7 +339,7 @@ export default function Footer() {
         >
 
           <div>
-            © 2026 LUNA SPACE
+            © NASA's Backup Plan
           </div>
 
           <div className="flex gap-6">
