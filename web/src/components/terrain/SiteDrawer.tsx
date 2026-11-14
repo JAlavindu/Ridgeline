@@ -1,18 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import type { LunarSite } from "../../data/lunarSites";
 import type { Site, HorizonMask, TileData3D, SkyState } from "../../types";
 import { computeSkyState, generateHorizonMask, generate3DTile } from "../../utils/mockData";
 import { SiteExplorer3D } from "../../charts/SiteExplorer3D";
 import { Panorama } from "../../charts/Panorama";
-import SunEarthLive from "./SunEarthLive";
+import SunEarthLive, { SkyNow } from "./SunEarthLive";
 
 
 const tabs = [
-  ["overview", "OVERVIEW"],
-  ["sky", "SUN & EARTH"],
-  ["terrain", "TERRAIN"],
-  ["horizon", "HORIZON"],
-  ["science", "SCIENCE"],
+  ["overview", "Overview"],
+  ["sky", "Sun & Earth"],
+  ["terrain", "Terrain"],
+  ["horizon", "Horizon"],
+  ["science", "Science"],
 ] as const;
 
 
@@ -158,413 +158,296 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
     return "0 m (Datum)";
   }, [siteObj.height_m, mask.site_height_m]);
 
+  const latText =
+    siteObj.lat >= 0 ? `${siteObj.lat.toFixed(4)}° N` : `${Math.abs(siteObj.lat).toFixed(4)}° S`;
+  const lonText =
+    siteObj.lon > 180 ? `${(360 - siteObj.lon).toFixed(4)}° W` : `${siteObj.lon.toFixed(4)}° E`;
+  const signed = (v: number) => `${v > 0 ? "+" : ""}${v}°`;
+
+  // The play/pause control only drives the animated tabs (simplified model)
+  const showAnimationToggle = tab === "terrain" || tab === "horizon" || tab === "science";
+
   return (
-    <div className="pointer-events-none fixed inset-0 z-[100] bg-black/35 backdrop-blur-[2px]">
-      <aside className="pointer-events-auto absolute inset-x-0 bottom-0 max-h-[85dvh] w-full overflow-y-auto overscroll-contain border-t border-white/15 bg-[#050505]/95 backdrop-blur-xl lg:inset-y-0 lg:top-14 lg:left-auto lg:right-0 lg:max-h-none lg:w-[min(50vw,680px)] lg:border-l lg:border-t-0 flex flex-col">
-        {/* Sticky Header */}
-        <header className="sticky top-0 z-20 shrink-0 border-b border-white/10 bg-[#050505]/95 px-5 py-4 backdrop-blur-xl sm:px-7">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#ff3b12] shadow-[0_0_8px_rgba(255,59,18,0.8)]" />
-                <p className="text-[8px] uppercase tracking-[3px] text-[#ff3b12]">
-                  {siteObj.program || "MISSION SITE"}
-                </p>
-              </div>
-              <h2 className="mt-2 truncate font-['Michroma'] text-base uppercase sm:text-lg text-white">
-                {site.name}
-              </h2>
-              <p className="mt-1 text-[9px] text-white/50">
-                {site.country} · {site.year} · {elevationDisplay}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
+    <aside
+      aria-label={`${site.name} details`}
+      className="
+        site-panel
+        fixed
+        inset-x-0
+        bottom-0
+        z-[100]
+        flex
+        h-[56dvh]
+        flex-col
+        overflow-hidden
+        rounded-t-[20px]
+        border-t
+        border-white/[0.08]
+        bg-[#0a0a0a]
+
+        lg:inset-x-auto
+        lg:bottom-3
+        lg:right-3
+        lg:top-[72px]
+        lg:h-auto
+        lg:w-[min(44vw,600px)]
+        lg:rounded-[20px]
+        lg:border
+      "
+    >
+      {/* ================= HEADER ================= */}
+      <header className="shrink-0 border-b border-white/[0.08] px-6 pt-5 sm:px-8 sm:pt-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[12px] text-white/45">
+              {siteObj.program || "Mission site"} · {site.country} · {site.year}
+            </p>
+            <h2 className="mt-1.5 truncate font-['Michroma'] text-[20px] uppercase leading-tight text-white sm:text-[22px]">
+              {site.name}
+            </h2>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            {showAnimationToggle && (
               <button
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
-                title={isPlaying ? "Pause simulation" : "Resume simulation"}
-                className={`flex items-center gap-1.5 border px-2.5 py-1 text-[7px] font-['Michroma'] uppercase tracking-[1px] transition ${
-                  isPlaying
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                    : "border-white/15 bg-white/5 text-white/40 hover:text-white"
-                }`}
+                aria-pressed={isPlaying}
+                title="Animate the simplified sky through one lunar day"
+                className="flex h-8 items-center gap-2 rounded-md px-2.5 text-[12px] text-white/55 transition hover:bg-white/[0.06] hover:text-white"
               >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    isPlaying
-                      ? "bg-emerald-400 animate-pulse"
-                      : "bg-white/40"
-                  }`}
-                />
-                <span>{isPlaying ? "LIVE" : "PAUSED"}</span>
+                <span aria-hidden="true" className="text-[10px]">
+                  {isPlaying ? "❚❚" : "▶"}
+                </span>
+                {isPlaying ? "Pause" : "Play"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close site details"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-[20px] leading-none text-white/55 transition hover:bg-white/[0.06] hover:text-white"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <nav
+          aria-label="Site information"
+          className="-mb-px mt-5 flex gap-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {tabs.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={tab === id}
+              onClick={() => setTab(id)}
+              className={`shrink-0 border-b-2 pb-3 text-[13px] transition-colors ${
+                tab === id
+                  ? "border-[#ff3b12] text-white"
+                  : "border-transparent text-white/45 hover:text-white/80"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      {/* ================= BODY ================= */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6 sm:px-8 sm:py-7">
+        {tab === "overview" && (
+          <div className="space-y-10">
+            <SkyNow site={site} onOpenDetails={() => setTab("sky")} />
+
+            <section aria-labelledby="site-about-heading">
+              <SectionTitle id="site-about-heading">About this site</SectionTitle>
+              <p className="mt-2 max-w-[62ch] text-[13px] leading-[1.75] text-white/65">
+                {siteObj.notes ||
+                  `This mission site is listed in ${site.country}'s lunar exploration history.`}
+              </p>
+            </section>
+
+            <section aria-labelledby="site-location-heading">
+              <SectionTitle id="site-location-heading">Location</SectionTitle>
+              <FactGrid>
+                <Fact label="Latitude" value={latText} />
+                <Fact label="Longitude" value={lonText} />
+                <Fact label="Elevation (LOLA)" value={elevationDisplay} />
+              </FactGrid>
+              <p className="mt-3 break-words text-[11px] leading-[1.6] text-white/35">
+                Frame {siteObj.coord_frame || "MOON_ME"} · Source:{" "}
+                {siteObj.coord_source || "NASA Planetary Data System / LROC"}
+              </p>
+            </section>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setTab("terrain")}
+                className="h-10 rounded-md bg-white px-4 text-[13px] font-medium text-black transition hover:bg-white/85"
+              >
+                Open 3D terrain
               </button>
               <button
                 type="button"
-                onClick={onClose}
-                aria-label="Exit site selection"
-                className="shrink-0 border border-white/15 px-3 py-1 text-lg leading-none text-white/55 transition hover:border-[#ff3b12] hover:text-white"
+                onClick={() => setTab("horizon")}
+                className="h-10 rounded-md border border-white/[0.14] px-4 text-[13px] text-white/80 transition hover:border-white/30 hover:text-white"
               >
-                ×
+                View the horizon
               </button>
             </div>
           </div>
+        )}
 
-          <nav aria-label="Site information" className="mt-4 flex gap-1 overflow-x-auto">
-            {tabs.map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={tab === id}
-                onClick={() => setTab(id)}
-                className={`shrink-0 border px-3 py-2 text-[7px] uppercase tracking-[1.5px] font-['Michroma'] transition ${
-                  tab === id
-                    ? "border-[#ff3b12] bg-[#ff3b12]/10 text-white"
-                    : "border-white/10 text-white/40 hover:text-white"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
-        </header>
+        {tab === "sky" && <SunEarthLive site={site} />}
 
-        {/* Tab Content Body */}
-        <div className="flex-1 p-5 sm:p-7">
-          {tab === "overview" && (
-            <section aria-labelledby="site-overview-heading" className="space-y-6">
-              <div>
-                <p className="text-[8px] uppercase tracking-[2px] text-white/35">
-                  LUNAR SURFACE TELEMETRY
+        {tab === "terrain" && (
+          <section aria-labelledby="terrain-heading" className="space-y-5">
+            <TabIntro
+              id="terrain-heading"
+              title="Terrain around the site"
+              meta="LOLA DEM · 501 × 501"
+            />
+
+            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#020202]">
+              <SiteExplorer3D tileData={tileData} skyState={skyState} siteName={site.name} mode="explore" />
+            </div>
+
+            <FactGrid>
+              <Fact label="Surface resolution" value="50–60 m" />
+              <Fact label="Site elevation" value={elevationDisplay} />
+              <Fact label="Dataset" value="LOLA PDS GDR" />
+            </FactGrid>
+
+            <p className="text-[12px] leading-[1.7] text-white/50">
+              Drag to rotate around {site.name} and scroll to zoom. Switch between surface, elevation, slope and
+              sunlight views, or use Fullscreen for a bigger view.
+            </p>
+          </section>
+        )}
+
+        {tab === "horizon" && (
+          <section aria-labelledby="horizon-heading" className="space-y-5">
+            <TabIntro
+              id="horizon-heading"
+              title="What you would see standing here"
+              meta="360° horizon · 1,440 rays"
+            />
+
+            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#020202]">
+              <Panorama
+                mask={mask}
+                skyState={skyState}
+                hoursOffset={hoursOffset}
+                onHoursChange={setHoursOffset}
+                mode="explore"
+                siteName={site.name}
+                isPlaying={isPlaying}
+                onTogglePlay={() => setIsPlaying((p) => !p)}
+              />
+            </div>
+
+            <FactGrid>
+              <Fact label="Angular step" value="0.25°" />
+              <Fact label="Observer height" value="2.0 m" />
+              <Fact label="Ridge toward Sun" value={signed(skyState.terrain_elev_at_sun_az)} />
+              <Fact label="Ridge toward Earth" value={signed(skyState.terrain_elev_at_earth_az)} />
+            </FactGrid>
+
+            <p className="text-[12px] leading-[1.7] text-white/50">
+              The skyline is the real ridge and crater-rim profile around {site.name}. Hover a compass heading to
+              read the ridge height, and drag the time slider to move through a lunar day.
+            </p>
+          </section>
+        )}
+
+        {tab === "science" && (
+          <section aria-labelledby="science-heading" className="space-y-8">
+            <TabIntro id="science-heading" title="The numbers behind it" />
+
+            <FactGrid>
+              <Fact label="Solar flux" value={`${skyState.solar_flux_w_m2} W/m²`} sub="Direct incident flux" />
+              <Fact
+                label="Sun disc visible"
+                value={`${(skyState.sun_visible_fraction * 100).toFixed(1)}%`}
+                sub={skyState.is_sun_visible ? "Unshaded" : "Behind terrain"}
+              />
+              <Fact
+                label="Sun–Earth separation"
+                value={`${skyState.sun_earth_sep_deg}°`}
+                sub={skyState.is_eclipse ? "Eclipse" : "No eclipse"}
+              />
+              <Fact label="Sun elevation rate" value={`${skyState.sun_elevation_rate_deg_per_hr}°/h`} />
+              <Fact label="Earth distance" value={`${Math.round(skyState.earth.dist_km).toLocaleString()} km`} />
+              <Fact
+                label="Model time"
+                value={skyState.time_utc.slice(0, 10)}
+                sub={`${skyState.time_utc.slice(11, 16)} UTC`}
+              />
+            </FactGrid>
+
+            <p className="border-l-2 border-white/15 pl-3 text-[12px] leading-[1.6] text-white/45">
+              These values come from a simplified sky model that drives the animation. For values from the JPL
+              ephemeris, use the Sun &amp; Earth tab.
+            </p>
+
+            <section aria-labelledby="science-why-heading">
+              <SectionTitle id="science-why-heading">Why these matter</SectionTitle>
+              <div className="mt-3 space-y-4 text-[13px] leading-[1.75] text-white/60">
+                <p>
+                  <span className="text-white">Sunlight.</span> With no atmosphere to spread light around, shadowed
+                  ground drops to about −180 °C while sunlit ground reaches +120 °C. Whether a ridge blocks the Sun
+                  decides whether solar panels get power.
                 </p>
-                <h3
-                  id="site-overview-heading"
-                  className="mt-2 font-['Michroma'] text-sm uppercase text-white"
-                >
-                  Meet {site.name}
-                </h3>
-                <p className="mt-2 max-w-[560px] text-[10px] leading-[1.8] text-white/60">
-                  {siteObj.notes ||
-                    `This mission site is listed in ${site.country}'s lunar exploration history. Real LOLA DEM surface topography and horizon profiles are loaded dynamically.`}
-                </p>
-              </div>
-
-              {/* Dynamic Telemetry Metric Cards */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <Metric label="MISSION YEAR" value={site.year} />
-                <Metric label="COUNTRY" value={site.country} />
-                <Metric
-                  label="ELEVATION (LOLA)"
-                  value={elevationDisplay}
-                />
-                <Metric
-                  label="SOLAR ILLUMINATION"
-                  value={`${Math.round(skyState.sun_visible_fraction * 100)}% lit`}
-                  subValue={skyState.is_sun_visible ? "Sunlit" : "Ridge Shadow"}
-                  accent={skyState.is_sun_visible ? "emerald" : "amber"}
-                />
-                <Metric
-                  label="EARTH SIGHTLINE"
-                  value={skyState.is_earth_visible ? "Direct Signal" : "Terrain Occluded"}
-                  subValue={`El ${skyState.earth.el_deg > 0 ? "+" : ""}${skyState.earth.el_deg}°`}
-                  accent={skyState.is_earth_visible ? "sky" : "rose"}
-                />
-                <Metric
-                  label="SOLAR FLUX"
-                  value={`${skyState.solar_flux_w_m2} W/m²`}
-                  subValue="1 AU Solar Flux"
-                />
-              </div>
-
-              {/* Coordinates Section */}
-              <div className="border border-white/10 bg-white/[0.02] p-4">
-                <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                  <p className="text-[8px] uppercase tracking-[2px] text-[#ff3b12] font-['Michroma']">
-                    COORDINATE FRAMEWORK
-                  </p>
-                  <span className="text-[8px] uppercase tracking-[1px] text-white/40">
-                    {siteObj.coord_frame || "MOON_ME"}
-                  </span>
-                </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <InfoRow
-                    label="LATITUDE"
-                    value={
-                      siteObj.lat >= 0
-                        ? `${siteObj.lat.toFixed(4)}° N`
-                        : `${Math.abs(siteObj.lat).toFixed(4)}° S`
-                    }
-                  />
-                  <InfoRow
-                    label="LONGITUDE"
-                    value={
-                      siteObj.lon > 180
-                        ? `${(360 - siteObj.lon).toFixed(4)}° W (${siteObj.lon.toFixed(4)}° E)`
-                        : `${siteObj.lon.toFixed(4)}° E`
-                    }
-                  />
-                  <InfoRow
-                    label="SUN ELEVATION / AZIMUTH"
-                    value={`${skyState.sun.el_deg > 0 ? "+" : ""}${skyState.sun.el_deg}° / ${skyState.sun.az_deg}°`}
-                  />
-                  <InfoRow
-                    label="EARTH ELEVATION / AZIMUTH"
-                    value={`${skyState.earth.el_deg > 0 ? "+" : ""}${skyState.earth.el_deg}° / ${skyState.earth.az_deg}°`}
-                  />
-                </div>
-                <p className="mt-3 text-[8px] text-white/35 leading-relaxed">
-                  Source: {siteObj.coord_source || "NASA Planetary Data System / LROC"}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setTab("terrain")}
-                  className="flex-1 min-w-[200px] border border-[#ff3b12]/60 bg-[#ff3b12]/10 px-4 py-3 text-[8px] uppercase tracking-[2px] font-['Michroma'] text-white transition hover:bg-[#ff3b12]/20 text-center"
-                >
-                  Explore 3D Terrain Data →
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTab("horizon")}
-                  className="flex-1 min-w-[200px] border border-white/20 bg-white/5 px-4 py-3 text-[8px] uppercase tracking-[2px] font-['Michroma'] text-white transition hover:border-[#ff3b12] hover:bg-white/10 text-center"
-                >
-                  View 360° Horizon Skyline →
-                </button>
-              </div>
-            </section>
-          )}
-
-          {tab === "sky" && <SunEarthLive site={site} />}
-          {tab === "terrain" && (
-            <section aria-labelledby="terrain-heading" className="space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <p className="text-[8px] uppercase tracking-[2px] text-white/35">
-                    HIGH-RESOLUTION 3D ELEVATION MAP
-                  </p>
-                  <h3 id="terrain-heading" className="mt-1 font-['Michroma'] text-sm uppercase text-white">
-                    3D Moon Surface & Space Sightlines
-                  </h3>
-                </div>
-                <span className="text-[8px] text-[#ff3b12] border border-[#ff3b12]/30 px-2 py-1 font-['Michroma'] uppercase">
-                  LOLA DEM 501×501
-                </span>
-              </div>
-
-              {/* Live Interactive 3D Surface & Sightlines */}
-              <div className="border border-white/10 bg-[#020202]">
-                <SiteExplorer3D
-                  tileData={tileData}
-                  skyState={skyState}
-                  siteName={site.name}
-                  mode="explore"
-                />
-              </div>
-
-              {/* Terrain Specifications */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 pt-2">
-                <div className="border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">SURFACE RESOLUTION</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">50m / 60m Spacing</p>
-                </div>
-                <div className="border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">SITE ELEVATION</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">{elevationDisplay}</p>
-                </div>
-                <div className="border border-white/10 bg-white/[0.02] p-3 col-span-2 sm:col-span-1">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">DATASET SOURCE</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">LOLA PDS GDR</p>
-                </div>
-              </div>
-              <p className="text-[8px] leading-[1.7] text-white/45">
-                Drag on the 3D surface to rotate the viewpoint around {site.name}. Use scroll to zoom in or out.
-                Toggle between photorealistic regolith, color-coded elevation bands, slope gradients, and sunlight illumination.
-                Click the <strong>Fullscreen</strong> button to expand into an immersive full-monitor view.
-              </p>
-            </section>
-          )}
-
-          {tab === "horizon" && (
-            <section aria-labelledby="horizon-heading" className="space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <p className="text-[8px] uppercase tracking-[2px] text-white/35">
-                    VIEW FROM THE LUNAR SURFACE
-                  </p>
-                  <h3 id="horizon-heading" className="mt-1 font-['Michroma'] text-sm uppercase text-white">
-                    360° Standing View (What an Astronaut Sees Around Them)
-                  </h3>
-                </div>
-                <span className="text-[8px] text-[#ff3b12] border border-[#ff3b12]/30 px-2 py-1 font-['Michroma'] uppercase">
-                  1,440 Ray Horizon
-                </span>
-              </div>
-
-              {/* Live Interactive 360° Panorama */}
-              <div className="border border-white/10 bg-[#020202]">
-                <Panorama
-                  mask={mask}
-                  skyState={skyState}
-                  hoursOffset={hoursOffset}
-                  onHoursChange={setHoursOffset}
-                  mode="explore"
-                  siteName={site.name}
-                  isPlaying={isPlaying}
-                  onTogglePlay={() => setIsPlaying((p) => !p)}
-                />
-              </div>
-
-              {/* Horizon Statistics */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 pt-2">
-                <div className="border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">ANGULAR RESOLUTION</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">0.25° Step</p>
-                </div>
-                <div className="border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">OBSERVER HEIGHT</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">2.0 m (Astronaut)</p>
-                </div>
-                <div className="border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">RIDGE AT SUN</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">+{skyState.terrain_elev_at_sun_az}°</p>
-                </div>
-                <div className="border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-[7px] uppercase tracking-[1px] text-white/35">RIDGE AT EARTH</p>
-                  <p className="mt-1 font-['Michroma'] text-[9px] text-white">+{skyState.terrain_elev_at_earth_az}°</p>
-                </div>
-              </div>
-              <p className="text-[8px] leading-[1.7] text-white/45">
-                The silhouette graph shows real lunar mountain ridges, crater rims, and depressions around {site.name}.
-                Hover over any compass heading (0° North to 360°) to inspect ridge heights. Use the timeline slider to simulate
-                the 29.5-day synodic solar month. Click <strong>Fullscreen</strong> to view the full horizon panorama across the entire screen.
-              </p>
-            </section>
-          )}
-
-          {tab === "science" && (
-            <section aria-labelledby="science-heading" className="space-y-4">
-              <div>
-                <p className="text-[8px] uppercase tracking-[2px] text-white/35">
-                  PHYSICAL & EPHEMERIS MEASUREMENTS
-                </p>
-                <h3 id="science-heading" className="mt-1 font-['Michroma'] text-sm uppercase text-white">
-                  Science, Simply & Dynamically
-                </h3>
-                <p className="mt-2 text-[10px] leading-[1.8] text-white/60">
-                  Telemetry values calculated live using NASA LOLA 500m digital elevation models and JPL DE421 ephemeris models.
-                </p>
-              </div>
-
-              {/* Science Metric Cards */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <Metric
-                  label="SOLAR CONSTANT / FLUX"
-                  value={`${skyState.solar_flux_w_m2} W/m²`}
-                  subValue="Direct incident flux"
-                />
-                <Metric
-                  label="SUN DISC VISIBILITY"
-                  value={`${(skyState.sun_visible_fraction * 100).toFixed(1)}%`}
-                  subValue={skyState.is_sun_visible ? "Unshaded" : "Occulted"}
-                />
-                <Metric
-                  label="SUN-EARTH SEPARATION"
-                  value={`${skyState.sun_earth_sep_deg}°`}
-                  subValue={skyState.is_eclipse ? "Eclipse active" : "Clear of eclipse"}
-                />
-                <Metric
-                  label="SUN ELEVATION RATE"
-                  value={`${skyState.sun_elevation_rate_deg_per_hr}°/hr`}
-                  subValue="Diurnal motion rate"
-                />
-                <Metric
-                  label="EARTH DISTANCE"
-                  value={`${Math.round(skyState.earth.dist_km).toLocaleString()} km`}
-                  subValue="Libration orbit distance"
-                />
-                <Metric
-                  label="EPHEMERIS EPOCH"
-                  value={skyState.time_utc.slice(0, 10)}
-                  subValue={skyState.time_utc.slice(11, 19) + " UTC"}
-                />
-              </div>
-
-              {/* Physics explanation card */}
-              <div className="border border-white/10 bg-white/[0.02] p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#ff3b12]" />
-                  <p className="text-[8px] uppercase tracking-[2px] text-[#ff3b12] font-['Michroma']">
-                    WHY THESE MEASUREMENTS MATTER
-                  </p>
-                </div>
-                <p className="text-[9px] leading-[1.8] text-white/55">
-                  <strong>Solar Illumination:</strong> On the Moon, without an atmosphere to diffuse sunlight, areas in shadow
-                  plunge to -180°C while illuminated surfaces reach +120°C. Exact ridge tracking indicates whether solar panels receive power.
-                </p>
-                <p className="text-[9px] leading-[1.8] text-white/55">
-                  <strong>Direct-to-Earth (DTE) Line of Sight:</strong> High ridges can obstruct radio waves to Earth ground stations.
-                  When Earth is above the local skyline (+{skyState.terrain_elev_at_earth_az}° at this azimuth), astronaut radios and lander telemetry
-                  maintain continuous high-bandwidth transmission.
+                <p>
+                  <span className="text-white">Line of sight to Earth.</span> High ridges can block radio contact
+                  with ground stations. While Earth is above the local skyline (
+                  {signed(skyState.terrain_elev_at_earth_az)} at this azimuth), a lander can talk to Earth directly.
                 </p>
               </div>
             </section>
-          )}
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-function Metric({
-  label,
-  value,
-  subValue,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  subValue?: string;
-  accent?: "emerald" | "amber" | "sky" | "rose";
-}) {
-  const accentColor =
-    accent === "emerald"
-      ? "text-emerald-400"
-      : accent === "sky"
-      ? "text-sky-400"
-      : accent === "amber"
-      ? "text-amber-400"
-      : accent === "rose"
-      ? "text-rose-400"
-      : "text-white";
-
-  return (
-    <div className="min-w-0 border border-white/10 bg-white/[0.02] p-3 flex flex-col justify-between">
-      <p className="text-[7px] uppercase tracking-[1.2px] text-white/40">
-        {label}
-      </p>
-      <div className="mt-2">
-        <p className={`truncate font-['Michroma'] text-[10px] sm:text-[11px] ${accentColor}`}>
-          {value}
-        </p>
-        {subValue && (
-          <p className="mt-0.5 truncate text-[8px] text-white/40">
-            {subValue}
-          </p>
+          </section>
         )}
       </div>
+    </aside>
+  );
+}
+
+/* =========================================================
+   SMALL PIECES
+   ========================================================= */
+
+function SectionTitle({ id, children }: { id?: string; children: ReactNode }) {
+  return (
+    <h3 id={id} className="text-[12px] font-medium text-white/50">
+      {children}
+    </h3>
+  );
+}
+
+function TabIntro({ id, title, meta }: { id: string; title: string; meta?: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h3 id={id} className="text-[15px] font-medium text-white">
+        {title}
+      </h3>
+      {meta && <span className="text-[11px] tabular-nums text-white/40">{meta}</span>}
     </div>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function FactGrid({ children }: { children: ReactNode }) {
+  return <dl className="mt-2 grid grid-cols-2 border-t border-white/[0.08] sm:grid-cols-3">{children}</dl>;
+}
+
+function Fact({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="border-t border-white/10 pt-2.5">
-      <p className="text-[7px] uppercase tracking-[1.5px] text-white/35">
-        {label}
-      </p>
-      <p className="mt-1 font-['Michroma'] text-[9px] text-white/80">{value}</p>
+    <div className="min-w-0 border-b border-white/[0.08] py-3 pr-4">
+      <dt className="text-[11px] text-white/45">{label}</dt>
+      <dd className="mt-1 truncate text-[15px] tabular-nums text-white">{value}</dd>
+      {sub && <dd className="mt-0.5 truncate text-[11px] text-white/40">{sub}</dd>}
     </div>
   );
 }

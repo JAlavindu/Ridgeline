@@ -580,10 +580,11 @@ const moonScale = useTransform(
 
             z-[65]
 
+            glass-chip
+            glass-accent
+
             h-12
             w-[205px]
-
-            bg-[#ff3b12]
 
             text-[10px]
             tracking-wide
@@ -594,7 +595,6 @@ const moonScale = useTransform(
             duration-300
 
             hover:-translate-y-1
-            hover:bg-[#ff4d28]
 
             max-md:left-6
             max-md:w-[180px]
@@ -661,18 +661,20 @@ const moonScale = useTransform(
           className="
             absolute
 
-            bottom-0
+            bottom-6
             right-[7.5vw]
 
             z-[65]
 
+            glass-card
+            glass-float
+
             flex
+            overflow-hidden
+            rounded-3xl
 
             h-[205px]
             w-[36%]
-
-            border-t
-            border-white/20
 
             max-lg:hidden
           "

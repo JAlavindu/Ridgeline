@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import type { MouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const menuItems = [
@@ -22,6 +23,12 @@ const menuItems = [
   },
 ];
 
+// Only Chromium renders SVG filters inside backdrop-filter (the refraction).
+// navigator.userAgentData exists only in Chromium browsers, so it is a cheap test.
+// Safari and Firefox keep the plain blur.
+const supportsRefraction =
+  typeof navigator !== "undefined" && "userAgentData" in navigator;
+
 export default function MoonNav() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,7 +37,7 @@ export default function MoonNav() {
 
   // =========================================================
   // AUTO-HIDE: visible always on home; on other pages
-  // collapses to a slim hover-reveal strip
+  // collapses to a slim hover-reveal pill
   // =========================================================
   const [hovered, setHovered] = useState(false);
   const [routeFlash, setRouteFlash] = useState(false);
@@ -48,68 +55,105 @@ export default function MoonNav() {
 
   // Fully expanded when: home page OR hovering
   const expanded = isHome || hovered;
+  const glassState = routeFlash ? "flash" : expanded ? "expanded" : "collapsed";
+
+  // =========================================================
+  // SLIDING LENS: measure the active link and move the
+  // glass droplet behind it
+  // =========================================================
+  const navRef = useRef<HTMLElement>(null);
+  const linkRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [lens, setLens] = useState<{ left: number; width: number } | null>(null);
+
+  const activeIndex = menuItems.findIndex((item) =>
+    item.link === "/"
+      ? location.pathname === "/"
+      : location.pathname.startsWith(item.link)
+  );
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const measure = () => {
+      const el = linkRefs.current[activeIndex];
+      setLens(el ? { left: el.offsetLeft, width: el.offsetWidth } : null);
+    };
+
+    measure();
+    // Re-measure when the nav resizes (window resize, web font finishing loading)
+    const ro = new ResizeObserver(measure);
+    ro.observe(nav);
+    return () => ro.disconnect();
+  }, [activeIndex]);
+
+  // =========================================================
+  // SPECULAR HIGHLIGHT: follows the pointer horizontally.
+  // Writes a CSS variable directly, so no React re-render.
+  // =========================================================
+  const headerRef = useRef<HTMLElement>(null);
+
+  const handlePointerMove = (e: MouseEvent<HTMLElement>) => {
+    const el = headerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    el.style.setProperty("--mx", `${x}%`);
+  };
 
   return (
+    <>
+    {/* Scroll-edge fade: softens page content as it slides under the pill */}
+    <div aria-hidden="true" className="lg-scroll-edge z-[210]" />
+
     <header
+      ref={headerRef}
+      data-state={glassState}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        // Glass glow border intensifies on route change
-        boxShadow: routeFlash
-          ? "0 0 0 1px rgba(255,59,18,0.55), 0 4px 32px rgba(255,59,18,0.18), inset 0 1px 0 rgba(255,255,255,0.08)"
-          : expanded
-          ? "0 0 0 1px rgba(255,255,255,0.07), 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)"
-          : "0 2px 12px rgba(0,0,0,0.6)",
-        transition: "box-shadow 0.4s ease, opacity 0.35s ease, transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+      onMouseLeave={() => {
+        setHovered(false);
+        headerRef.current?.style.setProperty("--mx", "50%");
       }}
+      onMouseMove={handlePointerMove}
       className={`
+        liquid-glass
+        ${supportsRefraction ? "lg-refract" : ""}
+
         fixed
-        left-0
-        right-0
-        top-0
+        left-3
+        right-3
+        top-3
         z-[220]
+        md:left-[6vw]
+        md:right-[6vw]
 
         flex
         items-center
         justify-between
 
-        border-b
+        rounded-full
 
-        px-6
-        md:px-[7.5vw]
+        px-4
+        md:px-7
 
-        ${routeFlash
-          ? "border-[#ff3b12]/40 bg-[#0a0a0a]/80 backdrop-blur-2xl"
-          : expanded
-          ? "border-white/[0.10] bg-[#080808]/85 backdrop-blur-2xl"
-          : "border-white/[0.04] bg-[#020202]/60 backdrop-blur-md"
-        }
-
-        ${expanded ? "py-4 opacity-100" : "py-2 opacity-40 hover:opacity-100"}
-
-        transition-all
-        duration-350
-        ease-out
+        ${expanded ? "py-2.5" : "py-1.5"}
       `}
     >
 
       {/* =====================================================
-          GLASS SHEEN — top highlight line
+          REFRACTION FILTER — gently warps what is behind the glass
+          (used by .lg-refract in index.css)
       ===================================================== */}
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          inset-x-0
-          top-0
-          h-px
-          bg-gradient-to-r
-          from-transparent
-          via-white/20
-          to-transparent
-        "
-      />
+      <svg aria-hidden="true" width="0" height="0" className="absolute">
+        <defs>
+          <filter id="lg-refract" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.008 0.03" numOctaves="1" seed="4" result="noise" />
+            <feGaussianBlur in="noise" stdDeviation="2" result="softNoise" />
+            <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="22" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+
 
       {/* =====================================================
           LOGO
@@ -120,13 +164,17 @@ export default function MoonNav() {
         onClick={() => navigate("/")}
         className="
           font-['Michroma']
-          text-[15px]
-          tracking-[2.5px]
+          text-[13px]
+          tracking-[2px]
           text-white
 
-          transition-opacity
+          transition-[opacity,transform]
           duration-200
           hover:opacity-70
+          active:scale-95
+
+          md:text-[15px]
+          md:tracking-[2.5px]
         "
       >
         RIDGE
@@ -135,58 +183,61 @@ export default function MoonNav() {
 
 
       {/* =====================================================
-          NAV LINKS
+          NAV LINKS + SLIDING GLASS LENS
       ===================================================== */}
 
-      <nav className="flex items-center gap-7 md:gap-10">
-        {menuItems.map((item) => {
-          const isActive =
-            item.link === "/"
-              ? location.pathname === "/"
-              : location.pathname.startsWith(item.link);
+      <nav ref={navRef} aria-label="Main" className="relative flex items-center gap-0.5 md:gap-1">
+
+        <span
+          aria-hidden="true"
+          className="lg-lens"
+          style={{
+            transform: `translateX(${lens?.left ?? 0}px)`,
+            width: lens?.width ?? 0,
+            opacity: lens ? 1 : 0,
+          }}
+        />
+
+        {menuItems.map((item, i) => {
+          const isActive = i === activeIndex;
 
           return (
             <button
               key={item.number}
+              ref={(el) => {
+                linkRefs.current[i] = el;
+              }}
               type="button"
               aria-label={item.ariaLabel}
+              aria-current={isActive ? "page" : undefined}
               onClick={() => navigate(item.link)}
               className={`
                 relative
-                font-['Michroma']
-                text-[12px]
-                uppercase
-                tracking-[2.5px]
+                rounded-full
 
-                transition-colors
+                px-3
+                py-1.5
+                md:px-4
+
+                font-['Michroma']
+                text-[10px]
+                uppercase
+                tracking-[1.5px]
+                md:text-[12px]
+                md:tracking-[2.5px]
+
+                transition-[color,transform]
                 duration-200
+                active:scale-95
 
                 ${
                   isActive
                     ? "text-[#ff3b12]"
-                    : "text-white/55 hover:text-white"
+                    : "text-white/60 hover:text-white"
                 }
               `}
             >
               {item.label}
-
-              {/* Active underline pip */}
-              {isActive && (
-                <span
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    -bottom-1
-                    left-0
-                    right-0
-                    h-px
-                    bg-gradient-to-r
-                    from-transparent
-                    via-[#ff3b12]/80
-                    to-transparent
-                  "
-                />
-              )}
             </button>
           );
         })}
@@ -206,7 +257,7 @@ export default function MoonNav() {
           text-[9px]
           uppercase
           tracking-[2px]
-          text-white/30
+          text-white/40
 
           md:flex
         "
@@ -224,5 +275,6 @@ export default function MoonNav() {
         EXPLORING
       </div>
     </header>
+    </>
   );
 }
