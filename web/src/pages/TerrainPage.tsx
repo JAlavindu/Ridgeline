@@ -295,6 +295,7 @@ export default function TerrainPage() {
         overflow-hidden
         bg-[#020202]
         text-white
+        pt-14
       "
     >
 
@@ -314,82 +315,8 @@ export default function TerrainPage() {
       />
 
       {/* =====================================================
-          HEADER
+          HEADER — handled by global MoonNav fixed bar
           ===================================================== */}
-
-      <header
-        className="
-          relative
-          z-20
-          flex
-          items-center
-          justify-between
-          px-6
-          py-5
-          sm:px-10
-          lg:px-[7.5vw]
-        "
-      >
-        <a
-          href="/"
-          className="
-            font-['Michroma']
-            text-[11px]
-            tracking-[2px]
-            text-white/85
-          "
-        >
-          LUNA{" "}
-          <span className="text-white/35">
-            SPACE
-          </span>
-        </a>
-
-        <div
-          className="
-            hidden
-            items-center
-            gap-3
-            text-[8px]
-            uppercase
-            tracking-[3px]
-            text-white/40
-            sm:flex
-          "
-        >
-          <span
-            className="
-              h-1.5
-              w-1.5
-              rounded-full
-              bg-[#ff3b12]
-              shadow-[0_0_10px_rgba(255,59,18,0.7)]
-            "
-          />
-
-          LUNAR TERRAIN EXPLORER
-        </div>
-
-        <a
-          href="/"
-          className="
-            border
-            border-white/20
-            px-3
-            py-2
-            text-[8px]
-            uppercase
-            tracking-[2px]
-            text-white/60
-            transition
-            hover:border-[#ff3b12]
-            hover:text-white
-            sm:px-4
-          "
-        >
-          Exit
-        </a>
-      </header>
 
       {/* =====================================================
           TITLE
