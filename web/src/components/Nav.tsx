@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const menuItems = [
@@ -23,572 +23,206 @@ const menuItems = [
 ];
 
 export default function MoonNav() {
-  const [open, setOpen] = useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleNavigation = (link: string) => {
-    setOpen(false);
-    navigate(link);
-  };
+  const isHome = location.pathname === "/";
+
+  // =========================================================
+  // AUTO-HIDE: visible always on home; on other pages
+  // collapses to a slim hover-reveal strip
+  // =========================================================
+  const [hovered, setHovered] = useState(false);
+  const [routeFlash, setRouteFlash] = useState(false);
+  const prevPath = useRef(location.pathname);
+
+  // Flash the glass glow whenever the route changes
+  useEffect(() => {
+    if (location.pathname !== prevPath.current) {
+      prevPath.current = location.pathname;
+      setRouteFlash(true);
+      const t = setTimeout(() => setRouteFlash(false), 700);
+      return () => clearTimeout(t);
+    }
+  }, [location.pathname]);
+
+  // Fully expanded when: home page OR hovering
+  const expanded = isHome || hovered;
 
   return (
-    <>
+    <header
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        // Glass glow border intensifies on route change
+        boxShadow: routeFlash
+          ? "0 0 0 1px rgba(255,59,18,0.55), 0 4px 32px rgba(255,59,18,0.18), inset 0 1px 0 rgba(255,255,255,0.08)"
+          : expanded
+          ? "0 0 0 1px rgba(255,255,255,0.07), 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)"
+          : "0 2px 12px rgba(0,0,0,0.6)",
+        transition: "box-shadow 0.4s ease, opacity 0.35s ease, transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+      }}
+      className={`
+        fixed
+        left-0
+        right-0
+        top-0
+        z-[220]
+
+        flex
+        items-center
+        justify-between
+
+        border-b
+
+        px-6
+        md:px-[7.5vw]
+
+        ${routeFlash
+          ? "border-[#ff3b12]/40 bg-[#0a0a0a]/80 backdrop-blur-2xl"
+          : expanded
+          ? "border-white/[0.10] bg-[#080808]/85 backdrop-blur-2xl"
+          : "border-white/[0.04] bg-[#020202]/60 backdrop-blur-md"
+        }
+
+        ${expanded ? "py-4 opacity-100" : "py-2 opacity-40 hover:opacity-100"}
+
+        transition-all
+        duration-350
+        ease-out
+      `}
+    >
+
       {/* =====================================================
-          MENU / CLOSE BUTTON
+          GLASS SHEEN — top highlight line
+      ===================================================== */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          top-0
+          h-px
+          bg-gradient-to-r
+          from-transparent
+          via-white/20
+          to-transparent
+        "
+      />
+
+      {/* =====================================================
+          LOGO
       ===================================================== */}
 
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+        onClick={() => navigate("/")}
         className="
-          fixed
-          right-6
-          top-6
-          z-[220]
+          font-['Michroma']
+          text-[15px]
+          tracking-[2.5px]
+          text-white
 
-          flex
-          items-center
-          gap-4
-
-          bg-white
-          px-5
-          py-3
-
-          text-[10px]
-          font-medium
-          tracking-[2px]
-          text-black
-
-          transition-all
-          duration-300
-
-          hover:bg-[#ff3b12]
-          hover:text-white
-
-          md:right-[7.5vw]
-          md:top-7
+          transition-opacity
+          duration-200
+          hover:opacity-70
         "
       >
-        {open ? (
-          <>
-            CLOSE
-
-            <span
-              className="
-                text-[16px]
-                leading-none
-              "
-            >
-              ×
-            </span>
-          </>
-        ) : (
-          <>
-            MENU
-
-            <span
-              className="
-                text-[13px]
-                leading-none
-              "
-            >
-              ☰
-            </span>
-          </>
-        )}
+        RIDGE
+        <span className="ml-1 text-white/40">LINE</span>
       </button>
 
 
       {/* =====================================================
-          BACKDROP
+          NAV LINKS
       ===================================================== */}
 
-      <div
-        aria-hidden="true"
-        onClick={() => setOpen(false)}
-        className={`
-          fixed
-          inset-0
-          z-[150]
+      <nav className="flex items-center gap-7 md:gap-10">
+        {menuItems.map((item) => {
+          const isActive =
+            item.link === "/"
+              ? location.pathname === "/"
+              : location.pathname.startsWith(item.link);
 
-          bg-black/70
-          backdrop-blur-[3px]
+          return (
+            <button
+              key={item.number}
+              type="button"
+              aria-label={item.ariaLabel}
+              onClick={() => navigate(item.link)}
+              className={`
+                relative
+                font-['Michroma']
+                text-[12px]
+                uppercase
+                tracking-[2.5px]
 
-          transition-all
-          duration-500
+                transition-colors
+                duration-200
 
-          ${
-            open
-              ? "pointer-events-auto opacity-100"
-              : "pointer-events-none opacity-0"
-          }
-        `}
-      />
+                ${
+                  isActive
+                    ? "text-[#ff3b12]"
+                    : "text-white/55 hover:text-white"
+                }
+              `}
+            >
+              {item.label}
+
+              {/* Active underline pip */}
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="
+                    absolute
+                    -bottom-1
+                    left-0
+                    right-0
+                    h-px
+                    bg-gradient-to-r
+                    from-transparent
+                    via-[#ff3b12]/80
+                    to-transparent
+                  "
+                />
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
 
       {/* =====================================================
-          RIGHT SIDE NAVIGATION PANEL
+          STATUS INDICATOR
       ===================================================== */}
 
-      <aside
-        aria-hidden={!open}
-        className={`
-          fixed
-          right-0
-          top-0
-          z-[180]
+      <div
+        className="
+          hidden
+          items-center
+          gap-2
 
-          h-screen
-          w-full
+          text-[9px]
+          uppercase
+          tracking-[2px]
+          text-white/30
 
-          overflow-hidden
-
-          bg-[#020202]
-          text-white
-
-          shadow-[-20px_0_80px_rgba(0,0,0,0.55)]
-
-          transition-transform
-          duration-700
-          ease-[cubic-bezier(0.76,0,0.24,1)]
-
-          sm:w-[520px]
-          lg:w-[600px]
-
-          ${
-            open
-              ? "translate-x-0"
-              : "translate-x-full"
-          }
-        `}
+          md:flex
+        "
       >
-
-        {/* ===================================================
-            SPACE BACKGROUND
-        =================================================== */}
-
-        <div
+        <span
           className="
-            pointer-events-none
-            absolute
-            inset-0
-
-            bg-cover
-            bg-center
-            bg-no-repeat
-
-            opacity-25
-          "
-          style={{
-            backgroundImage:
-              "url('/images/space-background.jpg')",
-          }}
-        />
-
-
-        {/* ===================================================
-            DARK OVERLAY
-        =================================================== */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            inset-0
-            bg-black/85
-          "
-        />
-
-
-        {/* ===================================================
-            TECHNICAL GRID
-        =================================================== */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            inset-0
-
-            opacity-[0.08]
-
-            bg-[linear-gradient(rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.2)_1px,transparent_1px)]
-
-            bg-[size:80px_80px]
-          "
-        />
-
-
-        {/* ===================================================
-            ORANGE LEFT EDGE
-        =================================================== */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            left-0
-            top-0
-
-            h-full
-            w-px
-
+            h-1.5
+            w-1.5
+            rounded-full
             bg-[#ff3b12]
+            shadow-[0_0_8px_rgba(255,59,18,0.8)]
+            animate-pulse
           "
         />
-
-
-        {/* ===================================================
-            PANEL CONTENT
-        =================================================== */}
-
-        <div
-          className="
-            relative
-            flex
-            h-full
-            flex-col
-
-            px-8
-            py-7
-
-            sm:px-10
-
-            lg:px-14
-          "
-        >
-
-          {/* =================================================
-              HEADER
-          ================================================= */}
-
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-            "
-          >
-
-            {/* LOGO */}
-
-            <div
-              className="
-                font-['Michroma']
-                text-[13px]
-                tracking-[2px]
-              "
-            >
-            RIDGE
-
-              <span
-                className="
-                  ml-1
-                  text-white/40
-                "
-              >
-                LINE
-              </span>
-            </div>
-
-          </div>
-
-
-          {/* =================================================
-              SMALL SECTION LABEL
-          ================================================= */}
-
-          <div
-            className="
-              mt-20
-
-              text-[8px]
-              uppercase
-              tracking-[5px]
-
-              text-white/35
-            "
-          >
-            LUNAR NAVIGATOR
-          </div>
-
-
-          {/* =================================================
-              NAVIGATION ITEMS
-          ================================================= */}
-
-          <nav
-            className="
-              mt-8
-              flex
-              flex-col
-            "
-          >
-
-            {menuItems.map((item) => {
-              const isActive =
-                item.link === "/"
-                  ? location.pathname === "/"
-                  : location.pathname.startsWith(item.link);
-
-              return (
-                <button
-                  key={item.number}
-                  type="button"
-                  aria-label={item.ariaLabel}
-                  onClick={() =>
-                    handleNavigation(item.link)
-                  }
-                  className="
-                    group
-
-                    relative
-                    flex
-                    items-start
-
-                    border-b
-                    border-white/[0.08]
-
-                    py-5
-
-                    text-left
-
-                    transition-all
-                    duration-300
-                  "
-                >
-
-                  {/* =========================================
-                      NUMBER
-                  ========================================= */}
-
-                  <span
-                    className={`
-                      mt-2
-
-                      w-12
-                      shrink-0
-
-                      font-['Michroma']
-                      text-[9px]
-                      tracking-[1px]
-
-                      transition-colors
-                      duration-300
-
-                      ${
-                        isActive
-                          ? "text-[#ff3b12]"
-                          : "text-white/25 group-hover:text-[#ff3b12]"
-                      }
-                    `}
-                  >
-                    {item.number}
-                  </span>
-
-
-                  {/* =========================================
-                      LABEL
-                  ========================================= */}
-
-                  <span
-                    className={`
-                      max-w-[430px]
-
-                      font-['Michroma']
-                      text-[clamp(32px,5vw,64px)]
-                      font-light
-                      uppercase
-
-                      leading-[0.9]
-                      tracking-[-2px]
-
-                      transition-all
-                      duration-500
-
-                      ${
-                        isActive
-                          ? "text-white"
-                          : "text-white/50 group-hover:translate-x-3 group-hover:text-white"
-                      }
-                    `}
-                  >
-                    {item.label}
-                  </span>
-
-
-                  {/* =========================================
-                      ARROW
-                  ========================================= */}
-
-                  <span
-                    className="
-                      ml-auto
-                      mt-3
-                      shrink-0
-
-                      text-[18px]
-                      text-white/20
-
-                      transition-all
-                      duration-300
-
-                      group-hover:translate-x-1
-                      group-hover:text-[#ff3b12]
-                    "
-                  >
-                    ↗
-                  </span>
-
-                </button>
-              );
-            })}
-
-          </nav>
-
-
-          {/* =================================================
-              BOTTOM MISSION INFORMATION
-          ================================================= */}
-
-          <div
-            className="
-              mt-auto
-
-              border-t
-              border-white/10
-
-              pt-5
-            "
-          >
-
-            <div
-              className="
-                flex
-                items-end
-                justify-between
-              "
-            >
-
-              {/* MISSION */}
-
-              <div>
-
-                <div
-                  className="
-                    text-[7px]
-                    uppercase
-                    tracking-[3px]
-                    text-white/30
-                  "
-                >
-                  MISSION
-                </div>
-
-                <div
-                  className="
-                    mt-2
-
-                    font-['Michroma']
-                    text-[11px]
-                    tracking-[1px]
-
-                    text-white/80
-                  "
-                >
-                  LUNAR SOUTH POLE
-                </div>
-
-              </div>
-
-
-              {/* STATUS */}
-
-              <div
-                className="
-                  text-right
-                "
-              >
-
-                <div
-                  className="
-                    text-[7px]
-                    uppercase
-                    tracking-[3px]
-
-                    text-white/30
-                  "
-                >
-                  STATUS
-                </div>
-
-                <div
-                  className="
-                    mt-2
-
-                    flex
-                    items-center
-                    justify-end
-                    gap-2
-
-                    text-[8px]
-                    tracking-[1px]
-
-                    text-white/60
-                  "
-                >
-
-                  <span
-                    className="
-                      h-1.5
-                      w-1.5
-                      rounded-full
-                      bg-[#ff3b12]
-                    "
-                  />
-
-                  EXPLORING
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* BOTTOM LINE */}
-
-            <div
-              className="
-                mt-5
-
-                flex
-                items-center
-                justify-between
-
-                text-[7px]
-                tracking-[2px]
-
-                text-white/20
-              "
-            >
-              <span>
-                RIDGE LINE
-              </span>
-
-              <span>
-                2026
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </aside>
-    </>
+        EXPLORING
+      </div>
+    </header>
   );
 }
