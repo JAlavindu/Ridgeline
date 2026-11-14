@@ -11,7 +11,7 @@
     "date": "1969-07-20",
     "coord_source": "https://www.lroc.asu.edu/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
     "coord_frame": "MOON_ME (assumed; confirm for LROC table)",
-    "notes": "Lunar Module position. LROC elevation -1926 m (datum not confirmed); M3 takes height from the DEM. Plan V8 uses the older NSSDC value 0.67408, 23.47297 (only metres apart)."
+    "notes": "Lunar Module position. LROC elevation -1926 m (datum not confirmed); height to be taken from the terrain data. Plan V8 uses the older NSSDC value 0.67408, 23.47297 (only metres apart)."
   },
   {
     "id": "apollo12",
@@ -137,7 +137,7 @@
     "date": "2025-03-06",
     "coord_source": "https://en.wikipedia.org/wiki/Mons_Mouton",
     "coord_frame": "not stated",
-    "notes": "CHECK: needs a primary source (NASA or LROC) for the actual touchdown point. LROC intended site: lat -84.78, lon 29.13 (https://www.lroc.asu.edu/images/1401). Intuitive Machines says it landed about 250 m from the intended site, in a ~20 m crater."
+    "notes": "Sensitivity check: results are robust to a 370 m position shift, so this is low priority. Still worth finding a primary NASA or LROC touchdown point. LROC intended site: lat -84.78, lon 29.13 (https://www.lroc.asu.edu/images/1401). Intuitive Machines says it landed about 250 m from the intended site, in a ~20 m crater."
   },
   {
     "id": "blueghost1",
@@ -165,11 +165,11 @@
     "date": null,
     "coord_source": "https://elib.dlr.de/94242",
     "coord_frame": "not stated",
-    "notes": "CHECK: coordinates are Glaser 2014 EPSC spot 1 as listed in the plan (test V10); confirm against the abstract EPSC2014-136. Cross-checks: ESA slide 89.4 S, 222.6 E (https://bsgn.esa.int/wp-content/uploads/2024/02/07-Moonlight_LCNS_S4I_2024_Javier-Ventura-Traveset.pdf); Artemis III 'site 001' reported at 89.45 S, 222.69 E (https://www.leonarddavid.com/?p=35814). All within about 0.3 km. One wiki page lists 229.69 E for 89.45 S, probably a typo."
+    "notes": "Coordinates are Glaser 2014 EPSC spot 1 as listed in the plan (test V10). Cross-checks: Artemis 'site 001' at 89.45 S, 222.69 E (Boazman et al. 2022, https://doi.org/10.3847/PSJ/aca590) and ESA slide 89.4 S, 222.6 E (https://bsgn.esa.int/wp-content/uploads/2024/02/07-Moonlight_LCNS_S4I_2024_Javier-Ventura-Traveset.pdf). All within about 0.3 km. Sources name the neighbouring crater differently (de Gerlache in Glaser 2014, Henson in Boazman 2022). One wiki page lists 229.69 E, probably a typo."
   },
   {
     "id": "shackleton_site004",
-    "name": "Site 004 (near Shackleton crater)",
+    "name": "Site 004 (Shackleton rim, Artemis III region)",
     "program": "Artemis candidate region",
     "country": "USA",
     "lat": -89.78,
@@ -177,9 +177,9 @@
     "height_m": null,
     "status": "candidate site",
     "date": null,
-    "coord_source": "https://www.leonarddavid.com/?p=35814",
-    "coord_frame": "not stated",
-    "notes": "CHECK: secondary source only (news article on an Artemis III boulder study). Find the primary paper before shipping. Shackleton crater centre per IAU Gazetteer is 89.67 S, 129.78 E (https://planetarynames.wr.usgs.gov/Feature/5450); it is a shadowed crater, not a lander site, so it is not listed here. Older web pages that say 89.9 S, 0 E are wrong."
+    "coord_source": "https://doi.org/10.3847/PSJ/aca590",
+    "coord_frame": "not stated in source (see notes)",
+    "notes": "Primary source: Boazman et al. 2022, Planetary Science Journal 3:275, Fig. 1 caption and Section 1 (89.78 S, 204.27 E, also written 155.73 W). Site 004 was first defined from Clementine data (Bussey et al. 1999), re-examined as site 4 of Mazarico et al. 2011, and tagged 004 by NASA's 2020 Artemis plan. The paper does not state a coordinate frame, so MOON_ME is NOT confirmed. To get a frame-stated value, check Table 3 of Mazarico et al. 2011 (LOLA-based) or the PGDA 78 'Site 4' 5 m DEM. Shackleton crater centre per IAU Gazetteer is 89.67 S, 129.78 E (https://planetarynames.wr.usgs.gov/Feature/5450); it is a shadowed crater, not a lander site. Older web pages that say 89.9 S, 0 E are wrong."
   },
   {
     "id": "malapert_massif",
