@@ -1,0 +1,56 @@
+{
+ "sites": [
+  {
+   "id": "im1",
+   "n_nan_custom": 0,
+   "bias_deg": -0.8561104643402702,
+   "rms_deg": 1.0480968459878737,
+   "p95_abs_deg": 1.7006047687041046,
+   "max_abs_deg": 1.8160325696973034,
+   "site_height_custom_m": 2595.753662109375,
+   "site_height_precise_m": 2592.0
+  },
+  {
+   "id": "im2",
+   "n_nan_custom": 0,
+   "bias_deg": -0.16887918800344606,
+   "rms_deg": 0.3077934014589826,
+   "p95_abs_deg": 0.8668603864000721,
+   "max_abs_deg": 1.219539095339617,
+   "site_height_custom_m": 5320.70556640625,
+   "site_height_precise_m": 5321.9
+  },
+  {
+   "id": "connecting_ridge",
+   "n_nan_custom": 0,
+   "bias_deg": -0.12919628038076006,
+   "rms_deg": 0.666239390874273,
+   "p95_abs_deg": 1.3561642326294712,
+   "max_abs_deg": 1.8033784545499452,
+   "site_height_custom_m": 1935.91650390625,
+   "site_height_precise_m": 1958.6
+  },
+  {
+   "id": "shackleton_site004",
+   "n_nan_custom": 0,
+   "bias_deg": -6.198286570914977,
+   "rms_deg": 6.5697009245273295,
+   "p95_abs_deg": 9.318446931526312,
+   "max_abs_deg": 9.697307474728165,
+   "site_height_custom_m": 1706.2381591796875,
+   "site_height_precise_m": 1728.9
+  },
+  {
+   "id": "malapert_massif",
+   "n_nan_custom": 0,
+   "bias_deg": -0.39551351623050446,
+   "rms_deg": 0.7337243909903807,
+   "p95_abs_deg": 1.6964032348975011,
+   "max_abs_deg": 2.0753926388701562,
+   "site_height_custom_m": 4962.54736328125,
+   "site_height_precise_m": 4991.7
+  }
+ ],
+ "suggested_label_deg": 9.5,
+ "rule": "label = worst-site 95th percentile of |custom - precise|, rounded up to 0.5 deg"
+}
