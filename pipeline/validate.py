@@ -233,6 +233,26 @@ def run_v7() -> dict:
         "details": {"fully_covered_from_utc": first, "fully_covered_to_utc": last},
     }
 
+def run_v8() -> dict:
+    view = sky_view_at(Site(0.67408, 23.47297), sp.str2et("1969-07-20T20:17:40"))
+    sun_el, sun_az, earth_el = view.sun.el_deg, view.sun.az_deg, view.earth.el_deg
+    print(f"  V8 Apollo 11 landing: Sun {sun_el:.2f} deg high at azimuth {sun_az:.1f}, Earth {earth_el:.1f} deg")
+    return {
+        "id": "V8",
+        "name": "Apollo 11 landing: Sun and Earth in the sky",
+        "what": ("Sun and Earth seen from Tranquility Base (0.67408 N, 23.47297 E) at touchdown, "
+                 "1969-07-20 20:17:40 UTC. Python only: the app's ephemeris starts in 2023."),
+        "tolerance": "Sun about 10.8-11 deg high, within 1 deg; azimuth about 88 deg; Earth about 60-66 deg",
+        "result": round(sun_el, 2),
+        "unit": "deg (Sun height)",
+        "expected_outcome": "pass",
+        "outcome": "pass" if abs(sun_el - 10.9) <= 1 else "fail",
+        "explanation": (f"Sun {sun_el:.2f} deg high at azimuth {sun_az:.1f} deg, low in the east, as "
+                        "NASA planned so that long shadows showed the terrain. Earth "
+                        f"{earth_el:.1f} deg high, just under the plan's 'about 60-66 deg' estimate."),
+        "details": {"sun_az_deg": round(sun_az, 2), "earth_el_deg": round(earth_el, 2)},
+    }
+
 
 def run_v10() -> dict:
     mask = load_mask("connecting_ridge")
@@ -262,7 +282,7 @@ def run_v10() -> dict:
 def main() -> None:
     load_kernels()
     print("Running validation (Horizons replies are cached in pipeline/cache/horizons/) ...")
-    tests = [run_v1(), run_v3(), run_v4(), run_v5(), run_v6(), run_v7(), run_v10()]
+    tests = [run_v1(), run_v3(), run_v4(), run_v5(), run_v6(), run_v7(), run_v8(), run_v10()]
 
     for test in tests:
         test["passed"] = test["outcome"] == test["expected_outcome"]

@@ -10,13 +10,13 @@ Ridgeline is a web app for the NASA Space Apps Challenge 2026 *Lunar Landing Sit
 
 Every position is checked against NASA JPL Horizons, and the checks are shown in the app.
 
-> **Status:** in development (build week Nov 9–13, 2026). Features marked *planned* are not built yet, and validation results will appear here once they are measured.
+> **Status:** working build (Nov 14, 2026). The Sun/Earth engine, sunlight, Earth visibility, countdowns and mission summaries run live in the browser. Validation results below are measured, not estimates. Features still marked *planned* are not built yet.
 
 ---
 
 ## Why this is hard
 
-- **The Sun stays low near the pole.** At the south pole it never rises more than about 1.5° above a flat horizon. A ridge tens of kilometres away can block it for days.
+- **The Sun stays low near the pole.** At the south pole it never rises more than about 1.6° above a flat horizon (1.59° measured, see V4). A ridge tens of kilometres away can block it for days.
 - **Terrain decides everything.** Two spots a few hundred metres apart can have completely different sunlight, and smooth-Moon calculations give the wrong answer.
 - **Earth wanders in the sky.** Libration moves Earth up to about 6.9° north–south and 8.2° east–west. Near the poles and the Moon's edge it sets for long stretches.
 - **Darkness ends missions.** A lunar day lasts 29.5 Earth days. For solar landers, the longest night sizes the battery.
@@ -59,7 +59,7 @@ All the heavy science runs **once**, offline, in Python. It writes a few small d
 ```
 
 1. **Ephemeris.** SPICE (NASA's own geometry toolkit) computes the Sun's and Earth's positions as seen from the Moon's centre, for every hour from 2023 to 2032. They are stored as a direction plus a distance, with 8 Float32 values per hour, in a single file of about 2.8 MB that serves every site.
-2. **Horizons.** For each site we cast 720 rays, one every 0.5° of azimuth, along true great circles over nested LOLA terrain maps:
+2. **Horizons.** For each site we cast 1,440 rays, one every 0.25° of azimuth, along true great circles over nested LOLA terrain maps:
    - 5 m maps close to the site
    - 20 m maps out to about 40 km
    - coarser maps out to 150–250 km
@@ -102,26 +102,33 @@ A full list of datasets and libraries, with their licences, will be in `REFERENC
 
 ## Validation
 
-We publish every test with its tolerance, its result and the reason for any gap, and we never tune settings toward a reference without saying so. Results are filled in as they are measured and also appear in the app's validation panel.
+We publish every test with its tolerance, its result and the reason for any gap, and we never tune settings toward a reference without saying so. The same results appear in the app's validation panel (`web/public/data/validation.json`). To reproduce them: `python pipeline/validate.py` (JPL Horizons replies are cached in `pipeline/cache/horizons/`) and `npm test` in `web/`.
 
-| ID | Test | Pass rule | Strength | Result |
+| ID | Test | Pass rule | Result | |
 |---|---|---|---|---|
-| V1 | Our Sun and Earth az/el vs JPL Horizons, 6 sites, ~500 times each | ≤ 0.002° target; > 0.01° fails | Strong | *pending* |
-| V2 | Browser engine vs Python/SPICE, 1,000 random cases | ≤ 0.001° | Strong | *pending* |
-| V3 | Deliberate trap: feed UTC as TDB | **Must fail** by ~0.0098° (proves V1 is sensitive) | Strong | *pending* |
-| V4 | Exact pole, smooth Moon, 2023–2032 | Max Sun height 1.54° ± 0.02° | Strong | *pending* |
-| V5 | Equator, smooth Moon | Sun up ~50%; day ~14.8 d; Earth always up | Strong | *pending* |
-| V6 | Chang'e-4 (far side) | Earth never visible | Strong | *pending* |
-| V7 | 14 March 2025 total eclipse seen from the Moon | Sun fully covered 06:26–07:31 UT | Strong | *pending* |
-| V8 | Apollo 11 landing geometry | Sun ~10.8° high, within 1° | Medium | *pending* |
-| V9 | Our sunlight averages vs NASA PGDA 69 | Median gap ≤ 5 points | Medium | *pending* |
-| V10 | Connecting Ridge at 2 m vs published ~88% sunlight | Within 3–5 points | Medium | *pending* |
-| V11–V13 | Mission replays: IM-1, Chandrayaan-3, IM-2 | Plausibility only | Weak | *pending* |
-| V14 | Horizon convergence (half step, double range, 0.25° azimuth) | < 0.01° RMS | Internal | *pending* |
+| V1 | Our Sun and Earth azimuth/elevation vs **JPL Horizons**: 6 sites × 518 times × 2 bodies (6,216 comparisons, Jan–May 2026) | ≤ 0.002°; > 0.01° fails | **0.000027°** worst gap | ✅ |
+| V2 | Browser engine vs Python/SPICE | ≤ 0.001° | 4 sites × dates within 0.001°, including between-hour times; full 1,000-case file not yet built | 🟡 |
+| V3 | Deliberate trap: feed UTC as TDB | **Must fail** (proves V1 can catch time bugs) | Fails by **0.0098°**, as predicted | ✅ |
+| V4 | Exact pole, smooth Moon, 2023–2032: highest Sun | 1.59° ± 0.02° | **1.5875°** | ✅ |
+| V5 | Equator (0°, 0°), smooth Moon, 2023–2032, every 10 min | Sun up 50 ± 0.5%; day 14.77 ± 0.4 d; Earth always up, ≥ ~79° | **50.36%**; day **14.85 d**; Earth ≥ **79.56°** | ✅ |
+| V6 | Chang'e-4 (far side), 2023–2032 | Earth never visible; centre about −37° to −53° | Earth centre **−51.6° to −37.1°**, never visible | ✅ |
+| V7 | Total lunar eclipse, 14 March 2025, seen from (0°, 0°) | Sun fully covered 06:26–07:31 UT | Fully covered **every minute** (05:45–08:10 at this point) | ✅ |
+| V8 | Apollo 11 touchdown, 1969-07-20 20:17:40 UTC | Sun about 10.8–11° high (± 1°), azimuth about 88° | Sun **10.70°** at **88.8°**; Earth 59.2° | ✅ |
+| V9 | Our sunlight averages vs NASA PGDA 69 | Median gap ≤ 5 points | *pending (M3)* | |
+| V10 | Connecting Ridge (89.4395°S, 222.8066°E), 2 m mast, 2023–2032, real LOLA terrain | Within 5 points of ~88% (Gläser et al. 2018) | **87.9%** average sunlight; longest darkness **4.71 d** (Gläser et al. 2014: 4.58 d) | ✅ |
+| V11–V13 | Mission replays: IM-1, Chandrayaan-3, IM-2 | Plausibility only | *pending* | |
+| V14 | Custom-coordinate horizons vs precise horizons | See `docs/validation/` | *M3* | |
+
+**Notes on the results**
+- **V4's expected value was corrected from 1.54° to 1.59°.** The plan used the Moon's *mean* equator tilt (1.543°). Our day-one kernel check found that physical libration raises the true maximum to 1.587°, in both the `MOON_ME` and `IAU_MOON` frames (`docs/kernel_checks.txt`). Against 1.54° the test would fail; we state the change rather than hide it.
+- **V5 counts eclipses separately.** Earth hid the Sun for 72.8 hours over the decade at the equator. These darken the site but are not sunsets.
+- **V1's tiny remaining gap** comes from computing light-time from the Moon's centre rather than from the site, and from Horizons' gravitational light bending.
+- The browser engine has 75 automated tests and the Python pipeline 78 (run on every change).
 
 ## Limits — what we do and don't claim
 
-- **We will claim:** "Sun and Earth positions match JPL Horizons within *X*°" and "sunlight averages agree with NASA PGDA 69 within *Y* points", with *X* and *Y* taken from the measured results.
+- **We claim:** Sun and Earth positions match JPL Horizons to within 0.0001° (worst 0.000027°, V1), and our sunlight model reproduces the published average for Connecting Ridge (87.9% vs ~88%, V10). The comparison with NASA PGDA 69 maps (V9) is still pending.
+- **Horizon uncertainty bands are not yet from the terrain data.** Until M3's low/high masks are filled in, polar countdown windows assume a ±0.1° horizon error, and the app says so on screen.
 - **We do not claim:** mission-grade predictions, exact power in watts for a real lander, temperatures, or single sunset times near the pole.
 - **Terrain is the main source of error, not the ephemeris.** That is why polar countdowns are shown as windows.
 - **Mission replays are stories, not proof.** Landers stop for many reasons; for example, IM-1 tipped over. We show the lander's end of operations next to the computed sunset and never label one as the other.
@@ -153,8 +160,6 @@ docs/                validation report, kernel checks, screenshots
 
 ## Getting started
 
-> These commands describe the intended setup and will be confirmed as the code lands.
-
 **Science pipeline** (Python 3.11+):
 ```bash
 python -m venv pipeline/.venv
@@ -164,6 +169,7 @@ python pipeline/get_kernels.py           # download the NAIF kernels
 python pipeline/check_kernels.py         # sanity checks → docs/kernel_checks.txt
 python pipeline/ephemeris.py             # → web/public/data/ephem.bin + ephem_meta.json
 pytest pipeline/tests
+python pipeline/validate.py              # validation V1–V10 → web/public/data/validation.json
 ```
 
 **Web app** (Node 20+):
@@ -171,7 +177,7 @@ pytest pipeline/tests
 cd web
 npm install
 npm run dev        # local dev server
-npx vitest run     # engine tests (browser maths = Python maths)
+npm test           # engine tests (75): time, ephemeris, geometry, sunlight, Earth, events, series
 npm run build      # production build (deployed to GitHub Pages from main)
 ```
 
