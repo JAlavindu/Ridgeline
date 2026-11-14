@@ -7,6 +7,7 @@ import CustomSitePicker from "../components/plan/CustomSitePicker";
 import SettingsPanel from "../components/plan/SettingsPanel";
 import SlipChart from "../components/plan/SlipChart";
 import Timeline from "../components/plan/Timeline";
+import WindowFinder from "../components/plan/WindowFinder";
 import { bestCards } from "../components/plan/metrics";
 import { lunarSites } from "../data/lunarSites";
 import { useCustomHorizon } from "../hooks/useCustomHorizon";
@@ -172,6 +173,15 @@ function Details({ state, card, viability, onViability, onUseDate }: DetailsProp
           missionDays={card.missionDays}
           viability={viability}
           onViability={onViability}
+          onUseDate={onUseDate}
+        />
+      </div>
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
+        <WindowFinder
+          result={state.result}
+          startUtc={card.startUtc}
+          missionDays={card.missionDays}
+          viability={viability}
           onUseDate={onUseDate}
         />
       </div>
