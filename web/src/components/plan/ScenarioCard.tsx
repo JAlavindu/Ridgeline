@@ -113,7 +113,8 @@ export default function ScenarioCard({
             <p><span className="text-white/35">Earth: </span>{nextText(state.result.look.earth)}</p>
           </div>
           <p className="mt-3 text-[11px] text-white/35">
-            Horizon: {state.result.horizonKind} · {Math.abs(state.result.lat).toFixed(2)}° {state.result.lat < 0 ? "S" : "N"},{" "}
+            Horizon: {state.result.horizonKind}
+            {state.result.horizonKind.startsWith("approximate") && " (may be off by several degrees, test V14)"} · {Math.abs(state.result.lat).toFixed(2)}° {state.result.lat < 0 ? "S" : "N"},{" "}
             {(((state.result.lon % 360) + 360) % 360).toFixed(2)}° E
           </p>
         </>
@@ -126,6 +127,11 @@ export default function ScenarioCard({
         <button type="button" disabled={!canRemove} onClick={onRemove} className="text-white/60 hover:text-white disabled:text-white/20">
           Remove
         </button>
+        {card.site.kind === "custom" && (
+          <button type="button" onClick={onPickCustom} className="text-white/60 hover:text-white">
+            Edit point
+          </button>
+        )}
         {!selected && (
           <button type="button" onClick={onSelect} className="ml-auto text-white/60 hover:text-white">
             Details ↓

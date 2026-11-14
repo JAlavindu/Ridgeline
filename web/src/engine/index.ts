@@ -38,3 +38,5 @@ export { loadDsn, parseDsn, dsnElevationsAt, dsnContact, dsnContactPercent, DSN_
 export type { Dsn, DsnMeta, DsnStation, DsnContact, DsnLimit } from "./dsn";
 export { panelFactor, panelIrradianceWm2, meanPanelIrradiance, PANEL_LABEL } from "./power";
 export type { PanelType } from "./power";
+export { computeCustomHorizon, customMask, loadPolarDem, parsePolarDem, sampleHeight } from "./customHorizon";
+export type { PolarDem, CustomHorizon } from "./customHorizon";

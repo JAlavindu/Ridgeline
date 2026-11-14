@@ -3,20 +3,28 @@ import { useState, type ReactNode } from "react";
 import { DEFAULT_VIABILITY, type Viability } from "../engine";
 
 import ScenarioCard from "../components/plan/ScenarioCard";
+import CustomSitePicker from "../components/plan/CustomSitePicker";
 import SettingsPanel from "../components/plan/SettingsPanel";
 import SlipChart from "../components/plan/SlipChart";
 import Timeline from "../components/plan/Timeline";
 import { bestCards } from "../components/plan/metrics";
 import { lunarSites } from "../data/lunarSites";
+import { useCustomHorizon } from "../hooks/useCustomHorizon";
 import { useScenario, type ScenarioResult, type ScenarioState } from "../hooks/useScenario";
 import { MAX_CARDS, usePlan, type ScenarioCard as Card } from "../lib/plan";
 
-/** Hooks need a fixed count: one slot per possible card. Custom horizons arrive in a later step. */
+/** Hooks need a fixed count: one slot per possible card. */
+function useSlot(card: Card | undefined): ScenarioState {
+  const custom = useCustomHorizon(card ?? null);
+  // custom cards: undefined while the worker builds the horizon, null outside the polar map
+  return useScenario(card ?? null, card?.site.kind === "custom" ? (custom === undefined ? undefined : custom.mask) : undefined);
+}
+
 function useBoard(cards: Card[]): ScenarioState[] {
-  const s0 = useScenario(cards[0] ?? null, cards[0]?.site.kind === "custom" ? null : undefined);
-  const s1 = useScenario(cards[1] ?? null, cards[1]?.site.kind === "custom" ? null : undefined);
-  const s2 = useScenario(cards[2] ?? null, cards[2]?.site.kind === "custom" ? null : undefined);
-  const s3 = useScenario(cards[3] ?? null, cards[3]?.site.kind === "custom" ? null : undefined);
+  const s0 = useSlot(cards[0]);
+  const s1 = useSlot(cards[1]);
+  const s2 = useSlot(cards[2]);
+  const s3 = useSlot(cards[3]);
   return [s0, s1, s2, s3].slice(0, cards.length);
 }
 
@@ -25,6 +33,7 @@ export default function PlanPage() {
   const { cards, selectedId } = state;
   const states = useBoard(cards);
   const [viability, setViability] = useState<Viability>(DEFAULT_VIABILITY);
+  const [pickingFor, setPickingFor] = useState<string | null>(null);
 
   const ready = cards
     .map((card, i) => ({ id: card.id, s: states[i] }))
@@ -71,7 +80,10 @@ export default function PlanPage() {
                   onSelect={() => dispatch({ type: "select", id: card.id })}
                   onRemove={() => dispatch({ type: "remove", id: card.id })}
                   onDuplicate={() => dispatch({ type: "duplicate", id: card.id })}
-                  onPickCustom={() => dispatch({ type: "select", id: card.id })}
+                  onPickCustom={() => {
+                    dispatch({ type: "select", id: card.id });
+                    setPickingFor(card.id);
+                  }}
                 />
               ))}
               {cards.length < MAX_CARDS && (
@@ -84,6 +96,23 @@ export default function PlanPage() {
                 </button>
               )}
             </section>
+
+            {pickingFor && cards.some((c) => c.id === pickingFor) && (
+              <div className="mt-8">
+                <CustomSitePicker
+                  initial={(() => {
+                    const c = cards.find((x) => x.id === pickingFor)!;
+                    return c.site.kind === "custom" ? { lat: c.site.lat, lon: c.site.lon } : null;
+                  })()}
+                  onCancel={() => setPickingFor(null)}
+                  onUse={(lat, lon) => {
+                    const label = `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? "S" : "N"}, ${(((lon % 360) + 360) % 360).toFixed(2)}° E`;
+                    dispatch({ type: "update", id: pickingFor, patch: { site: { kind: "custom", lat, lon, label } } });
+                    setPickingFor(null);
+                  }}
+                />
+              </div>
+            )}
 
             {selected && (
               <section aria-label="Selected scenario" className="mt-12">
