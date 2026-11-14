@@ -155,28 +155,28 @@ export default function Footer() {
             <div className="flex flex-col gap-4 text-xs text-white/60">
 
               <a
-                href="#"
+                href="/terrain"
                 className="transition-colors hover:text-white"
               >
                 Lunar Navigator
               </a>
 
               <a
-                href="#"
+                href="/terrain"
                 className="transition-colors hover:text-white"
               >
                 Lunar South Pole
               </a>
 
               <a
-                href="#"
+                href="/validation"
                 className="transition-colors hover:text-white"
               >
                 Mission Data
               </a>
 
               <a
-                href="#"
+                href="/terrain"
                 className="transition-colors hover:text-white"
               >
                 Exploration
@@ -204,31 +204,31 @@ export default function Footer() {
             <div className="flex flex-col gap-4 text-xs text-white/60">
 
               <a
-                href="#"
+                href="https://pgda.gsfc.nasa.gov/products/69" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
-                NASA
+                NASA PGDA
               </a>
 
               <a
-                href="#"
+                href="https://lola.gsfc.nasa.gov/" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
                 LRO / LOLA
               </a>
 
               <a
-                href="#"
+                href="https://naif.jpl.nasa.gov/naif/" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
-                Mission Data
+                NAIF SPICE
               </a>
 
               <a
-                href="#"
+                href="https://ssd.jpl.nasa.gov/horizons/" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
-                Documentation
+                JPL Horizons
               </a>
 
             </div>
@@ -253,28 +253,28 @@ export default function Footer() {
             <div className="flex flex-col gap-4 text-xs text-white/60">
 
               <a
-                href="#"
+                href="https://github.com/JAlavindu/Ridgeline#readme" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
                 About
               </a>
 
               <a
-                href="#"
+                href="/validation"
                 className="transition-colors hover:text-white"
               >
                 Technology
               </a>
 
               <a
-                href="#"
+                href="https://github.com/JAlavindu/Ridgeline" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
                 GitHub ↗
               </a>
 
               <a
-                href="#"
+                href="https://github.com/JAlavindu/Ridgeline/issues" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
                 Contact ↗
@@ -334,6 +334,7 @@ export default function Footer() {
             text-white/35
             md:flex-row
             md:items-center
+            md:flex-wrap
             md:justify-between
           "
         >
@@ -352,7 +353,7 @@ export default function Footer() {
             </a>
 
             <a
-              href="#"
+              href="/validation#sources"
               className="transition-colors hover:text-white"
             >
               Credits
@@ -362,6 +363,9 @@ export default function Footer() {
 
           <div>
             BUILT FOR LUNAR EXPLORATION
+          </div>
+          <div className="w-full text-[10px] normal-case tracking-normal text-white/40 md:basis-full">
+            Data: NASA GSFC PGDA, NASA/JPL NAIF SPICE and Horizons, LRO LOLA.
           </div>
 
         </div>
