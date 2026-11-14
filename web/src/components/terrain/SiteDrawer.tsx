@@ -4,6 +4,7 @@ import type { Site, HorizonMask, TileData3D, SkyState } from "../../types";
 import { computeSkyState, generateHorizonMask, generate3DTile } from "../../utils/mockData";
 import { SiteExplorer3D } from "../../charts/SiteExplorer3D";
 import { Panorama } from "../../charts/Panorama";
+import MissionReplay from "./MissionReplay";
 import SunEarthLive, { SkyNow } from "./SunEarthLive";
 
 
@@ -260,6 +261,8 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
         {tab === "overview" && (
           <div className="space-y-10">
             <SkyNow site={site} onOpenDetails={() => setTab("sky")} />
+
+            <MissionReplay siteId={site.id} />
 
             <section aria-labelledby="site-about-heading">
               <SectionTitle id="site-about-heading">About this site</SectionTitle>

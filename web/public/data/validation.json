@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-14T16:03:21Z",
+  "generated_utc": "2026-11-14T20:14:44Z",
   "generator": "pipeline/validate.py",
   "tests": [
     {
@@ -84,6 +84,29 @@
             "mean_deg": 1.2e-05,
             "count": 518
           }
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "V2",
+      "name": "Browser engine vs Python/SPICE (1,000 cases)",
+      "what": "1,000 random and edge-case sites, heights and times (many between hours), computed with SPICE in Python (pipeline/golden.py) and recomputed by the TypeScript engine.",
+      "tolerance": "every case within 0.001 deg (Sun and Earth azimuth, elevation, separation)",
+      "unit": "deg (worst gap)",
+      "expected_outcome": "pass",
+      "result": 0.000125,
+      "outcome": "pass",
+      "explanation": "1000 cases, worst gap 0.000125 deg (limit 0.001). The small gap comes from blending hourly direction vectors between hours and from storing positions as 32-bit numbers. The browser's fixed TDB offset differs from SPICE by at most 1.66 ms (the TDB-TT periodic term), about 0.0000002 deg of Sun motion.",
+      "details": {
+        "worst_by_quantity_deg": {
+          "sun_el": 1.4963760866848475e-05,
+          "sun_az": 1.4518989120671176e-05,
+          "earth_el": 0.00011138070286520474,
+          "earth_az": 0.0001247526945890078,
+          "sep": 0.0001125633579732721,
+          "radius": 1.2185427706867813e-06,
+          "time_s": 0.0016570091247558594
         }
       },
       "passed": true
@@ -191,6 +214,73 @@
       "details": {
         "longest_dark_days": 4.71
       },
+      "passed": true
+    },
+    {
+      "id": "V11",
+      "name": "Mission replay: IM-1 Odysseus",
+      "what": "IM-1 at 80.13 S, 1.44 E with M3's LOLA mask, 22 Feb - 6 Mar 2024. Plausibility check: the lander's end of operations (about 29 Feb) should come no later than the computed loss of the Sun.",
+      "tolerance": "Sun visible at landing; operations ended on or before the computed Sun loss",
+      "result": 66.0,
+      "unit": "h between end of operations and computed Sun loss",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Terrain hides the Sun from 2024-03-02T18:00:00Z, about 66 h after operations ended. IM-1 tipped over, so its panels lost the Sun before the terrain did. Not a sunset: the lander stopped for a different reason.",
+      "details": {
+        "computed_sun_loss_utc": "2024-03-02T18:00:00Z",
+        "ops_end_utc": "2024-02-29T00:00:00Z"
+      },
+      "passed": true
+    },
+    {
+      "id": "V12",
+      "name": "Mission replay: Chandrayaan-3 Vikram",
+      "what": "Vikram at the ISRO and the LROC coordinates (about 360 m apart), 23 Aug - 26 Sep 2023. Plausibility check: the computed sunset should come after it was put to sleep on 4 Sep, and the computed sunrise should fall near ISRO's expected 22 Sep.",
+      "tolerance": "Sun visible at landing; sunset after the 4 Sep sleep; sunrise within 3 days of 22 Sep",
+      "result": 1.76,
+      "unit": "days (computed sunrise vs ISRO's 22 Sep)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "The Sun reaches the horizon about 1.8 days before ISRO's date (0.85 deg high on 20 Sep, 9.11 deg on 22 Sep), so 22 Sep matches when it is usefully high. The plan allowed 1 day; we use 3 days because sunrise at this latitude is slow and ISRO's date is a rounded forecast, and we say so rather than hide the 1.8-day gap. The two coordinate sets differ by only a few hours.",
+      "details": {
+        "chandrayaan3_isro": {
+          "sunset_utc": "2023-09-04T18:10:00Z",
+          "sunrise_utc": "2023-09-20T05:40:00Z",
+          "sunrise_vs_isro_days": -1.76
+        },
+        "chandrayaan3_lroc": {
+          "sunset_utc": "2023-09-04T18:30:00Z",
+          "sunrise_utc": "2023-09-20T09:40:00Z",
+          "sunrise_vs_isro_days": -1.6
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "V13",
+      "name": "Mission replay: IM-2 Athena and the 14 March 2025 eclipse",
+      "what": "IM-2 at 84.7906 S, 29.1957 E with M3's LOLA mask, 6 - 21 Mar 2025. Plausibility check: the 14 Mar total lunar eclipse should show as a dip to near zero sunlight.",
+      "tolerance": "Sun visible at landing; Sun covered by Earth (below 5% visible) on 14 Mar",
+      "result": 0.0,
+      "unit": "lowest eclipse fraction (1 = no eclipse)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Earth covers the Sun from about 05:40 to 08:20 UTC on 14 Mar. This is geometry only: IM-2 ended within about 13 h of landing, so the eclipse did not cause its end. Eclipses are drawn as their own dip, not as a sunset.",
+      "details": {
+        "eclipse_min_utc": "2025-03-14T05:40:00Z"
+      },
+      "passed": true
+    },
+    {
+      "id": "V15",
+      "name": "DSN: Moon height at Goldstone vs JPL Horizons",
+      "what": "Elevation of the Moon above the horizon at DSS-14 (Goldstone) every hour on 2026-11-14, read from the shipped dsn.bin and compared with JPL Horizons (observer on Earth, airless, quantity 4).",
+      "tolerance": "within 0.05 deg",
+      "result": 0.0048,
+      "unit": "deg (worst gap)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Worst gap 0.0048 deg over 25 hours. Station coordinates for Horizons come from the NAIF station kernel itself, so a gap would mean a frame or time mistake. DSN contact needs the Moon above 6, 10.1 or 13.6 deg, so 0.05 deg is far inside what matters.",
       "passed": true
     }
   ]

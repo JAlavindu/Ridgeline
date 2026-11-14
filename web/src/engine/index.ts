@@ -34,3 +34,5 @@ export { sampleSeries, summarize, timelineRows, slipScan, DEFAULT_VIABILITY } fr
 export type { Series, Summary, TimelineRow, SlipPoint, Viability } from "./series";
 
 
+export { loadDsn, parseDsn, dsnElevationsAt, dsnContact, dsnContactPercent, DSN_LIMITS } from "./dsn";
+export type { Dsn, DsnMeta, DsnStation, DsnContact, DsnLimit } from "./dsn";
