@@ -30,4 +30,7 @@ export { skyState } from "./conditions";
 export type { SkyState } from "./conditions";
 export { outlook, findEvents, removeFlicker, maskEdges, formatMinuteUtc } from "./events";
 export type { Outlook, BodyOutlook, Countdown, SkyEvent, EventKind, Body } from "./events";
+export { sampleSeries, summarize, timelineRows, slipScan, DEFAULT_VIABILITY } from "./series";
+export type { Series, Summary, TimelineRow, SlipPoint, Viability } from "./series";
+
 
