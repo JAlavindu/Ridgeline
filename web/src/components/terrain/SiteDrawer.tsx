@@ -28,9 +28,19 @@ export function normalizeSiteId(id: string): string {
 
 export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
   const [tab, setTab] = useState<TabId>("overview");
+  const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [hoursOffset, setHoursOffset] = useState<number>(12);
   const [catalogSites, setCatalogSites] = useState<Site[]>([]);
   const [loadedMask, setLoadedMask] = useState<HorizonMask | null>(null);
+
+  // Auto-play lunar time progression across synodic month (708 hours)
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setHoursOffset((prev) => (prev + 1) % 708);
+    }, 180);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   const catalogId = useMemo(() => normalizeSiteId(site.id), [site.id]);
 
@@ -164,14 +174,35 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
                 {site.country} · {site.year} · {elevationDisplay}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Exit site selection"
-              className="shrink-0 border border-white/15 px-3 py-1 text-lg leading-none text-white/55 transition hover:border-[#ff3b12] hover:text-white"
-            >
-              ×
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsPlaying(!isPlaying)}
+                title={isPlaying ? "Pause simulation" : "Resume simulation"}
+                className={`flex items-center gap-1.5 border px-2.5 py-1 text-[7px] font-['Michroma'] uppercase tracking-[1px] transition ${
+                  isPlaying
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                    : "border-white/15 bg-white/5 text-white/40 hover:text-white"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    isPlaying
+                      ? "bg-emerald-400 animate-pulse"
+                      : "bg-white/40"
+                  }`}
+                />
+                <span>{isPlaying ? "LIVE" : "PAUSED"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Exit site selection"
+                className="shrink-0 border border-white/15 px-3 py-1 text-lg leading-none text-white/55 transition hover:border-[#ff3b12] hover:text-white"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           <nav aria-label="Site information" className="mt-4 flex gap-1 overflow-x-auto">
@@ -375,6 +406,8 @@ export default function SiteDrawer({ site, onClose }: SiteDrawerProps) {
                   onHoursChange={setHoursOffset}
                   mode="explore"
                   siteName={site.name}
+                  isPlaying={isPlaying}
+                  onTogglePlay={() => setIsPlaying((p) => !p)}
                 />
               </div>
 

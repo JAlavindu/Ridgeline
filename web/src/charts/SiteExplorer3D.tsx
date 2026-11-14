@@ -902,6 +902,28 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
       isDragging = false;
     };
 
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - prevMousePos.x;
+      const deltaY = e.touches[0].clientY - prevMousePos.y;
+      prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+      theta -= deltaX * 0.009;
+      phi = Math.max(0.18, Math.min(Math.PI / 2 - 0.04, phi - deltaY * 0.009));
+      updateCameraPos();
+    };
+
+    const onTouchEnd = () => {
+      isDragging = false;
+    };
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       radius = Math.max(20, Math.min(140, radius + e.deltaY * 0.06));
@@ -921,6 +943,9 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
     dom.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    dom.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
     dom.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('resize', onResize);
 
@@ -928,6 +953,12 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
+
+      // Smooth auto-orbit camera around the site without having to click
+      if (!isDragging) {
+        theta += 0.0016;
+        updateCameraPos();
+      }
 
       // Update celestial positions every frame from latest refs
       updateCelestialVectors();
@@ -948,6 +979,9 @@ export const SiteExplorer3D: React.FC<SiteExplorer3DProps> = ({
       dom.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      dom.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
       dom.removeEventListener('wheel', onWheel);
       window.removeEventListener('resize', onResize);
       renderer.dispose();

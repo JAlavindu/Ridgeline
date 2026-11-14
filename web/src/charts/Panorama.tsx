@@ -10,6 +10,8 @@ interface PanoramaProps {
   onHoursChange: (hours: number) => void;
   mode: AppMode;
   siteName: string;
+  isPlaying?: boolean;
+  onTogglePlay?: () => void;
 }
 
 export const Panorama: React.FC<PanoramaProps> = ({
@@ -18,8 +20,12 @@ export const Panorama: React.FC<PanoramaProps> = ({
   hoursOffset,
   onHoursChange,
   siteName,
+  isPlaying: controlledIsPlaying,
+  onTogglePlay,
 }) => {
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [internalPlaying, setInternalPlaying] = useState<boolean>(true);
+  const isPlaying = controlledIsPlaying !== undefined ? controlledIsPlaying : internalPlaying;
+  const togglePlay = onTogglePlay || (() => setInternalPlaying((p) => !p));
   const [hoverAz, setHoverAz] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -35,14 +41,14 @@ export const Panorama: React.FC<PanoramaProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen]);
 
-  // Animation loop
+  // Animation loop (only runs internally if not controlled by parent)
   React.useEffect(() => {
-    if (!isPlaying) return;
+    if (controlledIsPlaying !== undefined || !internalPlaying) return;
     const interval = setInterval(() => {
       onHoursChange((hoursOffset + 1) % 708);
     }, 150);
     return () => clearInterval(interval);
-  }, [isPlaying, hoursOffset, onHoursChange]);
+  }, [controlledIsPlaying, internalPlaying, hoursOffset, onHoursChange]);
 
   // Coordinate mapping for SVG:
   // X: 0° to 360° Azimuth -> viewBox 0 to 1000
@@ -509,7 +515,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
           {/* Play/Pause */}
           <button
             type="button"
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={togglePlay}
             style={{
               background: isPlaying ? '#ef4444' : '#ff3d18',
               border: 'none',
@@ -534,7 +540,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
           <button
             type="button"
             onClick={() => {
-              setIsPlaying(false);
+              if (isPlaying) togglePlay();
               onHoursChange(0);
             }}
             style={{
@@ -594,7 +600,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
               step={1}
               value={hoursOffset}
               onChange={(e) => {
-                setIsPlaying(false);
+                if (isPlaying) togglePlay();
                 onHoursChange(Number(e.target.value));
               }}
               style={{
