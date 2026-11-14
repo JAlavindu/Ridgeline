@@ -24,3 +24,356 @@ body {
 button {
   font-family: inherit;
 }
+
+/* ============ LIQUID GLASS (iOS 26 style) ============ */
+@layer components {
+  /* The glass surface: clear tint, light blur, boosted colour behind it */
+  .liquid-glass {
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    -webkit-backdrop-filter: blur(20px) saturate(190%) brightness(1.1);
+    backdrop-filter: blur(20px) saturate(190%) brightness(1.1);
+    box-shadow:
+      inset 0 1px 0.5px rgba(255, 255, 255, 0.45),  /* bright top rim   */
+      inset 0 -1px 0.5px rgba(255, 255, 255, 0.12), /* bottom rim       */
+      inset 0 0 22px rgba(255, 255, 255, 0.05),     /* inner glow       */
+      0 12px 32px rgba(0, 0, 0, 0.4),               /* float shadow     */
+      0 2px 6px rgba(0, 0, 0, 0.25);
+    transition:
+      opacity 0.35s ease,
+      transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+      padding 0.35s ease,
+      box-shadow 0.4s ease,
+      background 0.35s ease;
+  }
+
+  /* Chromium only: bend the content behind the glass (SVG filter in Nav.tsx) */
+  .liquid-glass.lg-refract {
+    backdrop-filter: url(#lg-refract) blur(14px) saturate(190%) brightness(1.1);
+  }
+
+  /* iOS "scroll edge effect": content fades + blurs as it scrolls up under the bar */
+  .lg-scroll-edge {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 96px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(2, 2, 2, 0.92) 0%, rgba(2, 2, 2, 0.6) 45%, transparent 100%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  }
+
+  /* Specular highlight: follows the pointer via --mx */
+  .liquid-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      radial-gradient(45% 160% at var(--mx, 50%) -40%, rgba(255, 255, 255, 0.22), transparent 60%),
+      radial-gradient(80% 120% at 50% 150%, rgba(255, 255, 255, 0.06), transparent 60%);
+  }
+
+  /* Rim: 1px gradient ring, bright where light hits the curve */
+  .liquid-glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0.08) 30%,
+      rgba(255, 255, 255, 0.02) 60%,
+      rgba(255, 255, 255, 0.28)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* States, set with data-state on the element */
+  .liquid-glass[data-state="collapsed"] {
+    opacity: 0.45;
+    transform: translateY(-4px) scale(0.98);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  }
+
+  .liquid-glass[data-state="flash"] {
+    background: linear-gradient(180deg, rgba(255, 59, 18, 0.14), rgba(255, 255, 255, 0.03));
+    box-shadow:
+      inset 0 1px 0.5px rgba(255, 255, 255, 0.45),
+      inset 0 -1px 0.5px rgba(255, 59, 18, 0.3),
+      0 0 0 1px rgba(255, 59, 18, 0.5),
+      0 6px 32px rgba(255, 59, 18, 0.22);
+  }
+
+  /* The glass "droplet" that slides behind the active link */
+  .lg-lens {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+    box-shadow:
+      inset 0 1px 0.5px rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0.5px rgba(255, 255, 255, 0.12),
+      inset 0 0 12px rgba(255, 255, 255, 0.06),
+      0 4px 12px rgba(0, 0, 0, 0.25);
+    transition:
+      transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+      width 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.3s ease;
+  }
+
+  /* =========================================================
+     SHARED GLASS SYSTEM — used by every card in the app
+     ---------------------------------------------------------
+     glass-panel  big surface floating over the scene (blurs)
+     glass-card   card inside a panel (no blur: panel already did)
+     glass-float  add to glass-card when it floats over the scene
+     glass-chip   capsule buttons / tabs / pills
+     glass-active orange "selected" tint (same as navbar flash)
+     glass-accent solid orange call-to-action glass
+     glass-bar    sticky header strip inside a scrolling panel
+
+     The rim + highlight are done with inset box-shadows and
+     background layers (not ::before/::after), so they stay put
+     inside scrolling panels.
+     ========================================================= */
+  :root {
+    --glass-rim:
+      inset 0 1px 0 rgba(255, 255, 255, 0.26),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --glass-sheen: radial-gradient(90% 70% at 50% -20%, rgba(255, 255, 255, 0.08), transparent 60%);
+  }
+
+  .glass-panel {
+    border-radius: 24px;
+    background:
+      var(--glass-sheen),
+      linear-gradient(180deg, rgba(20, 20, 20, 0.6), rgba(6, 6, 6, 0.52));
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    box-shadow:
+      var(--glass-rim),
+      inset 0 0 32px rgba(255, 255, 255, 0.03),
+      0 24px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .glass-card {
+    border-radius: 16px;
+    background:
+      var(--glass-sheen),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    box-shadow: var(--glass-rim), 0 6px 18px rgba(0, 0, 0, 0.22);
+  }
+
+  .glass-card.glass-float {
+    background:
+      var(--glass-sheen),
+      linear-gradient(180deg, rgba(24, 24, 24, 0.5), rgba(8, 8, 8, 0.4));
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
+    box-shadow: var(--glass-rim), 0 14px 36px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-chip {
+    border-radius: 9999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.25);
+    transition:
+      background 0.25s ease,
+      box-shadow 0.25s ease,
+      transform 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .glass-chip:hover {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+  }
+
+  .glass-chip:active {
+    transform: scale(0.96);
+  }
+
+  .glass-chip.glass-float {
+    background: linear-gradient(180deg, rgba(30, 30, 30, 0.55), rgba(10, 10, 10, 0.45));
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+    backdrop-filter: blur(14px) saturate(170%);
+  }
+
+  .glass-chip.glass-float:hover {
+    background: linear-gradient(180deg, rgba(45, 45, 45, 0.6), rgba(16, 16, 16, 0.5));
+  }
+
+  /* Selected state: listed after :hover so it wins */
+  .glass-chip.glass-active,
+  .glass-chip.glass-float.glass-active,
+  .glass-card.glass-active,
+  .glass-active {
+    background: linear-gradient(180deg, rgba(255, 59, 18, 0.24), rgba(255, 59, 18, 0.08));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 210, 195, 0.35),
+      inset 0 0 0 1px rgba(255, 59, 18, 0.55),
+      0 0 22px rgba(255, 59, 18, 0.18);
+  }
+
+  .glass-accent,
+  .glass-chip.glass-accent {
+    background: linear-gradient(180deg, rgba(255, 98, 60, 0.92), rgba(255, 59, 18, 0.78));
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 225, 215, 0.55),
+      inset 0 -1px 0 rgba(120, 20, 0, 0.35),
+      0 8px 28px rgba(255, 59, 18, 0.35);
+  }
+
+  .glass-accent:hover,
+  .glass-chip.glass-accent:hover {
+    background: linear-gradient(180deg, rgba(255, 115, 80, 0.95), rgba(255, 70, 30, 0.85));
+  }
+
+  .glass-bar {
+    background: linear-gradient(180deg, rgba(14, 14, 14, 0.55), rgba(10, 10, 10, 0.35));
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  /* Site panel slides in. No fill-mode on purpose: once the animation ends the
+     panel has no transform, so fixed-position children (3D fullscreen) still
+     cover the whole viewport. */
+  .site-panel {
+    animation: site-panel-in 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes site-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    @keyframes site-panel-in {
+      from {
+        opacity: 0;
+        transform: translateX(24px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+
+  /* Mission history bar slides up from the bottom */
+  .history-panel {
+    animation: history-panel-in 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes history-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Year slider: invisible track (the axis is drawn underneath), white handle */
+  .history-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 40px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .history-range::-webkit-slider-runnable-track {
+    height: 40px;
+    background: transparent;
+  }
+
+  .history-range::-moz-range-track {
+    height: 40px;
+    background: transparent;
+  }
+
+  .history-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 12px;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.15s ease;
+  }
+
+  .history-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .history-range:hover::-webkit-slider-thumb,
+  .history-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.18), 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .history-range:focus-visible {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .liquid-glass,
+    .lg-lens,
+    .glass-chip {
+      transition: none;
+    }
+
+    .site-panel,
+    .history-panel {
+      animation: none;
+    }
+  }
+
+  /* Accessibility setting: "Reduce transparency" → solid surfaces */
+  @media (prefers-reduced-transparency: reduce) {
+    .liquid-glass,
+    .liquid-glass.lg-refract,
+    .glass-panel,
+    .glass-bar,
+    .glass-card.glass-float,
+    .glass-chip.glass-float {
+      background: rgba(14, 14, 14, 0.96);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}

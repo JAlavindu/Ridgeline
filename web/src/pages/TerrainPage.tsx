@@ -287,6 +287,42 @@ export default function TerrainPage() {
     );
   };
 
+  /*
+   * Split view: a site is open, so the Moon and the site
+   * panel sit side by side (stacked on phones).
+   */
+  const isSiteOpen =
+    mode === "select" &&
+    selectedSite !== null;
+
+  /* Side layout: Moon left, panel right (site details, sky guide). */
+  const isSide =
+    isSiteOpen ||
+    mode === "sky";
+
+  /* Stacked layout: Moon on top, timeline bar below (history). */
+  const isStacked =
+    mode === "history";
+
+  const isSplit =
+    isSide || isStacked;
+
+  const formatCoords = (
+    site: LunarSite
+  ) => {
+    if (
+      site.latitude === null ||
+      site.longitude === null
+    ) {
+      return null;
+    }
+    const lon =
+      site.longitude > 180
+        ? site.longitude - 360
+        : site.longitude;
+    return `${Math.abs(site.latitude).toFixed(2)}° ${site.latitude < 0 ? "S" : "N"}, ${Math.abs(lon).toFixed(2)}° ${lon < 0 ? "W" : "E"}`;
+  };
+
   return (
     <main
       className="
@@ -295,7 +331,7 @@ export default function TerrainPage() {
         overflow-hidden
         bg-[#020202]
         text-white
-        pt-14
+        pt-20
       "
     >
 
@@ -323,14 +359,15 @@ export default function TerrainPage() {
           ===================================================== */}
 
       <section
-        className="
+        className={`
           relative
           z-20
           px-5
           pt-5
           text-center
           sm:pt-8
-        "
+          ${isSplit ? "hidden" : ""}
+        `}
       >
         <p
           className="
@@ -381,19 +418,7 @@ export default function TerrainPage() {
           SELECTION OVERLAY
           ===================================================== */}
 
-      {mode === "select" && (
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            fixed
-            inset-0
-            z-10
-            bg-black/20
-            backdrop-blur-[1px]
-          "
-        />
-      )}
+      {/* (No dimming or blur: in split view the Moon stays sharp in its own panel) */}
 
       {/* =====================================================
           MOON EXPLORER
@@ -403,23 +428,47 @@ export default function TerrainPage() {
         aria-label="
           Interactive Moon and explorer controls
         "
-        className="
-          relative
-          z-20
-          mx-auto
-          mt-6
-          h-[760px]
-          w-full
-          max-w-[1280px]
-          px-4
-          sm:h-[820px]
-          lg:mt-2
-          lg:h-[670px]
-        "
+        className={
+          isSplit
+            ? `
+              fixed
+              inset-x-3
+              top-[68px]
+              z-30
+              overflow-hidden
+              rounded-[20px]
+              border
+              border-white/[0.07]
+              bg-[#050505]
+              bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_62%)]
+              [container-type:size]
+              lg:top-[72px]
+
+              ${
+                isStacked
+                  ? "bottom-[calc(44dvh+24px)] sm:bottom-[284px]"
+                  : "bottom-[calc(56dvh+12px)] lg:bottom-3 lg:right-[calc(min(44vw,600px)+24px)]"
+              }
+            `
+            : `
+              relative
+              z-20
+              mx-auto
+              mt-6
+              h-[760px]
+              w-full
+              max-w-[1280px]
+              px-4
+              sm:h-[820px]
+              lg:mt-2
+              lg:h-[670px]
+            `
+        }
       >
 
         {/* OUTER ORBIT */}
 
+        {!isSplit && (
         <div
           aria-hidden="true"
           className="
@@ -441,9 +490,11 @@ export default function TerrainPage() {
             lg:w-[590px]
           "
         />
+        )}
 
         {/* INNER ORBIT */}
 
+        {!isSplit && (
         <div
           aria-hidden="true"
           className="
@@ -464,6 +515,7 @@ export default function TerrainPage() {
             lg:w-[400px]
           "
         />
+        )}
 
         {/* MOON */}
 
@@ -486,12 +538,97 @@ export default function TerrainPage() {
           onSelectSite={
             selectSite
           }
+          framed={isSplit}
         />
+
+        {/* =================================================
+            SPLIT-VIEW LABELS (inside the Moon panel)
+            ================================================= */}
+
+        {isSplit && (
+          <button
+            type="button"
+            onClick={() => {
+              if (isSiteOpen) {
+                closeSelection();
+                return;
+              }
+              setMode("default");
+              setFocusedSite(null);
+            }}
+            className="
+              absolute
+              left-3
+              top-3
+              z-10
+              flex
+              h-9
+              items-center
+              gap-2
+              rounded-md
+              px-3
+              text-[13px]
+              text-white/60
+              transition
+              hover:bg-white/[0.06]
+              hover:text-white
+            "
+          >
+            <span aria-hidden="true">←</span>
+            {isSiteOpen ? "All sites" : "Back"}
+          </button>
+        )}
+
+        {isSiteOpen && selectedSite && (
+          <>
+            <div
+              className="
+                pointer-events-none
+                absolute
+                bottom-4
+                left-5
+                z-10
+                hidden
+                sm:block
+              "
+            >
+              <p className="text-[11px] text-white/40">
+                Selected site
+              </p>
+              <p className="mt-0.5 text-[15px] text-white">
+                {selectedSite.name}
+              </p>
+              {formatCoords(selectedSite) && (
+                <p className="mt-0.5 text-[12px] tabular-nums text-white/50">
+                  {formatCoords(selectedSite)}
+                </p>
+              )}
+            </div>
+
+            <p
+              className="
+                pointer-events-none
+                absolute
+                bottom-4
+                right-5
+                z-10
+                hidden
+                text-[11px]
+                text-white/35
+                sm:block
+              "
+            >
+              Drag to rotate · scroll to zoom
+            </p>
+          </>
+        )}
 
         {/* =================================================
             SELECT
             ================================================= */}
 
+        {!isSplit && (
+        <>
         <OrbitalAction
           position="top"
           number="01"
@@ -526,9 +663,6 @@ export default function TerrainPage() {
           number="02"
           label="HISTORY"
           detail="Explore missions by year"
-          active={
-            mode === "history"
-          }
           onClick={() =>
             toggleMode(
               "history"
@@ -545,13 +679,12 @@ export default function TerrainPage() {
           number="03"
           label="SUN & EARTH"
           detail="Learn about the lunar sky"
-          active={
-            mode === "sky"
-          }
           onClick={() =>
             toggleMode("sky")
           }
         />
+        </>
+        )}
       </section>
 
       {/* =====================================================
@@ -628,24 +761,17 @@ export default function TerrainPage() {
                         )
                       }
                       className={`
+                        glass-chip
+                        glass-float
                         snap-start
                         shrink-0
-                        border
-                        rounded
-                        bg-black/70
-                        backdrop-blur-sm
+                        rounded-2xl
                         px-4
                         py-2.5
                         text-left
-                        transition-all
-                        duration-200
                         min-w-[130px]
 
-                        ${
-                          isActive
-                            ? "border-[#ff3b12] bg-[#ff3b12]/10 shadow-[0_0_20px_rgba(255,59,18,0.12)]"
-                            : "border-white/15 hover:border-[#ff3b12]/60 hover:bg-white/[0.03]"
-                        }
+                        ${isActive ? "glass-active" : ""}
                       `}
                     >
                       <span
@@ -748,6 +874,9 @@ export default function TerrainPage() {
           onClose={() =>
             setMode("default")
           }
+          onChooseSite={() =>
+            toggleMode("select")
+          }
         />
       )}
 
@@ -772,7 +901,7 @@ export default function TerrainPage() {
           ===================================================== */}
 
       <footer
-        className="
+        className={`
           relative
           z-20
           px-6
@@ -782,7 +911,8 @@ export default function TerrainPage() {
           uppercase
           tracking-[3px]
           text-white/20
-        "
+          ${isSplit ? "hidden" : ""}
+        `}
       >
         Lunar surface explorer ·
         mission sites from the

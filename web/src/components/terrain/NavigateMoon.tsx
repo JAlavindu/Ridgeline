@@ -12,6 +12,8 @@ interface NavigateMoonProps {
   selectedSite: LunarSite | null;
   focusedSite: LunarSite | null;
   onSelectSite: (site: LunarSite) => void;
+  /** true = sit centred inside its own panel (split view next to the site panel) */
+  framed?: boolean;
 }
 
 export default function NavigateMoon({
@@ -21,6 +23,7 @@ export default function NavigateMoon({
   selectedSite,
   focusedSite,
   onSelectSite,
+  framed = false,
 }: NavigateMoonProps) {
   const [
     isInteracting,
@@ -29,26 +32,38 @@ export default function NavigateMoon({
 
   return (
     <div
-      className={`
-        absolute
-        left-1/2
-        top-[25%]
-        h-[min(78vw,360px)]
-        w-[min(78vw,360px)]
-        -translate-x-1/2
-        -translate-y-1/2
-        transition-all
-        duration-500
+      className={
+        framed
+          ? `
+            absolute
+            left-1/2
+            top-1/2
+            h-[min(76cqmin,600px)]
+            w-[min(76cqmin,600px)]
+            -translate-x-1/2
+            -translate-y-1/2
+          `
+          : `
+            absolute
+            left-1/2
+            top-[25%]
+            h-[min(78vw,360px)]
+            w-[min(78vw,360px)]
+            -translate-x-1/2
+            -translate-y-1/2
+            transition-all
+            duration-500
 
-        sm:h-[min(55vw,480px)]
-        sm:w-[min(55vw,480px)]
+            sm:h-[min(55vw,480px)]
+            sm:w-[min(55vw,480px)]
 
-        lg:top-1/2
-        lg:h-[480px]
-        lg:w-[480px]
+            lg:top-1/2
+            lg:h-[480px]
+            lg:w-[480px]
 
-        ${selectionMode ? "scale-[1.05]" : ""}
-      `}
+            ${selectionMode ? "scale-[1.05]" : ""}
+          `
+      }
     >
 
       {/* FOCUS RING */}
@@ -64,7 +79,9 @@ export default function NavigateMoon({
           duration-700
           ${
             focusedSite
-              ? `
+              ? framed
+                ? "border border-white/[0.08]"
+                : `
                 border
                 border-[#ff3b12]/50
                 shadow-[0_0_70px_rgba(255,59,18,0.14)]
@@ -150,8 +167,9 @@ export default function NavigateMoon({
         />
       </Canvas>
 
-      {/* INSTRUCTION */}
+      {/* INSTRUCTION (the split-view panel shows its own) */}
 
+      {!framed && (
       <div
         className="
           pointer-events-none
@@ -174,6 +192,7 @@ export default function NavigateMoon({
             ? "DRAG TO ROTATE · SELECT A SITE"
             : "DRAG TO ROTATE · PINCH TO ZOOM"}
       </div>
+      )}
     </div>
   );
 }
