@@ -3,30 +3,11 @@ import type { MouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const menuItems = [
-  {
-    number: "01",
-    label: "HOME",
-    ariaLabel: "Go to home page",
-    link: "/",
-  },
-  {
-    number: "02",
-    label: "EXPLORE MOON",
-    ariaLabel: "Explore the Moon",
-    link: "/terrain",
-  },
-  {
-    number: "03",
-    label: "TEAM",
-    ariaLabel: "Meet the team",
-    link: "/team",
-  },
-  {
-    number: "04",
-    label: "VALIDATION",
-    ariaLabel: "See how the numbers are validated",
-    link: "/validation",
-  },
+  { number: "01", label: "HOME", ariaLabel: "Go to home page", link: "/" },
+  { number: "02", label: "EXPLORE MOON", ariaLabel: "Explore the Moon", link: "/terrain" },
+  { number: "03", label: "PLAN", ariaLabel: "Plan and compare landings", link: "/plan" },
+  { number: "04", label: "VALIDATION", ariaLabel: "See how the numbers are validated", link: "/validation" },
+  { number: "05", label: "TEAM", ariaLabel: "Meet the team", link: "/team" },
 ];
 
 // Only Chromium renders SVG filters inside backdrop-filter (the refraction).

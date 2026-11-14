@@ -1,7 +1,11 @@
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+
+import { DEFAULT_VIABILITY, type Viability } from "../engine";
 
 import ScenarioCard from "../components/plan/ScenarioCard";
 import SettingsPanel from "../components/plan/SettingsPanel";
+import SlipChart from "../components/plan/SlipChart";
+import Timeline from "../components/plan/Timeline";
 import { bestCards } from "../components/plan/metrics";
 import { lunarSites } from "../data/lunarSites";
 import { useScenario, type ScenarioResult, type ScenarioState } from "../hooks/useScenario";
@@ -20,6 +24,7 @@ export default function PlanPage() {
   const { state, dispatch } = usePlan();
   const { cards, selectedId } = state;
   const states = useBoard(cards);
+  const [viability, setViability] = useState<Viability>(DEFAULT_VIABILITY);
 
   const ready = cards
     .map((card, i) => ({ id: card.id, s: states[i] }))
@@ -88,7 +93,13 @@ export default function PlanPage() {
                     from {selected.startUtc.replace("T", " ")} UTC · {selected.missionDays} days
                   </span>
                 </h2>
-                <Details state={selectedState} card={selected} />
+                <Details
+                  state={selectedState}
+                  card={selected}
+                  viability={viability}
+                  onViability={setViability}
+                  onUseDate={(startUtc) => dispatch({ type: "update", id: selected.id, patch: { startUtc } })}
+                />
               </section>
             )}
           </div>
@@ -107,18 +118,34 @@ export default function PlanPage() {
   );
 }
 
-/** The selected card's deeper views. Filled in by the slip chart, timeline and window finder. */
-function Details({ state, card }: { state: ScenarioState | undefined; card: Card }): ReactNode {
+interface DetailsProps {
+  state: ScenarioState | undefined;
+  card: Card;
+  viability: Viability;
+  onViability: (v: Viability) => void;
+  onUseDate: (startUtc: string) => void;
+}
+
+/** The selected card's deeper views: launch slip and the mission timeline. */
+function Details({ state, card, viability, onViability, onUseDate }: DetailsProps): ReactNode {
   if (!state || state.status !== "ready") {
     return <p className="mt-3 text-[12px] text-white/40">{state?.status === "error" ? state.message : "Working out the sky…"}</p>;
   }
-  return <DetailsReady result={state.result} card={card} />;
-}
-
-function DetailsReady({ result }: { result: ScenarioResult; card: Card }) {
   return (
-    <p className="mt-3 text-[12px] text-white/40">
-      {result.series.tdb.length} samples every 10 minutes over the mission.
-    </p>
+    <div className="mt-5 space-y-10">
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
+        <Timeline series={state.result.series} />
+      </div>
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
+        <SlipChart
+          result={state.result}
+          startUtc={card.startUtc}
+          missionDays={card.missionDays}
+          viability={viability}
+          onViability={onViability}
+          onUseDate={onUseDate}
+        />
+      </div>
+    </div>
   );
 }
