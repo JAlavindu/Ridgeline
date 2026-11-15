@@ -117,7 +117,7 @@ We publish every test with its tolerance, its result and the reason for any gap,
 | V6 | Chang'e-4 (far side), 2023–2032 | Earth never visible; centre about −37° to −53° | Earth centre **−51.6° to −37.1°**, never visible | ✅ |
 | V7 | Total lunar eclipse, 14 March 2025, seen from (0°, 0°) | Sun fully covered 06:26–07:31 UT | Fully covered **every minute** (05:45–08:10 at this point) | ✅ |
 | V8 | Apollo 11 touchdown, 1969-07-20 20:17:40 UTC | Sun about 10.8–11° high (± 1°), azimuth about 88° | Sun **10.70°** at **88.8°**; Earth 59.2° | ✅ |
-| V9 | Our sunlight and Earth averages vs NASA PGDA 69 at 4 polar sites (needs masks rebuilt for a 0 m mast) | Median gap ≤ 5 points, 90th percentile ≤ 10 | *Pending: waiting for 0 m masks* | ⏳ |
+| V9 | Our sunlight and Earth averages vs NASA PGDA 69 at 4 polar sites, ground level (0 m mast), 2023–2032 | Median gap ≤ 5 points, 90th percentile ≤ 10 | Median **3.6**, 90th percentile **18.3**. Connecting Ridge and IM-2 within 1.1 points (Sun) and 4.3 (Earth); Malapert Sun −13.4; Shackleton Site 004 has no sunlight in our horizon where PGDA 69 has 11.1% (our horizon there is being checked) | ❌ |
 | V10 | Connecting Ridge (89.4395°S, 222.8066°E), 2 m mast, 2023–2032, real LOLA terrain | Within 5 points of ~88% (Gläser et al. 2018) | **87.9%** average sunlight; longest darkness **4.71 d** (Gläser et al. 2014: 4.58 d) | ✅ |
 | V11 | Replay: IM-1 Odysseus, 22 Feb – 6 Mar 2024 | Operations ended on or before the computed Sun loss | Sun lost 2 Mar 18:00 UTC, **66 h** after operations ended (it tipped over) | ✅ |
 | V12 | Replay: Chandrayaan-3 Vikram (ISRO and LROC coordinates) | Sunset after the 4 Sep sleep; sunrise within 3 days of ISRO's 22 Sep | Smooth Moon (no terrain data): sunset 4 Sep 18:10 UTC; sunrise 19 Sep 17:30 UTC, **2.27 days** before ISRO's date | ✅ |
@@ -142,7 +142,7 @@ We publish every test with its tolerance, its result and the reason for any gap,
 
 ## Limits — what we do and don't claim
 
-- **We claim:** Sun and Earth positions match JPL Horizons to within 0.0001° (worst 0.000027°, V1), and our sunlight model reproduces the published average for Connecting Ridge (87.9% vs ~88%, V10). The comparison with NASA PGDA 69 maps (V9) is still pending.
+- **We claim:** Sun and Earth positions match JPL Horizons to within 0.0001° (worst 0.000027°, V1), and our sunlight model reproduces the published average for Connecting Ridge (87.9% vs ~88%, V10). Against NASA PGDA 69 maps (V9) two of four polar sites agree within about 4 points, but the test fails overall: our horizon at Shackleton Site 004 finds no sunlight where NASA finds 11%, so **Site 004's sunlight numbers in the app should not be trusted** until that horizon is rebuilt.
 - **Horizon uncertainty bands are not yet from the terrain data.** Until M3's low/high masks are filled in, polar countdown windows assume a ±0.1° horizon error, and the app says so on screen.
 - **We do not claim:** mission-grade predictions, exact power in watts for a real lander, temperatures, or single sunset times near the pole.
 - **Terrain is the main source of error, not the ephemeris.** That is why polar countdowns are shown as windows.

@@ -20,7 +20,8 @@ From the plan, section 16. Deadline: submitted by 22:30 Sunday, hard limit 23:59
 
 - [ ] Every number in the video and description is on `/validation` or in `docs/number_audit.md`.
 - [ ] Nothing says Apollo, Chandrayaan-3, Chang'e-4, SLIM or Blue Ghost horizons use NASA terrain: they use a smooth Moon.
-- [ ] V9 is described as pending (unless 0 m masks were built and the test now passes).
+- [ ] V9 is described as a failure with its reason (it ran on 0 m masks and fails at Malapert and Shackleton Site 004), never as "pending" or "passed".
+- [ ] No sunlight number for Shackleton Site 004 appears in the video or description: its horizon gives 0% where NASA PGDA 69 gives 11%.
 - [ ] No claim of mission-grade accuracy, single sunset times near the pole, or exact power in watts.
 - [ ] Mission replay facts are checked against a primary source, or described as "from our plan".
 - [ ] The neighbourhood map and CSV export are not shown or promised (not built), and custom coordinates are called approximate.
