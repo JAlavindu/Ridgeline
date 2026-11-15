@@ -57,17 +57,17 @@ export default function PlanPage() {
 
   return (
     <main className="min-h-screen bg-[#020202] px-4 pb-24 pt-24 text-white sm:px-8 sm:pt-28">
-      <div className="mx-auto max-w-[1440px]">
+      <div className="mx-auto max-w-[1520px]">
         <p className="text-[12px] text-white/45">Plan</p>
-        <h1 className="mt-1.5 font-['Michroma'] text-[22px] uppercase leading-tight sm:text-[28px]">Plan a landing</h1>
-        <p className="mt-3 max-w-[70ch] text-[14px] leading-[1.75] text-white/65">
+        <h1 className="mt-1.5 font-['Michroma'] text-[28px] uppercase leading-[36px]">Plan a landing</h1>
+        <p className="mt-3 max-w-[70ch] text-[16px] leading-[1.75] text-white/65">
           Compare up to four sites and dates side by side. Every number comes from the JPL ephemeris and the terrain
           horizon for each site, and changes as soon as you edit a card or the mission rules.
         </p>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
-            <section aria-label="Scenario board" className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+            <section aria-label="Scenario board" className="flex flex-wrap gap-4">
               {cards.map((card, i) => (
                 <ScenarioCard
                   key={card.id}
@@ -91,7 +91,7 @@ export default function PlanPage() {
                 <button
                   type="button"
                   onClick={addScenario}
-                  className="flex min-h-[160px] items-center justify-center rounded-[14px] border border-dashed border-white/[0.14] text-[13px] text-white/55 transition hover:border-white/30 hover:text-white"
+                  className="flex min-h-[160px] basis-full items-center justify-center rounded-[14px] border border-dashed border-white/[0.14] text-[15px] text-white/55 transition hover:border-white/30 hover:text-white"
                 >
                   + Add scenario
                 </button>
@@ -163,10 +163,10 @@ function Details({ state, card, viability, onViability, onUseDate }: DetailsProp
   }
   return (
     <div className="mt-5 space-y-10">
-      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
         <Timeline series={state.result.series} />
       </div>
-      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
         <SlipChart
           result={state.result}
           startUtc={card.startUtc}
@@ -176,7 +176,7 @@ function Details({ state, card, viability, onViability, onUseDate }: DetailsProp
           onUseDate={onUseDate}
         />
       </div>
-      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
         <WindowFinder
           result={state.result}
           startUtc={card.startUtc}

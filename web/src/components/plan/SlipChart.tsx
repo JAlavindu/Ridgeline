@@ -31,7 +31,7 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
     return slipScan(eph, result.obs, result.horizon, result.startTdb, missionDays * 24, SLIPS, viability, earthOptionsOf(settings));
   }, [eph, result.obs, result.horizon, result.startTdb, missionDays, viability, settings]);
 
-  if (points.length === 0) return <p className="mt-3 text-[12px] text-white/40">Scanning launch dates…</p>;
+  if (points.length === 0) return <p className="mt-3 text-[13px] text-white/40">Scanning launch dates…</p>;
 
   const maxNight = Math.max(24, Math.ceil(Math.max(...points.map((p) => p.longest_night_hours)) / 24) * 24);
   const x = (d: number) => PAD.l + ((d + 60) / 120) * (W - PAD.l - PAD.r);
@@ -49,21 +49,21 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h3 className="text-[13px] font-medium text-white">If the launch slips</h3>
-        <p className="text-[11px] text-white/40">Same site and mission length, start moved by up to 60 days (hourly samples)</p>
+        <h3 className="text-[16px] font-medium text-white">If the launch slips</h3>
+        <p className="text-[13px] text-white/40">Same site and mission length, start moved by up to 60 days (hourly samples)</p>
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Sunlight and longest night for each start date within 60 days" className="mt-3 block h-auto w-full">
         {[0, 50, 100].map((v) => (
           <g key={v}>
             <line x1={PAD.l} x2={W - PAD.r} y1={yPct(v)} y2={yPct(v)} stroke="#fff" strokeOpacity={v === 0 ? 0.2 : 0.06} />
-            <text x={PAD.l - 6} y={yPct(v) + 3} textAnchor="end" fontSize="10" fill="#fff" fillOpacity="0.4">{v}%</text>
+            <text x={PAD.l - 6} y={yPct(v) + 3} textAnchor="end" fontSize="12" fill="#fff" fillOpacity="0.4">{v}%</text>
           </g>
         ))}
-        <text x={W - PAD.r + 6} y={yNight(maxNight) + 3} fontSize="10" fill="#fff" fillOpacity="0.4">{maxNight} h</text>
-        <text x={W - PAD.r + 6} y={yNight(0) + 3} fontSize="10" fill="#fff" fillOpacity="0.4">0 h</text>
+        <text x={W - PAD.r + 6} y={yNight(maxNight) + 3} fontSize="12" fill="#fff" fillOpacity="0.4">{maxNight} h</text>
+        <text x={W - PAD.r + 6} y={yNight(0) + 3} fontSize="12" fill="#fff" fillOpacity="0.4">0 h</text>
         {[-60, -30, 0, 30, 60].map((d) => (
-          <text key={d} x={x(d)} y={H - 8} textAnchor="middle" fontSize="10" fill="#fff" fillOpacity="0.4">
+          <text key={d} x={x(d)} y={H - 8} textAnchor="middle" fontSize="12" fill="#fff" fillOpacity="0.4">
             {d > 0 ? `+${d}` : d} d
           </text>
         ))}
@@ -77,7 +77,7 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
         <line x1={x(slip)} x2={x(slip)} y1={PAD.t} y2={H - PAD.b} stroke="#ff3b12" strokeWidth="1.5" />
       </svg>
 
-      <div className="mt-1 flex flex-wrap gap-x-4 text-[11px] text-white/45">
+      <div className="mt-1 flex flex-wrap gap-x-4 text-[13px] text-white/45">
         <span><span className="mr-1 inline-block h-[2px] w-3 bg-[#f2c14e] align-middle" />Sun up (any part)</span>
         <span><span className="mr-1 inline-block w-3 border-t border-dashed border-white/60 align-middle" />Longest night (right scale)</span>
         <span><span className="mr-1 inline-block h-2 w-[3px] bg-white/55 align-middle" />Meets your rules</span>
@@ -104,37 +104,37 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
           <Cell label="Meets your rules" value={current.is_viable ? "Yes" : "No"} />
         </dl>
       ) : (
-        <p className="mt-3 text-[12px] text-white/45">That date is outside 2023–2032.</p>
+        <p className="mt-3 text-[13px] text-white/45">That date is outside 2023–2032.</p>
       )}
 
       <div className="mt-4 flex flex-wrap items-end gap-x-6 gap-y-3">
-        <label className="text-[11px] text-white/45">
+        <label className="text-[13px] text-white/45">
           Rule: Sun up at least
           <input
             type="number" min={0} max={100} value={viability.min_sunlight_percent}
             onChange={(e) => onViability({ ...viability, min_sunlight_percent: Number(e.target.value) })}
-            className="ml-2 h-8 w-16 rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[12px] tabular-nums text-white"
+            className="ml-2 h-11 w-16 rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[15px] tabular-nums text-white"
           />{" "}%
         </label>
-        <label className="text-[11px] text-white/45">
+        <label className="text-[13px] text-white/45">
           and no night longer than
           <input
             type="number" min={0} max={720} value={viability.max_night_hours}
             onChange={(e) => onViability({ ...viability, max_night_hours: Number(e.target.value) })}
-            className="ml-2 h-8 w-16 rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[12px] tabular-nums text-white"
+            className="ml-2 h-11 w-16 rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[15px] tabular-nums text-white"
           />{" "}h
         </label>
         <button
           type="button"
           disabled={slip === 0 || !current}
           onClick={useDate}
-          className="h-9 rounded-md bg-white px-4 text-[12px] font-medium text-black transition hover:bg-white/85 disabled:bg-white/20 disabled:text-white/40"
+          className="h-11 rounded-md bg-white px-4 text-[14px] font-medium text-black transition hover:bg-white/85 disabled:bg-white/20 disabled:text-white/40"
         >
           Use this date
         </button>
         {(viability.min_sunlight_percent !== DEFAULT_VIABILITY.min_sunlight_percent ||
           viability.max_night_hours !== DEFAULT_VIABILITY.max_night_hours) && (
-          <button type="button" onClick={() => onViability(DEFAULT_VIABILITY)} className="text-[11px] text-white/45 hover:text-white">
+          <button type="button" onClick={() => onViability(DEFAULT_VIABILITY)} className="text-[13px] text-white/45 hover:text-white">
             Reset rule
           </button>
         )}
@@ -146,8 +146,8 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
 function Cell({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-b border-white/[0.08] py-2.5 pr-3">
-      <dt className="text-[11px] text-white/45">{label}</dt>
-      <dd className="mt-0.5 text-[13px] tabular-nums text-white">{value}</dd>
+      <dt className="text-[13px] text-white/45">{label}</dt>
+      <dd className="mt-0.5 text-[16px] tabular-nums text-white">{value}</dd>
     </div>
   );
 }
