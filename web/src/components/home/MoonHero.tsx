@@ -223,7 +223,7 @@ const moonScale = useTransform(
           left-[34vw]
           top-[6vh]
 
-          z-[50]
+          z-[20]
           pointer-events-none
 
           w-[46vw]
@@ -412,19 +412,7 @@ const moonScale = useTransform(
           "
         >
 
-          <div
-            className="
-              mb-4
-
-              text-[9px]
-              uppercase
-              tracking-[5px]
-
-              text-white/40
-            "
-          >
-            01 — EXPLORATION
-          </div>
+          
 
 
           <h1
@@ -501,7 +489,7 @@ const moonScale = useTransform(
               text-[9px]
               leading-relaxed
 
-              text-white/60
+              text-black
             "
           >
             384 000 km
@@ -510,7 +498,7 @@ const moonScale = useTransform(
 
             <span
               className="
-                text-white/40
+                text-black
               "
             >
               from earth
@@ -693,25 +681,7 @@ const moonScale = useTransform(
             "
           >
 
-            <span
-              className="
-                absolute
-
-                left-0
-                top-3
-
-                bg-white
-
-                px-2
-                py-1
-
-                text-[8px]
-
-                text-black
-              "
-            >
-              MOON
-            </span>
+            
 
 
             <div
@@ -979,17 +949,12 @@ const moonScale = useTransform(
     relative
     w-full
     overflow-visible
-    bg-[#020202]
-
     px-6
     py-12
-
     sm:px-8
     sm:py-14
-
     md:px-[6vw]
     md:py-16
-
     lg:px-[7.5vw]
     lg:py-20
   "
@@ -1021,28 +986,7 @@ const moonScale = useTransform(
   />
 
   {/* ================= SECTION NUMBER ================= */}
-  <div
-    className="
-      relative
-      z-20
-
-      mb-6
-
-      text-[8px]
-      uppercase
-      tracking-[4px]
-      text-white/35
-
-      sm:mb-7
-
-      md:text-[9px]
-      md:tracking-[5px]
-
-      lg:mb-2
-    "
-  >
-    02 — CHARACTERISATION
-  </div>
+  
 
 
   {/* =====================================================
@@ -1081,7 +1025,7 @@ const moonScale = useTransform(
       "
     >
       {/* Small technical label */}
-      <div
+      {/* <div
         className="
           absolute
           bottom-2
@@ -1107,7 +1051,7 @@ const moonScale = useTransform(
         >
           DATA → TERRAIN → DECISION
         </div>
-      </div>
+      </div> */}
     </div>
 
 
@@ -1118,7 +1062,7 @@ const moonScale = useTransform(
     <div
       className="
         relative
-        z-30
+        z-[40]
 
         flex
         flex-col
@@ -1228,6 +1172,7 @@ const moonScale = useTransform(
       lg:gap-6
 
       xl:gap-8
+      
     "
   >
     {[
@@ -1261,15 +1206,27 @@ const moonScale = useTransform(
       },
     ].map((c) => (
       <div
-        key={c.n}
-        className="
-          border-t
-          border-white/20
-          pt-3
+  key={c.n}
+  className="
+    glass-card
+    glass-float
 
-          sm:pt-4
-        "
-      >
+    rounded-2xl
+    border
+    border-white/15
+    bg-white/[0.035]
+
+    p-5
+
+    transition-all
+    duration-300
+    hover:-translate-y-1
+
+    sm:p-6
+    hover:bg-[#ff3b12]
+    
+  "
+>
 
         {/* CARD HEADER */}
         <div
