@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { formatResult, statusOf, type ValidationTest } from "../validation";
+import { GROUPS, formatResult, statusOf, type ValidationTest } from "../validation";
+import { EQUATIONS, MEASURE } from "../validationEquations";
 
 function test(over: Partial<ValidationTest>): ValidationTest {
   return {
@@ -31,4 +32,22 @@ describe("statusOf", () => {
 describe("formatResult", () => {
   it("shows the unit", () => expect(formatResult(test({ result: 0.5, unit: "deg" }))).toBe("0.5 deg"));
   it("says not run without a number", () => expect(formatResult(test({ result: null }))).toBe("not run"));
+});
+
+describe("equations on the validation page", () => {
+  const shown = GROUPS.flatMap((g) => g.ids);
+
+  it("every test on the page has at least one equation", () => {
+    for (const id of shown) expect(EQUATIONS[id]?.length ?? 0, id).toBeGreaterThan(0);
+  });
+
+  it("no equations for a test that is not on the page", () => {
+    for (const id of Object.keys(EQUATIONS)) expect(shown, id).toContain(id);
+  });
+
+  it("every subscript is closed", () => {
+    for (const eq of [...MEASURE, ...Object.values(EQUATIONS).flat()]) {
+      expect(eq.expr.split("_{").length, eq.label).toBe(eq.expr.split("}").length);
+    }
+  });
 });
