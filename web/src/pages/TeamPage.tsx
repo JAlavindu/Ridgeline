@@ -318,15 +318,18 @@ export default function TeamPage() {
           md:py-28
         "
       >
+        {/* Soft colour glows behind the cards, so the glass has something to show through */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute left-[8%] top-[18%] h-[420px] w-[420px] rounded-full bg-[#ff3b12]/[0.14] blur-[120px]" />
+          <div className="absolute right-[6%] top-[45%] h-[380px] w-[380px] rounded-full bg-white/[0.06] blur-[120px]" />
+          <div className="absolute bottom-[5%] left-[40%] h-[320px] w-[320px] rounded-full bg-[#ff3b12]/[0.08] blur-[110px]" />
+        </div>
+
         <div
           className="
             grid
             grid-cols-1
-            gap-px
-            overflow-hidden
-            border
-            border-white/10
-            bg-white/10
+            gap-5
             md:grid-cols-2
             lg:grid-cols-3
           "
@@ -335,14 +338,16 @@ export default function TeamPage() {
             <article
               key={member.id}
               className="
+                glass-card
+                glass-float
                 group
                 relative
                 min-h-[560px]
                 overflow-hidden
-                bg-[#030303]
-                transition-colors
+                rounded-3xl
+                transition-transform
                 duration-500
-                hover:bg-[#070707]
+                hover:-translate-y-1
               "
             >
 
@@ -355,8 +360,6 @@ export default function TeamPage() {
                   relative
                   h-[320px]
                   overflow-hidden
-                  border-b
-                  border-white/10
                   bg-[#080808]
                 "
               >
@@ -508,17 +511,13 @@ export default function TeamPage() {
                     <span
                       key={skill}
                       className="
-                        border
-                        border-white/10
+                        glass-chip
                         px-3
                         py-1.5
                         text-[7px]
                         uppercase
                         tracking-[1.5px]
                         text-white/40
-                        transition-all
-                        duration-300
-                        group-hover:border-white/20
                         group-hover:text-white/60
                       "
                     >

@@ -55,11 +55,12 @@ export default function OrbitalAction({
       type="button"
       onClick={onClick}
       className={`
+        glass-card
+        glass-float
         absolute
         z-50
         w-[46%]
         max-w-[190px]
-        border
         p-2.5
         text-left
         transition-all
@@ -71,18 +72,8 @@ export default function OrbitalAction({
 
         ${
           active
-            ? `
-              border-[#ff3b12]
-              bg-[#ff3b12]/10
-              shadow-[0_0_30px_rgba(255,59,18,0.12)]
-              -translate-y-1
-            `
-            : `
-              border-white/15
-              bg-black/35
-              hover:-translate-y-1
-              hover:border-white/40
-            `
+            ? "glass-active -translate-y-1"
+            : "hover:-translate-y-1"
         }
       `}
     >

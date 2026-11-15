@@ -77,6 +77,15 @@ def az_el_table(body: str, lon_deg: float, lat_deg: float, alt_km: float,
     return _parse(_fetch(params))
 
 
+def moon_from_station_table(lon_deg: float, lat_deg: float, alt_km: float,
+                            start_utc: str, stop_utc: str, step: str) -> list[tuple[str, float, float]]:
+    """Apparent azimuth and elevation of the Moon from a station on Earth (used by DSN validation)."""
+    params = _params("SUN", lon_deg, lat_deg, alt_km, start_utc, stop_utc, step)
+    params["COMMAND"] = "'301'"
+    params["CENTER"] = "'coord@399'"
+    return _parse(_fetch(params))
+
+
 if __name__ == "__main__":
     for utc, az, el in az_el_table("SUN", 23.47297, 0.67408, 0.002,
                                    "2026-11-14 09:00", "2026-11-14 11:00", "1h"):

@@ -2,17 +2,9 @@ import type { LunarSite } from "../../data/lunarSites";
 
 interface HistoryTimelineProps {
   year: number;
-
   sites: LunarSite[];
-
-  onYearChange: (
-    year: number
-  ) => void;
-
-  onSelectSite: (
-    site: LunarSite
-  ) => void;
-
+  onYearChange: (year: number) => void;
+  onSelectSite: (site: LunarSite) => void;
   onClose: () => void;
 }
 
@@ -23,526 +15,205 @@ export default function HistoryTimeline({
   onSelectSite,
   onClose,
 }: HistoryTimelineProps) {
-  const firstYear =
-    Math.min(
-      ...sites.map(
-        (site) => site.year
-      )
-    );
+  const years = [...new Set(sites.map((site) => site.year))].sort((a, b) => a - b);
+  const firstYear = years[0];
+  const lastYear = years[years.length - 1];
+  const span = Math.max(1, lastYear - firstYear);
 
-  const lastYear =
-    Math.max(
-      ...sites.map(
-        (site) => site.year
-      )
-    );
-
-  /*
-   * All missions that have happened by this year.
+  /**
+   * Position of a year along the axis, matching where the range input's
+   * thumb sits (the 16px thumb's centre runs from 8px to width-8px).
    */
-  const visibleSites =
-    sites.filter(
-      (site) =>
-        site.year <= year
-    );
+  const at = (y: number) => `calc(8px + (100% - 16px) * ${(y - firstYear) / span})`;
 
-  /*
-   * Missions that happened EXACTLY
-   * at the current slider year.
-   */
-  const currentYearSites =
-    sites.filter(
-      (site) =>
-        site.year === year
-    );
+  const landedSoFar = sites.filter((site) => site.year <= year);
+  const thisYear = sites.filter((site) => site.year === year);
 
-  /*
-   * Most recent mission available.
-   *
-   * This corresponds to the Moon's
-   * current focus.
-   */
-  const currentFocus =
-    [...visibleSites]
-      .filter(
-        (site) =>
-          site.latitude !== null &&
-          site.longitude !== null
-      )
-      .sort(
-        (a, b) => {
-          if (
-            a.year !== b.year
-          ) {
-            return (
-              b.year -
-              a.year
-            );
-          }
+  // The mission the Moon is turned toward: latest one with coordinates
+  const currentFocus = [...landedSoFar]
+    .filter((site) => site.latitude !== null && site.longitude !== null)
+    .sort((a, b) => b.year - a.year || String(a.id).localeCompare(String(b.id)))[0];
 
-          return String(
-            a.id
-          ).localeCompare(
-            String(b.id)
-          );
-        }
-      )[0];
+  // Longest stretch with no landings, shown on the axis (only if it is long)
+  let gap: { from: number; to: number } | null = null;
+  for (let i = 1; i < years.length; i++) {
+    const length = years[i] - years[i - 1];
+    if (length > 10 && (!gap || length > gap.to - gap.from)) {
+      gap = { from: years[i - 1], to: years[i] };
+    }
+  }
+
+  // Year labels under the axis: first, last, and any year well clear of its neighbours
+  const labelled: number[] = [];
+  for (const y of years) {
+    const clearOfPrevious = labelled.length === 0 || y - labelled[labelled.length - 1] >= 5;
+    const clearOfLast = lastYear - y >= 5 || y === lastYear;
+    if (clearOfPrevious && clearOfLast) labelled.push(y);
+  }
 
   return (
-    <div
+    <section
+      aria-label="Mission history"
       className="
+        history-panel
         fixed
-        inset-x-0
-        bottom-0
+        inset-x-3
+        bottom-3
         z-[95]
-        max-h-[34dvh]
-        overflow-y-auto
-        overscroll-contain
-        border-t
-        border-white/15
-        bg-[#050505]/95
-        px-4
-        py-4
-        backdrop-blur-xl
-        sm:px-6
-        sm:py-5
-        md:px-[7.5vw]
+        flex
+        h-[44dvh]
+        flex-col
+        overflow-hidden
+        rounded-[20px]
+        border
+        border-white/[0.08]
+        bg-[#0a0a0a]
+        sm:h-[260px]
       "
     >
-
-      <div
-        className="
-          mx-auto
-          max-w-[1200px]
-        "
-      >
-
-        {/* =================================================
-            TOP AREA
-            ================================================= */}
-
-        <div
-          className="
-            flex
-            flex-col
-            gap-5
-            md:flex-row
-            md:items-end
-          "
-        >
-
-          {/* =================================================
-              TITLE
-              ================================================= */}
-
-          <div
-            className="
-              min-w-[230px]
-              md:max-w-[260px]
-            "
-          >
-            <p
-              className="
-                text-[8px]
-                uppercase
-                tracking-[3px]
-                text-white/35
-              "
-            >
-              02 — HISTORY
-            </p>
-
-            <h2
-              className="
-                mt-2
-                font-['Michroma']
-                text-sm
-              "
-            >
-              MOON EXPLORATION
+      <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-5 sm:px-8">
+        {/* ================= HEADER ================= */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="font-['Michroma'] text-[18px] uppercase leading-tight text-white">
+              Mission history
             </h2>
-
-            <p
-              className="
-                mt-1
-                text-[9px]
-                leading-[1.5]
-                text-white/40
-              "
-            >
-              Move through the years.
-              The Moon automatically
-              turns toward the latest
-              mission available.
+            <p className="mt-1 text-[12px] text-white/45">
+              Drag through the years. The Moon turns toward the latest landing.
             </p>
+          </div>
 
-            {/* CURRENT FOCUS */}
-
+          <div className="flex shrink-0 items-start gap-4">
             {currentFocus && (
-              <div
-                className="
-                  mt-4
-                  border-l
-                  border-[#ff3b12]
-                  pl-3
-                "
-              >
-                <p
-                  className="
-                    text-[7px]
-                    uppercase
-                    tracking-[2px]
-                    text-[#ff3b12]
-                  "
-                >
-                  MOON FOCUS
-                </p>
-
-                <p
-                  className="
-                    mt-1
-                    font-['Michroma']
-                    text-[9px]
-                    uppercase
-                  "
-                >
+              <div className="hidden text-right sm:block">
+                <p className="text-[11px] text-white/40">Moon is facing</p>
+                <p className="mt-0.5 text-[14px] text-white">
                   {currentFocus.name}
-                </p>
-
-                <p
-                  className="
-                    mt-1
-                    text-[7px]
-                    text-white/35
-                  "
-                >
-                  {currentFocus.country}
-                  {" · "}
-                  {currentFocus.year}
+                  <span className="text-white/40">
+                    {" "}
+                    · {currentFocus.country} · {currentFocus.year}
+                  </span>
                 </p>
               </div>
             )}
-          </div>
-
-          {/* =================================================
-              SLIDER
-              ================================================= */}
-
-          <div
-            className="
-              min-w-0
-              flex-1
-            "
-          >
-
-            {/* YEAR LABELS */}
-
-            <div
-              className="
-                mb-2
-                flex
-                items-center
-                justify-between
-                text-[8px]
-                uppercase
-                tracking-[2px]
-                text-white/30
-              "
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close mission history"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-[20px] leading-none text-white/55 transition hover:bg-white/[0.06] hover:text-white"
             >
-              <span>
-                {firstYear}
-              </span>
+              ×
+            </button>
+          </div>
+        </div>
 
-              <span
-                className="
-                  rounded-sm
-                  border
-                  border-[#ff3b12]/30
-                  bg-[#ff3b12]/5
-                  px-2
-                  py-1
-                  font-['Michroma']
-                  text-[#ff3b12]
-                "
-              >
-                {year}
-              </span>
+        {/* ================= AXIS ================= */}
+        <div className="mt-6 flex items-center gap-4">
+          <span className="w-12 shrink-0 font-['Michroma'] text-[18px] tabular-nums text-[#ff3b12]">
+            {year}
+          </span>
 
-              <span>
-                {lastYear}
-              </span>
-            </div>
-
-            {/* RANGE */}
-
-            <input
-              aria-label="
-                Lunar exploration year
-              "
-              className="
-                h-1
-                w-full
-                cursor-pointer
-                accent-[#ff3b12]
-              "
-              type="range"
-              min={firstYear}
-              max={lastYear}
-              value={year}
-              onChange={(
-                event
-              ) =>
-                onYearChange(
-                  Number(
-                    event.target
-                      .value
-                  )
-                )
-              }
+          <div className="relative h-10 min-w-0 flex-1">
+            {/* track */}
+            <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-white/15" />
+            {/* progress up to the chosen year */}
+            <div
+              className="absolute left-0 top-1/2 h-px -translate-y-1/2 bg-white/60"
+              style={{ width: at(year) }}
             />
 
-            {/* =================================================
-                CURRENT YEAR EVENTS
-                ================================================= */}
-
-            {currentYearSites.length >
-              0 && (
-              <div
-                className="
-                  mt-3
-                  flex
-                  items-center
-                  gap-2
-                "
+            {/* the long gap with no landings */}
+            {gap && (
+              <span
+                className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[11px] text-white/30"
+                style={{ left: at((gap.from + gap.to) / 2) }}
               >
-                <span
-                  className="
-                    shrink-0
-                    text-[7px]
-                    uppercase
-                    tracking-[2px]
-                    text-[#ff3b12]
-                  "
-                >
-                  {year}
-                </span>
-
-                <div
-                  className="
-                    h-px
-                    w-5
-                    bg-[#ff3b12]/40
-                  "
-                />
-
-                <span
-                  className="
-                    text-[7px]
-                    uppercase
-                    tracking-[1.5px]
-                    text-white/35
-                  "
-                >
-                  NEW MISSION
-                  {currentYearSites.length >
-                  1
-                    ? "S"
-                    : ""}
-                </span>
-              </div>
+                {gap.to - gap.from - 1} years without a landing in this dataset
+              </span>
             )}
 
-            {/* =================================================
-                SITE EVENTS
-                ================================================= */}
+            {/* one dot per landing year */}
+            {years.map((y) => {
+              const isFocusYear = currentFocus?.year === y;
+              return (
+                <span
+                  key={y}
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ${
+                    isFocusYear ? "bg-[#ff3b12]" : y <= year ? "bg-white/80" : "bg-white/20"
+                  }`}
+                  style={{ left: at(y) }}
+                />
+              );
+            })}
 
-            <div
-              className="
-                mt-3
-                flex
-                max-h-[100px]
-                flex-wrap
-                gap-2
-                overflow-y-auto
-              "
-            >
-              {visibleSites.map(
-                (site) => {
-                  const isCurrentYear =
-                    site.year ===
-                    year;
+            {/* year labels */}
+            {labelled.map((y) => (
+              <span
+                key={y}
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-[-6px] -translate-x-1/2 text-[11px] tabular-nums text-white/40"
+                style={{ left: at(y) }}
+              >
+                {y}
+              </span>
+            ))}
 
-                  const isFocused =
-                    currentFocus?.id ===
-                    site.id;
-
-                  return (
-                    <button
-                      key={String(
-                        site.id
-                      )}
-                      type="button"
-                      onClick={() =>
-                        onSelectSite(
-                          site
-                        )
-                      }
-                      className={`
-                        group
-                        relative
-                        border
-                        px-2.5
-                        py-1.5
-                        text-left
-                        transition-all
-                        duration-300
-
-                        ${
-                          isFocused
-                            ? `
-                              border-[#ff3b12]
-                              bg-[#ff3b12]/10
-                              text-white
-                              shadow-[0_0_20px_rgba(255,59,18,0.08)]
-                            `
-                            : isCurrentYear
-                              ? `
-                                border-white/25
-                                bg-white/[0.04]
-                                text-white/80
-                              `
-                              : `
-                                border-white/10
-                                text-white/40
-                                hover:border-white/30
-                                hover:text-white
-                              `
-                        }
-                      `}
-                    >
-
-                      {/* CURRENT INDICATOR */}
-
-                      {isFocused && (
-                        <span
-                          className="
-                            absolute
-                            -left-px
-                            top-1/2
-                            h-5
-                            w-px
-                            -translate-y-1/2
-                            bg-[#ff3b12]
-                            shadow-[0_0_10px_rgba(255,59,18,0.8)]
-                          "
-                        />
-                      )}
-
-                      {/* YEAR */}
-
-                      <span
-                        className={`
-                          block
-                          text-[6px]
-                          uppercase
-                          tracking-[1px]
-                          ${
-                            isFocused
-                              ? "text-[#ff3b12]"
-                              : "text-white/30"
-                          }
-                        `}
-                      >
-                        {site.year}
-                      </span>
-
-                      {/* NAME */}
-
-                      <span
-                        className="
-                          mt-0.5
-                          block
-                          max-w-[150px]
-                          truncate
-                          text-[7px]
-                          uppercase
-                          tracking-[0.8px]
-                        "
-                      >
-                        {site.name ??
-                          String(
-                            site.id
-                          )}
-                      </span>
-
-                    </button>
-                  );
-                }
-              )}
-            </div>
+            {/* the real control: a range input laid over the axis */}
+            <input
+              type="range"
+              aria-label="Year"
+              min={firstYear}
+              max={lastYear}
+              step={1}
+              value={year}
+              onChange={(event) => onYearChange(Number(event.target.value))}
+              className="history-range absolute inset-x-0 top-1/2 w-full -translate-y-1/2"
+            />
           </div>
-
-          {/* =================================================
-              CLOSE
-              ================================================= */}
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="
-              shrink-0
-              border
-              border-white/20
-              px-4
-              py-2
-              text-[8px]
-              uppercase
-              tracking-[2px]
-              transition
-              hover:border-[#ff3b12]
-              hover:text-white
-            "
-          >
-            Close
-          </button>
         </div>
 
-        {/* =================================================
-            FOOTER INFO
-            ================================================= */}
-
-        <div
-          className="
-            mt-4
-            flex
-            items-center
-            justify-between
-            border-t
-            border-white/5
-            pt-3
-            text-[6px]
-            uppercase
-            tracking-[1.5px]
-            text-white/20
-          "
-        >
-          <span>
-            {visibleSites.length}{" "}
-            MISSION
-            {visibleSites.length !==
-            1
-              ? "S"
-              : ""}{" "}
-            AVAILABLE
-          </span>
-
-          <span className="hidden sm:block">
-            DRAG TIMELINE · MOON FOLLOWS
-            MISSION HISTORY
+        {/* ================= MISSIONS IN THIS YEAR ================= */}
+        <div className="mt-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <h3 className="text-[12px] font-medium text-white/50">
+            {thisYear.length === 0
+              ? `No landings in ${year}`
+              : `${thisYear.length} landing${thisYear.length > 1 ? "s" : ""} in ${year}`}
+          </h3>
+          <span className="text-[12px] tabular-nums text-white/35">
+            {landedSoFar.length} by {year}
           </span>
         </div>
 
+        {thisYear.length > 0 && (
+          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+            {thisYear.map((site) => {
+              const isFocused = currentFocus?.id === site.id;
+              return (
+                <li key={String(site.id)}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectSite(site)}
+                    className="group flex items-center gap-2 text-[14px] text-white/75 transition hover:text-white"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`h-1.5 w-1.5 rounded-full ${isFocused ? "bg-[#ff3b12]" : "bg-white/30"}`}
+                    />
+                    {site.name}
+                    <span
+                      aria-hidden="true"
+                      className="text-white/30 transition group-hover:translate-x-0.5 group-hover:text-white/70"
+                    >
+                      →
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

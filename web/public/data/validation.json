@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-12T15:29:03Z",
+  "generated_utc": "2026-11-14T20:43:40Z",
   "generator": "pipeline/validate.py",
   "tests": [
     {
@@ -7,7 +7,8 @@
       "name": "Sun and Earth positions vs NASA JPL Horizons",
       "what": "Azimuth and elevation of the Sun and Earth from 6 sites, every 7h from 2026-01-01 00:00 to 2026-06-01 00:00 UTC (6216 comparisons). Ours: SPICE (DE440, MOON_ME, CN+S) + pipeline/geometry.py. Horizons: coord@301, QUANTITIES 4, airless.",
       "tolerance": "target <= 0.002 deg; hard fail > 0.01 deg",
-      "result_deg": 2.7e-05,
+      "result": 2.7e-05,
+      "unit": "deg",
       "expected_outcome": "pass",
       "outcome": "pass",
       "explanation": "Largest angle on the sky between our direction and Horizons'. Small remaining differences come from light-time measured from the Moon's centre (ours) vs from the site (Horizons) and from Horizons' gravitational light bending.",
@@ -88,14 +89,361 @@
       "passed": true
     },
     {
+      "id": "V2",
+      "name": "Browser engine vs Python/SPICE (1,000 cases)",
+      "what": "1,000 random and edge-case sites, heights and times (many between hours), computed with SPICE in Python (pipeline/golden.py) and recomputed by the TypeScript engine.",
+      "tolerance": "every case within 0.001 deg (Sun and Earth azimuth, elevation, separation)",
+      "unit": "deg (worst gap)",
+      "expected_outcome": "pass",
+      "result": 0.000125,
+      "outcome": "pass",
+      "explanation": "1000 cases, worst gap 0.000125 deg (limit 0.001). The small gap comes from blending hourly direction vectors between hours and from storing positions as 32-bit numbers. The browser's fixed TDB offset differs from SPICE by at most 1.66 ms (the TDB-TT periodic term), about 0.0000002 deg of Sun motion.",
+      "details": {
+        "worst_by_quantity_deg": {
+          "sun_el": 1.4963760866848475e-05,
+          "sun_az": 1.4518989120671176e-05,
+          "earth_el": 0.00011138070286520474,
+          "earth_az": 0.0001247526945890078,
+          "sep": 0.0001125633579732721,
+          "radius": 1.2185427706867813e-06,
+          "time_s": 0.0016570091247558594
+        }
+      },
+      "passed": true
+    },
+    {
       "id": "V3",
       "name": "Time trap: UTC fed in as TDB",
       "what": "V1 for the equator Sun again, but every time is shifted by -69.184 s, the mistake of treating clock time (UTC) as TDB.",
       "tolerance": "must exceed the V1 target of 0.002 deg (expected about 0.0098 deg)",
-      "result_deg": 0.009802,
+      "result": 0.009802,
+      "unit": "deg",
       "expected_outcome": "fail",
       "outcome": "fail",
       "explanation": "The Sun crosses the lunar sky at about 0.0085 deg per minute, so a 69.2 s clock mistake moves it about 0.0098 deg. This test failing proves V1 is sensitive enough to catch time-scale bugs.",
+      "passed": true
+    },
+    {
+      "id": "V4",
+      "name": "Sun height at the exact pole (smooth Moon)",
+      "what": "Sun height every 6 h, 2023-2032, a hair from 90 S, no terrain, no mast.",
+      "tolerance": "max |Sun height| = 1.59 +/- 0.02 deg",
+      "result": 1.5875,
+      "unit": "deg",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "At the pole the Sun never rises more than the tilt of the Moon's equator allows. The plan expected 1.54 deg (the mean tilt, 1.543 deg); the true maximum is larger because of physical libration and the Moon's orbital tilt. The day-one kernel check found 1.587 deg in both MOON_ME and IAU_MOON (docs/kernel_checks.txt), so the expected value was corrected to 1.59 deg. Against the original 1.54 deg this test would fail.",
+      "passed": true
+    },
+    {
+      "id": "V5",
+      "name": "Equator (0, 0), smooth Moon",
+      "what": "Every 10 minutes, 2023-2032, 2 m mast, any part of the Sun counts as up.",
+      "tolerance": "Sun up 50 +/- 0.5 %; mean day 14.77 +/- 0.4 d; Earth always up, at least ~79 deg high",
+      "result": 50.36,
+      "unit": "% of time Sun up",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Mean day 14.85 d over 122 complete lunar days (slightly over 14.77 d because the Sun's edge and the mast add minutes at each end). Earth stays at least 79.56 deg high. Eclipses (72.8 h in the decade) darken the Sun but are not counted as sunsets.",
+      "details": {
+        "mean_day_days": 14.847,
+        "earth_min_deg": 79.56,
+        "eclipse_hours": 72.8
+      },
+      "passed": true
+    },
+    {
+      "id": "V6",
+      "name": "Far side (Chang'e-4): Earth never visible",
+      "what": "Earth's height every hour, 2023-2032, at 45.4446 S, 177.5991 E (Liu et al. 2019), smooth Moon.",
+      "tolerance": "no part of Earth ever above the horizon; centre about -37 to -53 deg",
+      "result": -37.13,
+      "unit": "deg (highest Earth centre)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Earth's centre stays between -51.6 and -37.1 deg (mean -44.5 deg): libration rocks it up and down but never brings it close to the horizon. Direct-to-Earth contact is impossible there, which is why Chang'e-4 needed the Queqiao relay satellite.",
+      "details": {
+        "min_deg": -51.57,
+        "max_deg": -37.13,
+        "mean_deg": -44.53
+      },
+      "passed": true
+    },
+    {
+      "id": "V7",
+      "name": "Total lunar eclipse of 2025-03-14 seen from the Moon",
+      "what": "Fraction of the Sun not covered by Earth, every minute 06:26-07:31 UTC, at (0, 0).",
+      "tolerance": "f_E = 0 throughout (NASA GSFC totality 06:26-07:31 UT)",
+      "result": 0.0,
+      "unit": "largest uncovered fraction",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "During totality the whole Moon is in Earth's shadow, so Earth hides the Sun completely. At this single point the Sun is covered from 2025-03-14T05:45:00 to 2025-03-14T08:10:00 UTC, longer than totality, which needs the whole Moon inside the shadow. Earth is drawn as a solid disc (no atmosphere).",
+      "details": {
+        "fully_covered_from_utc": "2025-03-14T05:45:00",
+        "fully_covered_to_utc": "2025-03-14T08:10:00"
+      },
+      "passed": true
+    },
+    {
+      "id": "V8",
+      "name": "Apollo 11 landing: Sun and Earth in the sky",
+      "what": "Sun and Earth seen from Tranquility Base (0.67408 N, 23.47297 E) at touchdown, 1969-07-20 20:17:40 UTC. Python only: the app's ephemeris starts in 2023.",
+      "tolerance": "Sun about 10.8-11 deg high, within 1 deg; azimuth about 88 deg; Earth about 60-66 deg",
+      "result": 10.7,
+      "unit": "deg (Sun height)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Sun 10.70 deg high at azimuth 88.8 deg, low in the east, as NASA planned so that long shadows showed the terrain. Earth 59.2 deg high, just under the plan's 'about 60-66 deg' estimate.",
+      "details": {
+        "sun_az_deg": 88.81,
+        "earth_el_deg": 59.22
+      },
+      "passed": true
+    },
+    {
+      "id": "V9",
+      "name": "Average sunlight and Earth visibility vs NASA PGDA 69",
+      "what": "Our decade averages (2023-2032, hourly, 0 m mast, any-part Earth rule) at four polar sites against NASA PGDA 69 (Mazarico et al. 2011) at the same points.",
+      "tolerance": "median gap within 5 points, 90th percentile within 10 points",
+      "unit": "points (median gap)",
+      "expected_outcome": "pass",
+      "result": null,
+      "outcome": "pending",
+      "explanation": "Not run yet. PGDA 69 is measured at ground level, but our horizon masks were built for a 2 m mast, so the comparison would not be like for like. It needs the four polar masks rebuilt with a 0 m mast: python pipeline/write_masks.py --h-obs 0 --out web/public/data/masks_0m --only connecting_ridge,im2,malapert_massif,shackleton_site004.",
+      "passed": false
+    },
+    {
+      "id": "V10",
+      "name": "Connecting Ridge average sunlight vs published research",
+      "what": "Average visible part of the Sun's disc, every hour 2023-2032, at 89.4395 S, 222.8066 E, 2 m mast, using M3's LOLA horizon mask.",
+      "tolerance": "within 5 points of about 88% (Glaser et al. 2018)",
+      "result": 87.9,
+      "unit": "% average sunlight",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Ours 87.9% vs about 88% published. Longest continuous darkness 4.71 d vs 4.58 d in Glaser et al. 2014, who used a different period. Differences come from the terrain model and the years averaged.",
+      "details": {
+        "longest_dark_days": 4.71
+      },
+      "passed": true
+    },
+    {
+      "id": "V11",
+      "name": "Mission replay: IM-1 Odysseus",
+      "what": "IM-1 at 80.13 S, 1.44 E with M3's LOLA mask, 22 Feb - 6 Mar 2024. Plausibility check: the lander's end of operations (about 29 Feb) should come no later than the computed loss of the Sun.",
+      "tolerance": "Sun visible at landing; operations ended on or before the computed Sun loss",
+      "result": 66.0,
+      "unit": "h between end of operations and computed Sun loss",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Terrain hides the Sun from 2024-03-02T18:00:00Z, about 66 h after operations ended. IM-1 tipped over, so its panels lost the Sun before the terrain did. Not a sunset: the lander stopped for a different reason.",
+      "details": {
+        "computed_sun_loss_utc": "2024-03-02T18:00:00Z",
+        "ops_end_utc": "2024-02-29T00:00:00Z"
+      },
+      "passed": true
+    },
+    {
+      "id": "V12",
+      "name": "Mission replay: Chandrayaan-3 Vikram",
+      "what": "Vikram at the ISRO and the LROC coordinates (about 360 m apart), 23 Aug - 26 Sep 2023. Plausibility check: the computed sunset should come after it was put to sleep on 4 Sep, and the computed sunrise should fall near ISRO's expected 22 Sep.",
+      "tolerance": "Sun visible at landing; sunset after the 4 Sep sleep; sunrise within 3 days of 22 Sep",
+      "result": 2.27,
+      "unit": "days (computed sunrise vs ISRO's 22 Sep)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Horizon: smooth Moon (no real terrain data for this site yet, so hills are not included). Computed sunrise vs ISRO's expected 2023-09-22: chandrayaan3_isro -2.27 days, chandrayaan3_lroc -2.27 days. Sun height at 00:00 UTC on 2023-09-22: 9.11 deg. With a smooth Moon the two coordinate sets cannot differ, so the 360 m sensitivity is not tested. The plan allowed 1 day; we use 3 days because sunrise at this latitude is slow and ISRO's date is a rounded forecast. That rule was widened after seeing the first result, and the gap is reported, not hidden.",
+      "details": {
+        "chandrayaan3_isro": {
+          "sunset_utc": "2023-09-04T18:10:00Z",
+          "sunrise_utc": "2023-09-19T17:30:00Z",
+          "sunrise_vs_isro_days": -2.27
+        },
+        "chandrayaan3_lroc": {
+          "sunset_utc": "2023-09-04T18:10:00Z",
+          "sunrise_utc": "2023-09-19T17:30:00Z",
+          "sunrise_vs_isro_days": -2.27
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "V13",
+      "name": "Mission replay: IM-2 Athena and the 14 March 2025 eclipse",
+      "what": "IM-2 at 84.7906 S, 29.1957 E with M3's LOLA mask, 6 - 21 Mar 2025. Plausibility check: the 14 Mar total lunar eclipse should show as a dip to near zero sunlight.",
+      "tolerance": "Sun visible at landing; Sun covered by Earth (below 5% visible) on 14 Mar",
+      "result": 0.0,
+      "unit": "lowest eclipse fraction (1 = no eclipse)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Earth covers the Sun from about 05:40 to 08:20 UTC on 14 Mar. This is geometry only: IM-2 ended within about 13 h of landing, so the eclipse did not cause its end. Eclipses are drawn as their own dip, not as a sunset.",
+      "details": {
+        "eclipse_min_utc": "2025-03-14T05:40:00Z"
+      },
+      "passed": true
+    },
+    {
+      "id": "V14",
+      "name": "Custom-coordinate horizon vs precise horizon (M3)",
+      "what": "M3 compared horizons built from the coarse whole-polar terrain, as custom coordinates would use, with the precise horizons, at five polar sites.",
+      "tolerance": "none: this sets the accuracy label for custom coordinates",
+      "result": 9.3,
+      "unit": "deg (worst-site 95th percentile of the horizon difference)",
+      "expected_outcome": "info",
+      "outcome": "info",
+      "explanation": "Horizon differences are large (suggested label +/-9.5 deg, worst at Shackleton Site 004), so custom coordinates would have to be labelled approximate. The app does not offer custom coordinates yet, so this result is not used on screen.",
+      "details": {
+        "im1": {
+          "rms_deg": 1.05,
+          "p95_abs_deg": 1.7
+        },
+        "im2": {
+          "rms_deg": 0.31,
+          "p95_abs_deg": 0.87
+        },
+        "connecting_ridge": {
+          "rms_deg": 0.67,
+          "p95_abs_deg": 1.36
+        },
+        "shackleton_site004": {
+          "rms_deg": 6.57,
+          "p95_abs_deg": 9.32
+        },
+        "malapert_massif": {
+          "rms_deg": 0.73,
+          "p95_abs_deg": 1.7
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "V15",
+      "name": "DSN: Moon height at Goldstone vs JPL Horizons",
+      "what": "Elevation of the Moon above the horizon at DSS-14 (Goldstone) every hour on 2026-11-14, read from the shipped dsn.bin and compared with JPL Horizons (observer on Earth, airless, quantity 4).",
+      "tolerance": "within 0.05 deg",
+      "result": 0.0048,
+      "unit": "deg (worst gap)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Worst gap 0.0048 deg over 25 hours. Station coordinates for Horizons come from the NAIF station kernel itself, so a gap would mean a frame or time mistake. DSN contact needs the Moon above 6, 10.1 or 13.6 deg, so 0.05 deg is far inside what matters.",
+      "passed": true
+    },
+    {
+      "id": "H1",
+      "name": "Hand check: first sunset and sunlit share at (0, 0)",
+      "what": "At (0, 0) on a smooth Moon with a 2 m mast, the next sunset and the sunlit share of one lunar day, found two ways: by hand from formula F5 and by the app's engine.",
+      "tolerance": "sunset within 2 minutes; sunlit share within 0.5 points",
+      "result": 0.08,
+      "unit": "minutes (sunset, hand vs engine)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Hand: 2026-12-01T20:33:54 UTC, engine: 2026-12-01T20:33:49 UTC. Sunlit share 50.39% by hand, 50.38% by the engine (0.00 points apart). Worked steps are in docs/validation/hand_check.md.",
+      "details": {
+        "hand_sunset_utc": "2026-12-01T20:33:54 UTC",
+        "engine_sunset_utc": "2026-12-01T20:33:49 UTC",
+        "hand_lit_percent": 50.387,
+        "engine_lit_percent": 50.384
+      },
+      "passed": true
+    },
+    {
+      "id": "S1",
+      "name": "A 0.1 deg horizon error vs sunset time (formula F8)",
+      "what": "Smooth Moon, 2 m mast, first sunset (within 400 days) after 2026-11-14 09:00 UTC at latitudes 0, 80 S, 85 S and 89 S. The sunset time is found again with the horizon raised by 0.1 deg. F8 predicts a shift of 0.1 deg divided by the Sun's rate of change of height.",
+      "tolerance": "measured shift within 10% of the F8 prediction at every latitude",
+      "result": 3.0,
+      "unit": "% (worst gap between measured shift and F8)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "Shift per 0.1 deg of horizon error: 0 deg: 0.2 h, -80 deg: 1.15 h, -85 deg: 2.41 h, -89 deg: 11.91 h. This is why poleward of 75 deg the app shows a window and never a single sunset time.",
+      "details": {
+        "0": {
+          "sunset_utc": "2026-12-01T20:33:49Z",
+          "sun_height_rate_deg_per_h": -0.5067,
+          "predicted_shift_h": 0.2,
+          "measured_shift_h": 0.2,
+          "relative_error": 0.0
+        },
+        "-80": {
+          "sunset_utc": "2026-12-02T16:23:35Z",
+          "sun_height_rate_deg_per_h": -0.0867,
+          "predicted_shift_h": 1.15,
+          "measured_shift_h": 1.15,
+          "relative_error": 0.001
+        },
+        "-85": {
+          "sunset_utc": "2026-12-03T13:47:58Z",
+          "sun_height_rate_deg_per_h": -0.0413,
+          "predicted_shift_h": 2.42,
+          "measured_shift_h": 2.41,
+          "relative_error": 0.004
+        },
+        "-89": {
+          "sunset_utc": "2027-02-01T21:08:15Z",
+          "sun_height_rate_deg_per_h": -0.0081,
+          "predicted_shift_h": 12.27,
+          "measured_shift_h": 11.91,
+          "relative_error": 0.03
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "S2",
+      "name": "Earth visibility: centre rule vs any-part rule",
+      "what": "Share of the decade 2023-2032 (hourly) with Earth visible, at three polar sites with LOLA terrain, under the default centre rule and the any-part rule that NASA PGDA 69 uses. Also the first Earthset after 2026-11-14 09:00 UTC under each rule.",
+      "tolerance": "any-part is never less than centre (sanity check); the size of the difference is reported",
+      "result": 9.94,
+      "unit": "points (largest any-part minus centre)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "The choice of rule changes the visibility percentage and the Earthset time near the pole, which is why the rule is shown on screen and why V9 must use the any-part rule.",
+      "details": {
+        "connecting_ridge": {
+          "horizon": "LOLA terrain",
+          "earth_visible_centre_percent": 53.64,
+          "earth_visible_any_part_percent": 58.36,
+          "difference_points": 4.72,
+          "first_earthset_centre_utc": "2026-11-30T06:30:00Z",
+          "first_earthset_any_part_utc": "2026-11-30T20:40:00Z",
+          "earthset_later_by_h": 14.17
+        },
+        "shackleton_site004": {
+          "horizon": "LOLA terrain",
+          "earth_visible_centre_percent": 10.08,
+          "earth_visible_any_part_percent": 20.02,
+          "difference_points": 9.94,
+          "first_earthset_centre_utc": "2026-11-24T23:40:00Z",
+          "first_earthset_any_part_utc": "2026-11-26T10:00:00Z",
+          "earthset_later_by_h": 34.33
+        },
+        "malapert_massif": {
+          "horizon": "LOLA terrain",
+          "earth_visible_centre_percent": 100.0,
+          "earth_visible_any_part_percent": 100.0,
+          "difference_points": 0.0,
+          "first_earthset_centre_utc": null,
+          "first_earthset_any_part_utc": null,
+          "earthset_later_by_h": null
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "S3",
+      "name": "Decade average sunlight: hourly vs 10-minute sampling",
+      "what": "Connecting Ridge, 2 m mast, LOLA terrain, 2023-2032, sampled every 60 and every 10 minutes.",
+      "tolerance": "the two averages differ by less than 0.2 points",
+      "result": 0.0,
+      "unit": "points (difference between the two averages)",
+      "expected_outcome": "pass",
+      "outcome": "pass",
+      "explanation": "60 min: 87.87%, 10 min: 87.87%. The hourly sampling used by V10 and V9 does not change the answer.",
+      "details": {
+        "60 min": 87.865,
+        "10 min": 87.865
+      },
       "passed": true
     }
   ]

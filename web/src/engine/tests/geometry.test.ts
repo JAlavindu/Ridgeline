@@ -11,15 +11,10 @@ import {
 import { isoToTdb } from "../time";
 import { norm, type Vec3 } from "../vec3";
 import { loadEphemerisFromDisk } from "./loadFromDisk";
+import { azGapOnSky } from "./skyGap";
 
 const FAR_KM = 1e12;
 const eph = loadEphemerisFromDisk();
-
-/** Azimuth difference the short way round the compass, scaled to a real sky distance. */
-function azGapOnSky(a: number, b: number, elDeg: number): number {
-  const gap = ((a - b + 540) % 360) - 180;
-  return Math.abs(gap) * Math.cos((elDeg * Math.PI) / 180);
-}
 
 describe("simple cases (same as pipeline/tests/test_geometry.py)", () => {
   it("site radius includes ground and mast heights, in km", () => {
@@ -74,7 +69,7 @@ describe("disc sizes (F15)", () => {
 });
 
 // Python answers (pipeline/geometry.py with SPICE), printed on 2026-11-13.
-// The full 1,000-case golden file (V2) replaces this list next.
+// A quick smoke test; the full 1,000-case golden file (V2) is in golden.test.ts.
 const PYTHON = [
   { utc: "2026-11-14T09:00:00Z", obs: makeObserver(0.67408, 23.47297),
     sun: [91.473232, -8.589439], earth: [277.948359, 64.47748], sep: 123.924095 },

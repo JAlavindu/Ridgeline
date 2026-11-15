@@ -423,7 +423,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
               fontWeight="bold"
               fontFamily="Michroma, sans-serif"
             >
-              ☉ {skyState.sun.el_deg > 0 ? `+${skyState.sun.el_deg}°` : `${skyState.sun.el_deg}°`}
+              ☉ {`${skyState.sun.el_deg > 0 ? "+" : ""}${skyState.sun.el_deg.toFixed(1)}°`}
             </text>
           </g>
 
@@ -475,7 +475,7 @@ export const Panorama: React.FC<PanoramaProps> = ({
               fontWeight="bold"
               fontFamily="Michroma, sans-serif"
             >
-              ♁ {skyState.earth.el_deg > 0 ? `+${skyState.earth.el_deg}°` : `${skyState.earth.el_deg}°`}
+              ♁ {`${skyState.earth.el_deg > 0 ? "+" : ""}${skyState.earth.el_deg.toFixed(1)}°`}
             </text>
           </g>
 

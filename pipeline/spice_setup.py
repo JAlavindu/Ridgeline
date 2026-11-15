@@ -11,6 +11,12 @@ KERNEL_FILES = [
     "moon_pa_de440_200625.bpc",   # Moon orientation, incl. libration
     "moon_de440_250416.tf",       # Moon frames, incl. MOON_ME
 ]
+# Only for DSN mode (module 12); loaded on top of the main set by load_dsn_kernels()
+DSN_KERNEL_FILES = [
+    "earthstns_itrf93_260814.bsp",
+    "earth_topo_260814.tf",
+    "earth_1962_260806_2126_combined.bpc",
+]
 MAX_PIECE = 78
 
 
@@ -57,6 +63,16 @@ def load_kernels() -> None:
     meta_kernel = write_meta_kernel()
     sp.kclear()
     sp.furnsh(str(meta_kernel))
+
+
+def load_dsn_kernels() -> None:
+    """The main kernels plus the Earth-station kernels. Run get_kernels.py --dsn first."""
+    load_kernels()
+    for name in DSN_KERNEL_FILES:
+        path = KERNEL_DIR / name
+        if not path.exists():
+            raise FileNotFoundError(f"Missing {name}. Run: python pipeline/get_kernels.py --dsn")
+        sp.furnsh(str(path))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,47 @@
+{
+  "description": "Elevation of the Moon above the horizon at each Deep Space Network complex",
+  "start_utc": "2023-01-01T00:00:00Z",
+  "start_tdb_s": 725803269.1839136,
+  "step_s": 600.0,
+  "count": 526033,
+  "values_per_record": 3,
+  "stations": [
+    {
+      "id": "DSS-14",
+      "name": "Goldstone (USA)",
+      "naif_id": 399014
+    },
+    {
+      "id": "DSS-63",
+      "name": "Madrid (Spain)",
+      "naif_id": 399063
+    },
+    {
+      "id": "DSS-43",
+      "name": "Canberra (Australia)",
+      "naif_id": 399043
+    }
+  ],
+  "dtype": "int16",
+  "byte_order": "little",
+  "scale": 100,
+  "unit": "degrees = value / scale",
+  "light_time": "CN+S",
+  "refraction": "none (airless)",
+  "limits_deg": {
+    "receive": 6.0,
+    "command_low": 10.1,
+    "command_high": 13.6
+  },
+  "limits_source": "DSN 810-005, Rev. O",
+  "kernels": [
+    "naif0012.tls",
+    "pck00011.tpc",
+    "de440s.bsp",
+    "moon_pa_de440_200625.bpc",
+    "moon_de440_250416.tf",
+    "earthstns_itrf93_260814.bsp",
+    "earth_topo_260814.tf",
+    "earth_1962_260806_2126_combined.bpc"
+  ]
+}

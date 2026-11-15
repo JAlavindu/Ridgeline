@@ -1,0 +1,26 @@
+{
+  "cases": 1000,
+  "tolerance_deg": 0.001,
+  "time_tolerance_s": 0.002,
+  "worst_gap_deg": 0.0001247526945890078,
+  "worst_by_quantity_deg": {
+    "sun_el": 0.000014963760866848475,
+    "sun_az": 0.000014518989120671176,
+    "earth_el": 0.00011138070286520474,
+    "earth_az": 0.0001247526945890078,
+    "sep": 0.0001125633579732721,
+    "radius": 0.0000012185427706867813,
+    "time_s": 0.0016570091247558594
+  },
+  "worst_case_id_by_quantity": {
+    "sun_el": 385,
+    "sun_az": 187,
+    "earth_el": 480,
+    "earth_az": 418,
+    "sep": 676,
+    "radius": 396,
+    "time_s": 33
+  },
+  "failures": 0,
+  "golden_sha256": "799bee1c73e9e2b9883337d90d4e8b7c680ce643f833ab00f2c88a83bba48f58"
+}
