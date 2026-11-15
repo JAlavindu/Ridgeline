@@ -319,7 +319,10 @@ export default function TeamPage() {
                 <img
                   src={member.image}
                   alt={member.name}
-                  className="
+                  style={{
+                    objectPosition: member.imagePosition || "center",
+                  }}
+                  className={`
                     absolute
                     inset-0
                     h-full
@@ -332,7 +335,8 @@ export default function TeamPage() {
                     group-hover:scale-105
                     group-hover:grayscale-0
                     group-hover:opacity-100
-                  "
+                    ${member.imageScale || ""}
+                  `}
                 />
 
                 {/* Dark gradient */}
@@ -348,22 +352,6 @@ export default function TeamPage() {
                     to-transparent
                   "
                 />
-
-                {/* Member number */}
-
-                <div
-                  className="
-                    absolute
-                    left-5
-                    top-5
-                    font-['Michroma']
-                    text-[9px]
-                    tracking-[2px]
-                    text-[#ff3b12]
-                  "
-                >
-                  {member.id}
-                </div>
 
                 {/* Corner */}
 
@@ -389,22 +377,6 @@ export default function TeamPage() {
               ============================================= */}
 
               <div className="p-6">
-
-                {/* Role */}
-
-                <div
-                  className="
-                    mb-3
-                    text-[8px]
-                    uppercase
-                    tracking-[3px]
-                    text-[#ff3b12]
-                  "
-                >
-                  {member.role}
-                </div>
-
-
                 {/* Name */}
 
                 <h2
