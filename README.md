@@ -138,7 +138,7 @@ We publish every test with its tolerance, its result and the reason for any gap,
 - **Mission replay facts are not yet checked against primary sources.** Landing and shutdown dates in `replays.json` come from the team plan and are marked as such in the app. Check them before the video.
 - **V12 ran on a smooth Moon.** Chandrayaan-3 has no real terrain data yet, so its two coordinate sets give identical times and the 360 m sensitivity is not tested.
 - **Placeholder terrain was removed.** Eleven horizon masks (Apollo, Chandrayaan-3, Chang'e-4, SLIM, Blue Ghost) were made-up placeholders marked "synthetic". The app now treats those sites as a smooth Moon and says so on screen.
-- The browser engine has 118 automated tests and the Python pipeline 98 (run on every change).
+- The browser app has 133 automated tests and the Python pipeline 98. The browser tests run on every pull request; the Python tests need the NAIF kernels, so they are run locally.
 
 ## Limits — what we do and don't claim
 
@@ -210,14 +210,14 @@ python pipeline/validate.py              # all validation tests → web/public/d
 cd web
 npm install
 npm run dev        # local dev server
-npm test           # engine tests (118): time, ephemeris, geometry, V2 golden file, sunlight, Earth, events, series, replays, DSN, panel power, custom horizons, plan board
+npm test           # 133 tests: time, ephemeris, geometry, V2 golden file, sunlight, Earth, events, series, replays, DSN, panel power, custom horizons, plan board, validation page
 npm run build      # production build (deployed by Vercel from main; GitHub Actions runs the checks)
 ```
 
 ## Tech stack
 
 - **Science:** Python, SpiceyPy, NumPy, rasterio/GDAL, pyproj, requests, pytest.
-- **App:** TypeScript, Vite, React, Tailwind CSS, Plotly.js, Leaflet, three.js (stretch), Web Workers and Vitest.
+- **App:** TypeScript, Vite, React, React Router, Tailwind CSS, three.js with React Three Fiber and drei (3D Moon and terrain), GSAP, Motion and Lenis (animation and scrolling), Web Workers and Vitest.
 - **Delivery:** Vercel (hosting) and GitHub Actions (type check, tests and build on every pull request).
 
 ## Team
