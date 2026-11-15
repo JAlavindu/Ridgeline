@@ -1,24 +1,12 @@
-import type { ScenarioState } from "../../hooks/useScenario";
 import type { ScenarioCard } from "../../lib/plan";
+import type { ScenarioState } from "../../hooks/useScenario";
 import { METRICS } from "../plan/metrics";
-import MetricIcon from "./MetricIcon";
 
 interface Props {
   cards: ScenarioCard[];
   states: ScenarioState[];
   best: Record<string, Set<string>>;
 }
-
-const ICONS: Record<string, "sun" | "earth" | "power" | "comms" | "night"> = {
-  sun_up: "sun",
-  avg_sun: "sun",
-  panel: "power",
-  earth: "earth",
-  both: "power",
-  night: "night",
-  gap: "comms",
-  eclipse: "earth",
-};
 
 export default function ComparisonTable({
   cards,
@@ -28,128 +16,185 @@ export default function ComparisonTable({
   return (
     <section>
       <div className="mb-8">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
-          Detailed comparison
+        <p className="text-[10px] uppercase tracking-[2px] text-[#E2791D]">
+          At a glance
         </p>
 
-        <h2 className="mt-2 text-[28px] font-medium tracking-tight">
-          Every location, side by side.
+        <h2 className="mt-2 text-2xl font-medium tracking-[-0.5px]">
+          Compare the numbers.
         </h2>
 
-        <p className="mt-2 max-w-xl text-[13px] leading-6 text-white/40">
-          These values are calculated from the same ephemeris,
-          terrain horizon and mission settings used by the planning
-          system.
+        <p className="mt-2 max-w-xl text-sm leading-6 text-white/35">
+          Every value is calculated from the same mission
+          rules and the JPL ephemeris.
         </p>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-[24px] border border-white/[0.08] bg-[#080808]">
         <div
           className="min-w-[760px]"
           style={{
             display: "grid",
-            gridTemplateColumns: `240px repeat(${cards.length}, minmax(160px, 1fr))`,
+            gridTemplateColumns: `minmax(220px, 1.4fr) repeat(${cards.length}, minmax(150px, 1fr))`,
           }}
         >
-          <div className="border-b border-white/[0.08] p-4" />
+          <div className="border-b border-white/[0.08] p-5 text-[11px] uppercase tracking-[1.5px] text-white/25">
+            Metric
+          </div>
 
-          {cards.map((card, index) => (
+          {cards.map((card, index) => {
+            const state = states[index];
+
+            return (
+              <div
+                key={card.id}
+                className="border-b border-l border-white/[0.08] p-5"
+              >
+                <p className="text-[10px] uppercase tracking-[1.5px] text-white/25">
+                  Site{" "}
+                  {String.fromCharCode(
+                    65 + index,
+                  )}
+                </p>
+
+                <p className="mt-2 truncate text-sm font-medium text-white">
+                  {state?.status === "ready"
+                    ? state.result.name
+                    : "Calculating…"}
+                </p>
+              </div>
+            );
+          })}
+
+          {METRICS.map((metric) => (
             <div
-              key={card.id}
-              className="border-b border-white/[0.08] p-4"
+              key={metric.key}
+              className="contents"
             >
-              <p className="text-[9px] uppercase tracking-[0.2em] text-white/25">
-                Site {String.fromCharCode(65 + index)}
-              </p>
+              <div className="border-b border-white/[0.08] p-5">
+                <p className="text-sm text-white/65">
+                  {metric.label}
+                </p>
 
-              <p className="mt-2 text-sm text-white/80">
-                {states[index]?.status === "ready"
-                  ? states[index].result.name
-                  : "Calculating…"}
-              </p>
+                <p className="mt-1 text-xs leading-5 text-white/25">
+                  {description(metric.key)}
+                </p>
+              </div>
+
+              {cards.map((card, index) => {
+                const state = states[index];
+
+                const ready =
+                  state?.status === "ready";
+
+                if (!ready) {
+                  return (
+                    <div
+                      key={`${card.id}-${metric.key}`}
+                      className="border-b border-l border-white/[0.08] p-5 text-sm text-white/25"
+                    >
+                      —
+                    </div>
+                  );
+                }
+
+                const value = metric.value(
+                  state.result,
+                );
+
+                const isBest =
+                  best[metric.key]?.has(
+                    card.id,
+                  ) ?? false;
+
+                return (
+                  <div
+                    key={`${card.id}-${metric.key}`}
+                    className="border-b border-l border-white/[0.08] p-5"
+                  >
+                    <span
+                      className={
+                        isBest
+                          ? "text-[#E2791D]"
+                          : "text-white/75"
+                      }
+                    >
+                      {metric.format(
+                        value,
+                        state.result,
+                      )}
+                    </span>
+
+                    {isBest && (
+                      <span className="ml-2 text-[9px] uppercase tracking-[1px] text-[#E2791D]/70">
+                        Best
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
 
-          {METRICS.map((metric) => (
-            <MetricRow
-              key={metric.key}
-              metric={metric}
-              cards={cards}
-              states={states}
-              best={best}
-            />
-          ))}
+          <div className="p-5">
+            <p className="text-sm text-white/65">
+              Earth in front of Sun
+            </p>
+
+            <p className="mt-1 text-xs text-white/25">
+              Time when Earth crosses the Sun's apparent disc.
+            </p>
+          </div>
+
+          {cards.map((card, index) => {
+            const state = states[index];
+
+            return (
+              <div
+                key={`eclipse-${card.id}`}
+                className="border-l border-white/[0.08] p-5"
+              >
+                {state?.status === "ready"
+                  ? state.result.summary
+                      .eclipse_hours > 0
+                    ? `${state.result.summary.eclipse_hours.toFixed(
+                        1,
+                      )} h`
+                    : "None"
+                  : "—"}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function MetricRow({
-  metric,
-  cards,
-  states,
-  best,
-}: {
-  metric: (typeof METRICS)[number];
-  cards: ScenarioCard[];
-  states: ScenarioState[];
-  best: Record<string, Set<string>>;
-}) {
-  const icon = ICONS[metric.key] ?? "sun";
+function description(key: string) {
+  switch (key) {
+    case "sun_up":
+      return "How often some sunlight reaches the site.";
 
-  return (
-    <>
-      <div className="border-b border-white/[0.06] p-4">
-        <div className="flex items-center gap-3">
-          <MetricIcon type={icon} />
+    case "avg_sun":
+      return "Average fraction of the Sun visible.";
 
-          <div>
-            <p className="text-[12px] text-white/70">
-              {metric.label}
-            </p>
+    case "panel":
+      return "Available solar energy at the panel.";
 
-            <p className="mt-1 text-[10px] leading-4 text-white/25">
-              {metric.better === "high"
-                ? "Higher is better"
-                : "Lower is better"}
-            </p>
-          </div>
-        </div>
-      </div>
+    case "earth":
+      return "How often Earth is visible above the horizon.";
 
-      {cards.map((card, index) => {
-        const state = states[index];
+    case "both":
+      return "Time with sunlight and Earth contact together.";
 
-        let value = "—";
+    case "night":
+      return "Longest continuous period without sunlight.";
 
-        if (state?.status === "ready") {
-          value = metric.format(
-            metric.value(state.result),
-            state.result,
-          );
-        }
+    case "gap":
+      return "Longest continuous communication gap.";
 
-        const winning =
-          best[metric.key]?.has(card.id) ?? false;
-
-        return (
-          <div
-            key={`${card.id}-${metric.key}`}
-            className={`border-b border-white/[0.06] p-4 text-sm ${
-              winning ? "text-[#E2791D]" : "text-white/65"
-            }`}
-          >
-            {value}
-
-            {winning && (
-              <span className="ml-2 text-[8px] uppercase tracking-wider text-[#E2791D]/60">
-                Best
-              </span>
-            )}
-          </div>
-        );
-      })}
-    </>
-  );
+    default:
+      return "";
+  }
 }

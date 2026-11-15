@@ -7,23 +7,30 @@ import type { ScenarioState } from "../../hooks/useScenario";
 import { METRICS } from "../plan/metrics";
 
 interface CompareSiteCardProps {
-  site: LunarSite;
+  site: LunarSite | null;
   index: number;
   sites: LunarSite[];
   availableSites: LunarSite[];
-  state: ScenarioState;
+  state?: ScenarioState;
   best: Record<string, Set<string>>;
   cardId: string;
+  customLabel?: string;
+  customLat?: number;
+  customLon?: number;
   onRemove: () => void;
   onChange: (siteId: string) => void;
+  onCustom: () => void;
+  onSelect: () => void;
 }
 
 function formatCoordinate(
-  value: number | null,
+  value: number | null | undefined,
   positive: string,
   negative: string,
 ) {
-  if (value === null) return null;
+  if (value === null || value === undefined) {
+    return null;
+  }
 
   return `${Math.abs(value).toFixed(1)}° ${
     value >= 0 ? positive : negative
@@ -42,7 +49,7 @@ function Metric({
   best?: boolean;
 }) {
   return (
-    <div className="relative min-h-[92px] border-b border-white/[0.08] p-4">
+    <div className="relative min-h-[92px] border-b border-white/[0.08] p-4 last:border-b-0">
       {best && (
         <span className="absolute right-3 top-3 text-[9px] uppercase tracking-[0.8px] text-[#E2791D]">
           Best
@@ -50,13 +57,18 @@ function Metric({
       )}
 
       <div className="flex items-center gap-2 text-[11px] text-white/35">
-        <span className="text-sm text-white/45">{icon}</span>
+        <span className="text-sm text-white/45">
+          {icon}
+        </span>
+
         <span>{label}</span>
       </div>
 
       <div
         className={`mt-3 text-[17px] font-medium ${
-          best ? "text-[#E2791D]" : "text-white/80"
+          best
+            ? "text-[#E2791D]"
+            : "text-white/80"
         }`}
       >
         {value}
@@ -73,40 +85,71 @@ export default function CompareSiteCard({
   state,
   best,
   cardId,
+  customLabel,
+  customLat,
+  customLon,
   onRemove,
   onChange,
+  onCustom,
+  onSelect,
 }: CompareSiteCardProps) {
-  const latitude = formatCoordinate(site.latitude, "N", "S");
-  const longitude = formatCoordinate(site.longitude, "E", "W");
+  const ready =
+    state?.status === "ready";
+
+  const result =
+    ready ? state.result : null;
+
+  const latitude = formatCoordinate(
+    site?.latitude ?? customLat,
+    "N",
+    "S",
+  );
+
+  const longitude = formatCoordinate(
+    site?.longitude ?? customLon,
+    "E",
+    "W",
+  );
 
   const coordinate =
     latitude && longitude
       ? `${latitude} · ${longitude}`
       : "Coordinates unavailable";
 
-  const result =
-    state.status === "ready" ? state.result : null;
+  const displayName =
+    customLabel ??
+    site?.name ??
+    "Custom location";
 
-  const getMetric = (key: string) => {
+  const metric = (key: string) => {
     if (!result) return "—";
 
-    const metric = METRICS.find((item) => item.key === key);
+    const item = METRICS.find(
+      (m) => m.key === key,
+    );
 
-    if (!metric) return "—";
+    if (!item) return "—";
 
-    return metric.format(metric.value(result), result);
+    return item.format(
+      item.value(result),
+      result,
+    );
   };
 
-  const isBest = (key: string) => {
-    return best[key]?.has(cardId) ?? false;
-  };
+  const isBest = (key: string) =>
+    best[key]?.has(cardId) ?? false;
 
   return (
-    <article className="group relative flex min-h-[680px] flex-col overflow-hidden rounded-[28px] border border-white/[0.12] bg-[#080808] p-6 transition-all duration-300 hover:border-white/[0.2]">
-      {/* Header */}
+    <article
+      onClick={onSelect}
+      className="group relative flex min-h-[680px] cursor-pointer flex-col overflow-hidden rounded-[28px] border border-white/[0.12] bg-[#080808] p-6 transition-all duration-300 hover:border-white/[0.2]"
+    >
       <div className="flex items-center justify-between">
         <span className="text-[11px] uppercase tracking-[2px] text-white/35">
-          Site {String.fromCharCode(65 + index)}
+          Site{" "}
+          {String.fromCharCode(
+            65 + index,
+          )}
         </span>
 
         {index === 0 && (
@@ -116,7 +159,6 @@ export default function CompareSiteCard({
         )}
       </div>
 
-      {/* 3D Moon */}
       <div className="relative mx-auto mt-6 h-[300px] w-full">
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035]" />
 
@@ -151,8 +193,12 @@ export default function CompareSiteCard({
           <MoonModel
             sites={sites}
             selectionMode={false}
-            selectedSite={site}
-            focusedSite={site}
+            selectedSite={
+              site ?? null
+            }
+            focusedSite={
+              site ?? null
+            }
             historyMode={false}
             isInteracting={false}
             autoRotationSpeed={0.08}
@@ -171,10 +217,9 @@ export default function CompareSiteCard({
         </Canvas>
       </div>
 
-      {/* Site information */}
       <div className="mt-1">
         <h2 className="text-[24px] font-semibold tracking-[-0.5px] text-white">
-          {site.name}
+          {displayName}
         </h2>
 
         <p className="mt-2 text-sm text-white/40">
@@ -182,100 +227,151 @@ export default function CompareSiteCard({
         </p>
       </div>
 
-      {/* Metrics */}
       <div className="mt-8 overflow-hidden rounded-[18px] border border-white/[0.12]">
         <div className="grid grid-cols-2">
           <Metric
             icon="☼"
             label="Sunlight"
-            value={getMetric("sun_up")}
+            value={metric("sun_up")}
             best={isBest("sun_up")}
           />
 
           <Metric
             icon="◉"
             label="Earth view"
-            value={getMetric("earth")}
+            value={metric("earth")}
             best={isBest("earth")}
           />
 
           <Metric
             icon="ϟ"
             label="Power"
-            value={getMetric("panel")}
-            best={isBest("panel")}
+            value={metric("both")}
+            best={isBest("both")}
           />
 
           <Metric
             icon="⌁"
             label="Comms"
-            value={getMetric("gap")}
+            value={metric("gap")}
             best={isBest("gap")}
           />
         </div>
       </div>
 
-      {/* Mission fit */}
-      <div className="mt-auto flex items-center justify-between pt-7">
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-white/35">
-            Mission fit
-          </span>
+      {ready && (
+        <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[1px] text-white/25">
+              Average sunlight
+            </p>
 
-          <span className="text-[15px] font-medium text-white/80">
-            {result ? "Calculated" : "Calculating"}
-          </span>
+            <p className="mt-1 text-sm text-white/70">
+              {metric("avg_sun")}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-[1px] text-white/25">
+              Longest night
+            </p>
+
+            <p className="mt-1 text-sm text-white/70">
+              {metric("night")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!ready && (
+        <p className="mt-6 text-xs text-white/30">
+          {state?.status === "error"
+            ? state.message
+            : "Working out the sky…"}
+        </p>
+      )}
+
+      <div className="mt-auto flex items-center justify-between pt-7">
+        <div>
+          <p className="text-[11px] text-white/30">
+            Mission fit
+          </p>
+
+          <p className="mt-1 text-[15px] font-medium text-white/80">
+            {ready
+              ? "Calculated"
+              : "Calculating…"}
+          </p>
         </div>
 
-        {/* Menu */}
-        <div className="relative">
-          <details>
-            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full border border-white/[0.12] text-white/40 transition hover:border-white/25 hover:text-white/80">
-              <span className="text-lg leading-none">···</span>
-            </summary>
+        <details
+          onClick={(event) =>
+            event.stopPropagation()
+          }
+          className="relative"
+        >
+          <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full border border-white/[0.12] text-white/40 transition hover:border-white/25 hover:text-white/80">
+            <span className="text-lg leading-none">
+              ···
+            </span>
+          </summary>
 
-            <div className="absolute bottom-12 right-0 z-50 w-48 overflow-hidden rounded-2xl border border-white/[0.12] bg-[#111] p-1 shadow-2xl">
-              <div className="px-3 py-2 text-[10px] uppercase tracking-[1.5px] text-white/25">
-                Change site
-              </div>
+          <div className="absolute bottom-12 right-0 z-50 w-52 overflow-hidden rounded-2xl border border-white/[0.12] bg-[#111] p-1 shadow-2xl">
+            <div className="px-3 py-2 text-[10px] uppercase tracking-[1.5px] text-white/25">
+              Change site
+            </div>
 
-              {availableSites
-                .filter(
-                  (availableSite) =>
-                    !sites.some(
-                      (selectedSite) =>
-                        selectedSite.id === availableSite.id,
-                    ),
-                )
-                .map((availableSite) => (
+            {availableSites
+              .filter(
+                (availableSite) =>
+                  !sites.some(
+                    (selectedSite) =>
+                      selectedSite.id ===
+                      availableSite.id,
+                  ),
+              )
+              .map(
+                (availableSite) => (
                   <button
-                    key={availableSite.id}
+                    key={
+                      availableSite.id
+                    }
                     type="button"
                     onClick={() =>
-                      onChange(availableSite.id)
+                      onChange(
+                        availableSite.id,
+                      )
                     }
                     className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-white/65 transition hover:bg-white/[0.06] hover:text-white"
                   >
                     {availableSite.name}
                   </button>
-                ))}
-
-              {sites.length > 1 && (
-                <>
-                  <div className="my-1 border-t border-white/[0.08]" />
-
-                  <button
-                    type="button"
-                    onClick={onRemove}
-                    className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-red-400/70 transition hover:bg-red-500/[0.08] hover:text-red-400"
-                  >
-                    Remove site
-                  </button>
-                </>
+                ),
               )}
-            </div>
-          </details>
-        </div>
+
+            <button
+              type="button"
+              onClick={onCustom}
+              className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-white/65 transition hover:bg-white/[0.06] hover:text-white"
+            >
+              Custom coordinates…
+            </button>
+
+            {sites.length > 1 && (
+              <>
+                <div className="my-1 border-t border-white/[0.08]" />
+
+                <button
+                  type="button"
+                  onClick={onRemove}
+                  className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-red-400/70 transition hover:bg-red-500/[0.08] hover:text-red-400"
+                >
+                  Remove site
+                </button>
+              </>
+            )}
+          </div>
+        </details>
       </div>
     </article>
   );
