@@ -3,63 +3,69 @@ import { useNavigate } from "react-router-dom";
 const teamMembers = [
   {
     id: "M1",
-    name: "TEAM MEMBER 01",
-    role: "TEAM LEAD",
+    name: "J.A. LAVINDU PERERA",
     fullRole: "Physics & Validation Lead",
     description:
       "Leads the team, owns the scientific scope and formulas, coordinates validation, and ensures the final results are scientifically reliable.",
     skills: ["Physics", "Mathematics", "Validation", "Leadership"],
-    image: "/images/team.webp",
+    image: "/images/team/lavindu.webp",
+    imagePosition: "top",   // show head — image crops from bottom
+    imageScale: "",
   },
   {
     id: "M2",
-    name: "TEAM MEMBER 02",
-    role: "EPHEMERIS ENGINEER",
-    fullRole: "Sun & Earth Geometry",
-    description:
-      "Builds the SPICE-based ephemeris pipeline and handles Sun and Earth position vectors, browser geometry correctness, and communication calculations.",
-    skills: ["SPICE", "Python", "Physics", "Orbital Geometry"],
-    image: "/images/team.webp",
-  },
-  {
-    id: "M3",
-    name: "TEAM MEMBER 03",
-    role: "TERRAIN ENGINEER",
+    name: "R.G. THIRAN RANATHUNGA",
     fullRole: "Terrain & Horizon",
     description:
       "Processes lunar terrain data, generates horizon masks and uncertainty ranges, and works with NASA lunar terrain reference datasets.",
     skills: ["Python", "NumPy", "GIS", "Terrain Analysis"],
-    image: "/images/team.webp",
+    image: "/images/team/thiran.webp",
+    imagePosition: "top",   // show head — image crops from bottom
+    imageScale: "",
+  },
+  {
+    id: "M3",
+    name: "M. THINIL SANDARU PERERA",
+    fullRole: "Sun & Earth Geometry",
+    description:
+      "Builds the SPICE-based ephemeris pipeline and handles Sun and Earth position vectors, browser geometry correctness, and communication calculations.",
+    skills: ["SPICE", "Python", "Physics", "Orbital Geometry"],
+    image: "/images/team/thinil.webp",
+    imagePosition: "center",
+    imageScale: "",
   },
   {
     id: "M4",
-    name: "TEAM MEMBER 04",
-    role: "VISUALIZATION ENGINEER",
-    fullRole: "Scientific Visualization",
-    description:
-      "Transforms scientific calculations into interactive visual experiences including panoramas, timelines, comparison views, and animations.",
-    skills: ["TypeScript", "Charts", "3D", "Visualization"],
-    image: "/images/team.webp",
-  },
-  {
-    id: "M5",
-    name: "TEAM MEMBER 05",
-    role: "APP ENGINEER",
-    fullRole: "App & Integration",
-    description:
-      "Builds and integrates the web application, data loading, geometry engine, site comparison, landing-window finder, and deployment pipeline.",
-    skills: ["React", "TypeScript", "Web", "DevOps"],
-    image: "/images/team.webp",
-  },
-  {
-    id: "M6",
-    name: "TEAM MEMBER 06",
-    role: "PRODUCT & UX",
+    name: "A.M.A. CHANDUPA ALAGIYAWANNA",
     fullRole: "Product, UX & Presentation Lead",
     description:
       "Shapes the user experience, site catalogue, product story, documentation, presentation, testing, and final project communication.",
     skills: ["UX", "Research", "Design", "Communication"],
-    image: "/images/team.webp",
+    image: "/images/team/chandupa.webp",
+    imagePosition: "center",
+    imageScale: "",
+  },
+  {
+    id: "M5",
+    name: "C. NADUNI SEHANSA PEIRIS",
+    fullRole: "App & Integration",
+    description:
+      "Builds and integrates the web application, data loading, geometry engine, site comparison, landing-window finder, and deployment pipeline.",
+    skills: ["React", "TypeScript", "Web", "DevOps"],
+    image: "/images/team/naduni.webp",
+    imagePosition: "center",
+    imageScale: "",
+  },
+  {
+    id: "M6",
+    name: "HARITHA SHASHANKA MADANAYAKE",
+    fullRole: "Scientific Visualization",
+    description:
+      "Transforms scientific calculations into interactive visual experiences including panoramas, timelines, comparison views, and animations.",
+    skills: ["TypeScript", "Charts", "3D", "Visualization"],
+    image: "/images/team/haritha.webp",
+    imagePosition: "center",
+    imageScale: "scale-125", // zoom in more
   },
 ];
 
@@ -67,7 +73,7 @@ export default function TeamPage() {
   const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#020202] text-white">
+    <main className="min-h-screen overflow-hidden bg-[#020202] pt-14 text-white">
 
       {/* =====================================================
           BACKGROUND GRID
@@ -86,61 +92,8 @@ export default function TeamPage() {
       />
 
       {/* =====================================================
-          TOP HEADER
+          TOP HEADER — handled by global MoonNav fixed bar
       ===================================================== */}
-
-      <header
-        className="
-          relative
-          z-10
-          flex
-          items-center
-          justify-between
-          px-6
-          py-7
-          md:px-[7.5vw]
-          md:py-8
-        "
-      >
-        {/* Logo */}
-
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="
-            font-['Michroma']
-            text-[12px]
-            tracking-[3px]
-            text-white
-            transition-colors
-            duration-300
-            hover:text-[#ff3b12]
-          "
-        >
-          LUNA
-          <span className="ml-1 text-white/35">
-            SPACE
-          </span>
-        </button>
-
-        {/* University */}
-
-        <div
-          className="
-            hidden
-            text-right
-            text-[8px]
-            uppercase
-            tracking-[4px]
-            text-white/30
-            md:block
-          "
-        >
-          UNIVERSITY OF
-          <br />
-          SRI JAYEWARDENEPURA
-        </div>
-      </header>
 
 
       {/* =====================================================
@@ -366,7 +319,10 @@ export default function TeamPage() {
                 <img
                   src={member.image}
                   alt={member.name}
-                  className="
+                  style={{
+                    objectPosition: member.imagePosition || "center",
+                  }}
+                  className={`
                     absolute
                     inset-0
                     h-full
@@ -379,7 +335,8 @@ export default function TeamPage() {
                     group-hover:scale-105
                     group-hover:grayscale-0
                     group-hover:opacity-100
-                  "
+                    ${member.imageScale || ""}
+                  `}
                 />
 
                 {/* Dark gradient */}
@@ -395,22 +352,6 @@ export default function TeamPage() {
                     to-transparent
                   "
                 />
-
-                {/* Member number */}
-
-                <div
-                  className="
-                    absolute
-                    left-5
-                    top-5
-                    font-['Michroma']
-                    text-[9px]
-                    tracking-[2px]
-                    text-[#ff3b12]
-                  "
-                >
-                  {member.id}
-                </div>
 
                 {/* Corner */}
 
@@ -436,22 +377,6 @@ export default function TeamPage() {
               ============================================= */}
 
               <div className="p-6">
-
-                {/* Role */}
-
-                <div
-                  className="
-                    mb-3
-                    text-[8px]
-                    uppercase
-                    tracking-[3px]
-                    text-[#ff3b12]
-                  "
-                >
-                  {member.role}
-                </div>
-
-
                 {/* Name */}
 
                 <h2
