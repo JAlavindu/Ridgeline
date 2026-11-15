@@ -65,8 +65,8 @@ export default function WindowFinder({ result, startUtc, missionDays, viability,
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h3 className="text-[13px] font-medium text-white">When could you land?</h3>
-        <p className="text-[11px] text-white/40">
+        <h3 className="text-[16px] font-medium text-white">When could you land?</h3>
+        <p className="text-[13px] text-white/40">
           {current && current.done < DAYS
             ? `Checking ${current.done} of ${DAYS} start dates…`
             : current
@@ -74,7 +74,7 @@ export default function WindowFinder({ result, startUtc, missionDays, viability,
               : "Checking start dates…"}
         </p>
       </div>
-      <p className="mt-1 text-[11px] text-white/40">
+      <p className="mt-1 text-[13px] text-white/40">
         Rule: Sun up at least {viability.min_sunlight_percent}% and no night longer than {viability.max_night_hours} h, for a{" "}
         {missionDays}-day mission starting at {timeOfDay} UTC. Click a day to use it.
       </p>
@@ -82,7 +82,7 @@ export default function WindowFinder({ result, startUtc, missionDays, viability,
       <div className="mt-4 space-y-1.5">
         {months.map((m) => (
           <div key={m.label} className="grid grid-cols-[64px_1fr] items-center gap-2">
-            <span className="text-[11px] tabular-nums text-white/45">{m.label}</span>
+            <span className="text-[13px] tabular-nums text-white/45">{m.label}</span>
             <div className="flex flex-wrap gap-[3px]">
               {m.days.map((date) => {
                 const p = byDate.get(date);
@@ -97,7 +97,7 @@ export default function WindowFinder({ result, startUtc, missionDays, viability,
                     aria-label={title}
                     disabled={!p}
                     onClick={() => p && onUseDate(`${date}T${timeOfDay}`)}
-                    className={`h-3 w-3 rounded-[2px] transition hover:outline hover:outline-1 hover:outline-white ${
+                    className={`h-3.5 w-3.5 rounded-[2px] transition hover:outline hover:outline-1 hover:outline-white ${
                       !p ? "bg-white/[0.04]" : p.is_viable ? "bg-white/85" : "bg-white/[0.12]"
                     }`}
                   />
@@ -107,7 +107,7 @@ export default function WindowFinder({ result, startUtc, missionDays, viability,
           </div>
         ))}
       </div>
-      <p className="mt-3 text-[11px] text-white/40">
+      <p className="mt-3 text-[13px] text-white/40">
         <span className="mr-1 inline-block h-2.5 w-2.5 rounded-[2px] bg-white/85 align-middle" />meets your rule
         <span className="ml-4 mr-1 inline-block h-2.5 w-2.5 rounded-[2px] bg-white/[0.12] align-middle" />does not
         {viable[0] && <span className="ml-4 text-white/60">First: {viable[0].target_date}</span>}

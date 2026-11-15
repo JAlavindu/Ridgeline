@@ -11,8 +11,8 @@ export default function SettingsPanel() {
   return (
     <section aria-labelledby="settings-heading" className="text-white">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 id="settings-heading" className="text-[15px] font-medium">Mission rules</h2>
-        <button type="button" onClick={reset} className="text-[11px] text-white/45 underline-offset-4 hover:text-white hover:underline">
+        <h2 id="settings-heading" className="text-[18px] font-medium">Mission rules</h2>
+        <button type="button" onClick={reset} className="text-[13px] text-white/45 underline-offset-4 hover:text-white hover:underline">
           Reset
         </button>
       </div>
@@ -62,9 +62,9 @@ export default function SettingsPanel() {
 function Control({ label, help, children }: { label: string; help?: string; children: ReactNode }) {
   return (
     <div className="border-t border-white/[0.08] py-4 first-of-type:mt-3">
-      <p className="text-[12px] text-white/70">{label}</p>
+      <p className="text-[14px] text-white/70">{label}</p>
       <div className="mt-2">{children}</div>
-      {help && <p className="mt-2 text-[11px] leading-[1.6] text-white/40">{help}</p>}
+      {help && <p className="mt-2 text-[13px] leading-[1.6] text-white/40">{help}</p>}
     </div>
   );
 }
@@ -78,7 +78,7 @@ function Choice<T extends string>({ value, options, onChange }: { value: T; opti
           type="button"
           aria-pressed={value === v}
           onClick={() => onChange(v)}
-          className={`border-b-2 pb-1 text-[12px] transition ${
+          className={`border-b-2 pb-1 text-[14px] transition ${
             value === v ? "border-[#ff3b12] text-white" : "border-transparent text-white/45 hover:text-white/75"
           }`}
         >

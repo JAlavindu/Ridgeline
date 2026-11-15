@@ -30,9 +30,9 @@ export default function CustomSitePicker({ initial, onUse, onCancel }: Props) {
     <section aria-label="Custom coordinates" className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <h3 className="text-[13px] font-medium text-white">Custom coordinates</h3>
-        <button type="button" onClick={onCancel} className="text-[12px] text-white/50 hover:text-white">Cancel</button>
+        <button type="button" onClick={onCancel} className="text-[14px] text-white/50 hover:text-white">Cancel</button>
       </div>
-      <p className="mt-1 max-w-[70ch] text-[12px] leading-[1.7] text-white/50">
+      <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.7] text-white/50">
         Type a point or click the south polar map. Between about 75° S and the pole the horizon is built from NASA
         LOLA terrain at 500 m. It is approximate: compared with our precise sites it can be off by several degrees
         (test V14), so near the pole treat times as rough. Anywhere else a smooth Moon is used.
@@ -64,34 +64,34 @@ export default function CustomSitePicker({ initial, onUse, onCancel }: Props) {
               style={{ left: `${marker.fx * 100}%`, top: `${marker.fy * 100}%` }}
             />
           )}
-          <span className="pointer-events-none absolute bottom-1.5 left-2 text-[10px] text-white/60">0° E at the top · white dots: library sites</span>
+          <span className="pointer-events-none absolute bottom-1.5 left-2 text-[13px] text-white/60">0° E at the top · white dots: library sites</span>
         </div>
 
         <div className="space-y-3">
-          <label className="block text-[11px] text-white/45">
+          <label className="block text-[13px] text-white/45">
             Latitude (° N, south is negative)
             <input
               type="number" step="0.0001" min={-90} max={90} value={lat}
               onChange={(e) => setLat(Number(e.target.value))}
-              className="mt-1 h-9 w-full rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[13px] tabular-nums text-white"
+              className="mt-1 h-11 w-full rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[15px] tabular-nums text-white"
             />
           </label>
-          <label className="block text-[11px] text-white/45">
+          <label className="block text-[13px] text-white/45">
             Longitude (° E)
             <input
               type="number" step="0.0001" min={-180} max={360} value={lon}
               onChange={(e) => setLon(Number(e.target.value))}
-              className="mt-1 h-9 w-full rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[13px] tabular-nums text-white"
+              className="mt-1 h-11 w-full rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[15px] tabular-nums text-white"
             />
           </label>
-          <p className="text-[11px] text-white/40">
+          <p className="text-[13px] text-white/40">
             {marker ? "Inside the polar terrain map: approximate horizon." : "Outside the polar map: smooth Moon (no hills)."}
           </p>
           <button
             type="button"
             disabled={!valid}
             onClick={() => onUse(lat, lon)}
-            className="h-9 rounded-md bg-white px-4 text-[12px] font-medium text-black transition hover:bg-white/85 disabled:bg-white/20"
+            className="h-11 rounded-md bg-white px-4 text-[14px] font-medium text-black transition hover:bg-white/85 disabled:bg-white/20"
           >
             Use this point
           </button>
