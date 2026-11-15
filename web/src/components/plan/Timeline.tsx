@@ -42,8 +42,8 @@ export default function Timeline({ series }: { series: Series }) {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h3 className="text-[13px] font-medium text-white">Over the mission</h3>
-        <p className="text-[11px] text-white/40">Times in UTC · hover or tap for values</p>
+        <h3 className="text-[16px] font-medium text-white">Over the mission</h3>
+        <p className="text-[13px] text-white/40">Times in UTC · hover or tap for values</p>
       </div>
       <svg
         viewBox={`0 0 ${W} ${height}`}
@@ -58,7 +58,7 @@ export default function Timeline({ series }: { series: Series }) {
           const y = TOP + b * (BAND + GAP);
           return (
             <g key={band.key}>
-              <text x={0} y={y + BAND - 4} fontSize="10" fill="#fff" fillOpacity="0.5">{band.label}</text>
+              <text x={0} y={y + BAND - 4} fontSize="12" fill="#fff" fillOpacity="0.5">{band.label}</text>
               <rect x={LABEL_W} y={y} width={plotW} height={BAND} fill="#fff" fillOpacity="0.04" />
               {rows.map((r, i) => {
                 let fill: string | null = null;
@@ -81,7 +81,7 @@ export default function Timeline({ series }: { series: Series }) {
         {ticks.map(({ r, i }) => (
           <g key={i}>
             <line x1={LABEL_W + i * colW} x2={LABEL_W + i * colW} y1={TOP} y2={height - 16} stroke="#fff" strokeOpacity="0.12" />
-            <text x={LABEL_W + i * colW} y={height - 4} fontSize="10" fill="#fff" fillOpacity="0.4" textAnchor="middle">
+            <text x={LABEL_W + i * colW} y={height - 4} fontSize="12" fill="#fff" fillOpacity="0.4" textAnchor="middle">
               {r.time_utc.slice(5, 10)}
             </text>
           </g>
@@ -91,7 +91,7 @@ export default function Timeline({ series }: { series: Series }) {
         )}
       </svg>
 
-      <p className="mt-2 min-h-[18px] text-[11px] tabular-nums text-white/60">
+      <p className="mt-2 min-h-[18px] text-[13px] tabular-nums text-white/60">
         {h
           ? `${h.time_utc.slice(0, 16).replace("T", " ")} UTC · Sun ${h.sun_el.toFixed(1)}° high, ${Math.round(100 * h.sun_fraction)}% of disc visible${h.is_eclipse ? " (Earth in front of the Sun)" : ""} · Earth ${h.earth_el.toFixed(1)}° ${h.is_earth_visible ? "in view" : "hidden"}`
           : <span className="text-white/35"><span className="mr-1 inline-block h-2 w-3 bg-[#f2c14e]/80 align-middle" />Sun (brighter = more of the disc) <span className="mx-1 inline-block h-2 w-3 bg-sky-400/60 align-middle" />Earth in view, or an eclipse in the Sun band</span>}
