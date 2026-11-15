@@ -4,18 +4,26 @@ import { MASK_MAST_M, useSettings } from "../../lib/settings";
 
 const PANELS: PanelType[] = ["tracking", "vertical-rotating", "vertical-fixed", "flat"];
 
-/** Mission rules shared by every page. Compact controls in the site-panel style. */
-export default function SettingsPanel() {
+/**
+ * Mission rules shared by every page. Compact controls in the site-panel style. `wide` lays the controls out
+ * in columns (inside the Plan page's rules bar, which already shows the heading).
+ */
+export default function SettingsPanel({ wide = false }: { wide?: boolean }) {
   const { settings, update, reset } = useSettings();
 
   return (
-    <section aria-labelledby="settings-heading" className="text-white">
+    <section aria-labelledby={wide ? undefined : "settings-heading"} aria-label={wide ? "Edit mission rules" : undefined} className="text-white">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 id="settings-heading" className="text-[18px] font-medium">Mission rules</h2>
+        {wide ? (
+          <p className="pt-2 text-[13px] text-white/45">Every number on the page updates as you change these.</p>
+        ) : (
+          <h2 id="settings-heading" className="text-[18px] font-medium">Mission rules</h2>
+        )}
         <button type="button" onClick={reset} className="text-[13px] text-white/45 underline-offset-4 hover:text-white hover:underline">
           Reset
         </button>
       </div>
+      <div className={wide ? "grid gap-x-10 md:grid-cols-2 xl:grid-cols-3" : ""}>
 
       <Control
         label="Earth counts as visible when"
@@ -55,6 +63,7 @@ export default function SettingsPanel() {
       >
         <Range min={0} max={10} step={0.5} value={settings.mastM} onChange={(v) => update({ mastM: v })} label="Mast height" />
       </Control>
+      </div>
     </section>
   );
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { makeObserver } from "../geometry";
 import { flatMask } from "../mask";
-import { sampleSeries, slipScan, summarize, timelineRows, type Series } from "../series";
+import { DEFAULT_VIABILITY, sampleSeries, slipScan, summarize, timelineRows, type Series, type SlipPoint } from "../series";
+import { coverage } from "../ephemeris";
+import { tdbToIso } from "../time";
 import { isoToTdb } from "../time";
 import { loadEphemerisFromDisk, loadMaskFromDisk } from "./loadFromDisk";
 
@@ -131,5 +133,67 @@ describe("slip chart", () => {
   it("skips slips that fall outside 2023-2032", () => {
     const late = slipScan(eph, obs, mask, isoToTdb("2032-12-01T00:00:00Z"), 14 * 24, [0, 30]);
     expect(late.map((p) => p.slip_days)).toEqual([0]);
+  });
+});
+
+describe("slip scan for long missions (Part 4)", () => {
+  const mask = loadMaskFromDisk("connecting_ridge");
+  const obs = makeObserver(-89.4395, -137.1934, mask.site_height_m ?? 0);
+  const start = isoToTdb("2027-03-01T06:00:00Z");
+
+  /** The original method, kept here as the reference: sample every slip on its own. */
+  function naiveScan(missionHours: number, slips: number[]): SlipPoint[] {
+    const { firstTdb, lastTdb } = coverage(eph);
+    const out: SlipPoint[] = [];
+    for (const slip of slips) {
+      const t0 = start + slip * 86400;
+      if (t0 < firstTdb || t0 + missionHours * 3600 > lastTdb) continue;
+      const sum = summarize(sampleSeries(eph, obs, mask, t0, missionHours, 60));
+      out.push({
+        slip_days: slip,
+        target_date: tdbToIso(t0).slice(0, 10),
+        sunlight_percent: sum.percent_sunlit,
+        earth_visible_percent: sum.percent_earth_visible,
+        combined_percent: sum.percent_both,
+        longest_night_hours: sum.longest_night_hours,
+        is_viable: sum.percent_sunlit >= DEFAULT_VIABILITY.min_sunlight_percent && sum.longest_night_hours <= DEFAULT_VIABILITY.max_night_hours,
+      });
+    }
+    return out;
+  }
+
+  const same = (a: SlipPoint[], b: SlipPoint[]) => {
+    expect(a.map((p) => p.slip_days)).toEqual(b.map((p) => p.slip_days));
+    a.forEach((p, i) => {
+      expect(p.target_date).toBe(b[i].target_date);
+      expect(p.sunlight_percent).toBeCloseTo(b[i].sunlight_percent, 9);
+      expect(p.earth_visible_percent).toBeCloseTo(b[i].earth_visible_percent, 9);
+      expect(p.combined_percent).toBeCloseTo(b[i].combined_percent, 9);
+      expect(p.longest_night_hours).toBeCloseTo(b[i].longest_night_hours, 9);
+      expect(p.is_viable).toBe(b[i].is_viable);
+    });
+  };
+
+  it("gives the same answers as sampling each slip alone, at 14 and at 90 days", () => {
+    const slips = Array.from({ length: 11 }, (_, i) => i - 5);
+    for (const days of [14, 90]) same(slipScan(eph, obs, mask, start, days * 24, slips), naiveScan(days * 24, slips));
+  });
+
+  it("also when the slips are not next to each other", () => {
+    const slips = [-60, -7, 0, 3, 45];
+    same(slipScan(eph, obs, mask, start, 30 * 24, slips), naiveScan(30 * 24, slips));
+  });
+
+  it("scans a year of start dates for a 90-day mission quickly", () => {
+    const t0 = performance.now();
+    const points = slipScan(eph, obs, mask, start, 90 * 24, Array.from({ length: 365 }, (_, i) => i));
+    const seconds = (performance.now() - t0) / 1000;
+    expect(points).toHaveLength(365);
+    expect(seconds).toBeLessThan(1.5);
+  });
+
+  it("a 90-day mission covers 2,160 hours", () => {
+    expect(summarize(sampleSeries(eph, obs, mask, start, 90 * 24, 10)).hours).toBeCloseTo(2160, 6);
+    expect(summarize(sampleSeries(eph, obs, mask, start, 365 * 24, 30)).hours).toBeCloseTo(8760, 6);
   });
 });

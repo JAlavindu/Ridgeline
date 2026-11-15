@@ -68,6 +68,8 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | Sunlight at 1 AU | 1361 W/m² | `engine/sunlight.ts` |
 | Default mast height | 2 m | `geometry.py`, `engine/geometry.ts` |
 | Event refinement | bisect to 30 s (reported to the minute) | `engine/events.ts` |
+| Mission length (Plan page) | 1 to 365 days; a mission may not run past the end of the data (1 Jan 2033), and the app says so | `lib/plan.ts` `MAX_MISSION_DAYS`, `hooks/useScenario.ts` |
+| Mission sampling | every 10 minutes up to 90 days, every 30 minutes beyond (S3: the step does not change the averages) | `lib/plan.ts` `sampleMinutesFor` |
 | Flicker limit | 3,600 s | same |
 | Polar window limit | 75° | same |
 | Assumed horizon error | 0.1° | same |

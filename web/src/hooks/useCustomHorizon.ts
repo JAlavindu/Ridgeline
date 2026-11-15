@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import type { HorizonMask } from "../engine";
 import type { ScenarioCard } from "../lib/plan";
 import { useSettings } from "../lib/settings";
+import { inTerrainZone } from "../lib/terrainZone";
 
 const DATA_URL = import.meta.env.BASE_URL + "data/";
+const OUTSIDE: CustomHorizonResult = { mask: null, missing: 0 };
 
 export interface CustomHorizonResult {
   mask: HorizonMask | null;   // null: the point is outside the polar terrain, so a smooth Moon is used
@@ -57,7 +59,11 @@ function request(lat: number, lon: number, hObs: number): Promise<CustomHorizonR
  */
 export function useCustomHorizon(card: ScenarioCard | null): CustomHorizonResult | undefined {
   const { settings } = useSettings();
-  const site = card?.site.kind === "custom" ? card.site : null;
+  const custom = card?.site.kind === "custom" ? card.site : null;
+  // Outside the terrain zone (75 deg S to the pole) there is no terrain to build: a smooth Moon is used,
+  // exactly as the picker tells the user. No worker, no 6.7 MB download.
+  const outside = custom !== null && !inTerrainZone(custom.lat);
+  const site = outside ? null : custom;
   const key = site ? `${site.lat},${site.lon},${settings.mastM}` : null;
   const [loaded, setLoaded] = useState<{ key: string; result: CustomHorizonResult } | null>(null);
 
@@ -72,6 +78,7 @@ export function useCustomHorizon(card: ScenarioCard | null): CustomHorizonResult
     };
   }, [key, site, settings.mastM]);
 
+  if (outside) return OUTSIDE;
   if (!key || loaded?.key !== key) return undefined;
   return loaded.result;
 }

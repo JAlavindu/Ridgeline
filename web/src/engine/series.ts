@@ -198,9 +198,32 @@ export interface Viability {
 
 export const DEFAULT_VIABILITY: Viability = { min_sunlight_percent: 65, max_night_hours: 72 };
 
+/** Samples [from, to) of a series, as a series of their own. */
+export function sliceSeries(s: Series, from: number, to: number): Series {
+  return {
+    step_s: s.step_s,
+    tdb: s.tdb.slice(from, to),
+    sun_el_deg: s.sun_el_deg.slice(from, to),
+    sun_az_deg: s.sun_az_deg.slice(from, to),
+    earth_el_deg: s.earth_el_deg.slice(from, to),
+    sun_horizon_deg: s.sun_horizon_deg.slice(from, to),
+    earth_horizon_deg: s.earth_horizon_deg.slice(from, to),
+    sun_fraction: s.sun_fraction.slice(from, to),
+    irradiance_w_m2: s.irradiance_w_m2.slice(from, to),
+    earth_visible: s.earth_visible.slice(from, to),
+    eclipse: s.eclipse.slice(from, to),
+  };
+}
+
 /**
- * The mission summary for each launch slip (in days) from a planned start, using hourly samples
- * so the whole chart takes well under a second. Slips outside 2023-2032 are skipped.
+ * The mission summary for each launch slip (in days) from a planned start, using hourly samples.
+ * Slips outside 2023-2032 are skipped.
+ *
+ * Fast for any mission length: instead of sampling the whole mission again for every slip, it samples one
+ * hourly stretch once (from the earliest start to the end of the latest mission) and summarises each slip as a
+ * window of it. Slips are whole days, so every window starts on the same hourly grid: the answers are the
+ * same as sampling each slip on its own (tested). A year of 90-day starts drops from about 788,000 sky
+ * calculations to about 11,000.
  */
 export function slipScan(
   eph: Ephemeris,
@@ -213,11 +236,22 @@ export function slipScan(
   earthOptions: EarthOptions = DEFAULT_EARTH_OPTIONS,
 ): SlipPoint[] {
   const { firstTdb, lastTdb } = coverage(eph);
-  const points: SlipPoint[] = [];
-  for (const slip of slipDays) {
+  const inRange = slipDays.filter((slip) => {
     const start = plannedStartTdb + slip * 86400;
-    if (start < firstTdb || start + missionHours * 3600 > lastTdb) continue;
-    const summary = summarize(sampleSeries(eph, obs, mask, start, missionHours, 60, earthOptions));
+    return !(start < firstTdb || start + missionHours * 3600 > lastTdb);
+  });
+  if (inRange.length === 0) return [];
+
+  const firstSlip = Math.min(...inRange);
+  const lastSlip = Math.max(...inRange);
+  const all = sampleSeries(eph, obs, mask, plannedStartTdb + firstSlip * 86400, (lastSlip - firstSlip) * 24 + missionHours, 60, earthOptions);
+  const perMission = Math.ceil(missionHours); // hourly samples in one mission, as sampling it alone would give
+
+  const points: SlipPoint[] = [];
+  for (const slip of inRange) {
+    const from = (slip - firstSlip) * 24;
+    const start = plannedStartTdb + slip * 86400;
+    const summary = summarize(sliceSeries(all, from, from + perMission));
     points.push({
       slip_days: slip,
       target_date: tdbToIso(start).slice(0, 10),
