@@ -260,24 +260,10 @@ export default function Footer() {
               </a>
 
               <a
-                href="/validation"
-                className="transition-colors hover:text-white"
-              >
-                Technology
-              </a>
-
-              <a
                 href="https://github.com/JAlavindu/Ridgeline" target="_blank" rel="noreferrer"
                 className="transition-colors hover:text-white"
               >
                 GitHub ↗
-              </a>
-
-              <a
-                href="https://github.com/JAlavindu/Ridgeline/issues" target="_blank" rel="noreferrer"
-                className="transition-colors hover:text-white"
-              >
-                Contact ↗
               </a>
 
             </div>

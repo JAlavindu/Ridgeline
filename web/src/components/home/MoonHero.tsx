@@ -559,8 +559,8 @@ const moonScale = useTransform(
             EXPLORE BUTTON
         ================================================= */}
 
-        <button
-          type="button"
+        <Link
+          to="/terrain"
           className="
             absolute
 
@@ -571,6 +571,10 @@ const moonScale = useTransform(
 
             glass-chip
             glass-accent
+
+            inline-flex
+            items-center
+            justify-center
 
             h-12
             w-[205px]
@@ -598,7 +602,7 @@ const moonScale = useTransform(
           >
             ↗
           </span>
-        </button>
+        </Link>
 
 
         {/* =================================================
