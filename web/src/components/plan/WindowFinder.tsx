@@ -7,7 +7,9 @@ import { formatDuration, utcInputToIso } from "../../lib/format";
 import { earthOptionsOf, useSettings } from "../../lib/settings";
 
 const DAYS = 365;
-const CHUNK = 30; // a year takes about 0.25 s on a laptop; chunks keep slow phones responsive
+// The whole year in one go, just after the page paints: slipScan samples the sky once for all start dates,
+// so even a 90-day mission takes well under a second (tested). Chunks would only repeat work.
+const CHUNK = DAYS;
 
 interface Props {
   result: ScenarioResult;
@@ -81,7 +83,7 @@ export default function WindowFinder({ result, startUtc, missionDays, viability,
 
       <div className="mt-4 space-y-1.5">
         {months.map((m) => (
-          <div key={m.label} className="grid grid-cols-[64px_1fr] items-center gap-2">
+          <div key={m.label} className="grid grid-cols-[84px_1fr] items-center gap-2">
             <span className="text-[13px] tabular-nums text-white/45">{m.label}</span>
             <div className="flex flex-wrap gap-[3px]">
               {m.days.map((date) => {

@@ -55,12 +55,12 @@ All times on screen are UTC and say so.
 
 | Label | Source | Formula | Checked by | Status |
 |---|---|---|---|---|
-| Sun up, average sunlight, Earth in view, power and contact | engine `sampleSeries` + `summarize` (10-minute samples) | F11, F12, F16 | V2, V5, S3, `series.test.ts` | OK |
+| Sun up, average sunlight, Earth in view, power and contact | engine `sampleSeries` + `summarize` (10-minute samples up to 90 days, 30-minute beyond; missions of 1 to 365 days) | F11, F12, F16 | V2, V5, S3, `series.test.ts` | OK |
 | Sunlight on the panel (W/m²) and electric (W/m²) | S × f × panel factor; × efficiency (labelled "example") | F13, F14 | `power.test.ts` | OK |
 | Longest night, longest comms gap, eclipse hours | engine `summarize` | D10 | `series.test.ts` | OK |
 | Next sunset / Earthset | engine `outlook`, a window poleward of 75° | F8 | `events.test.ts`, S1 | OK |
 | Horizon line ("LOLA terrain", "approximate (500 m terrain)", "smooth Moon") | mask source | F9, F10 | V14, `customHorizon.test.ts` | OK |
-| Slip chart: sunlight %, longest night per start date | engine `slipScan` (hourly samples) | as above | `series.test.ts` | OK |
+| Slip chart: sunlight %, longest night per start date | engine `slipScan` (hourly samples; one stretch sampled once, each start date a window of it) | as above | `series.test.ts` (matches sampling each start alone) | OK |
 | Window finder: start dates that meet the rule | engine `slipScan`, 365 daily starts | as above | browser check | OK |
 | Timeline values (UTC) | engine `timelineRows` | as above | `series.test.ts` | OK |
 | Custom point latitude/longitude from the map | south polar stereographic inverse | n/a | `polarMap.test.ts` (matches M3's check pixel) | OK |

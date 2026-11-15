@@ -25,8 +25,11 @@ export default function Timeline({ series }: { series: Series }) {
   const colW = plotW / rows.length;
   const height = TOP + BANDS.length * (BAND + GAP) + 18;
 
-  // day ticks at 00:00 UTC, thinned so labels never crowd
-  const dayStarts = rows.map((r, i) => ({ r, i })).filter(({ r }) => r.time_utc.slice(11, 16) === "00:00");
+  // a tick wherever the date changes between columns (on long missions a column spans hours, so it rarely
+  // lands exactly on midnight), thinned so labels never crowd
+  const dayStarts = rows
+    .map((r, i) => ({ r, i }))
+    .filter(({ r, i }) => (i === 0 ? r.time_utc.slice(11, 16) === "00:00" : r.time_utc.slice(0, 10) !== rows[i - 1].time_utc.slice(0, 10)));
   const every = Math.max(1, Math.ceil(dayStarts.length / 8));
   const ticks = dayStarts.filter((_, k) => k % every === 0);
 
@@ -45,11 +48,13 @@ export default function Timeline({ series }: { series: Series }) {
         <h3 className="text-[16px] font-medium text-white">Over the mission</h3>
         <p className="text-[13px] text-white/40">Times in UTC · hover or tap for values</p>
       </div>
+      {/* on a phone the chart keeps a readable width and scrolls sideways inside its panel */}
+      <div className="mt-3 overflow-x-auto">
       <svg
         viewBox={`0 0 ${W} ${height}`}
         role="img"
         aria-label="Timeline of sunlight, Earth visibility and both over the mission"
-        className="mt-3 block h-auto w-full touch-none"
+        className="block h-auto w-full min-w-[560px] touch-pan-x"
         onMouseMove={onMove}
         onMouseLeave={() => setHover(null)}
         onClick={onMove}
@@ -90,6 +95,8 @@ export default function Timeline({ series }: { series: Series }) {
           <line x1={LABEL_W + (hover + 0.5) * colW} x2={LABEL_W + (hover + 0.5) * colW} y1={TOP} y2={height - 16} stroke="#ff3b12" strokeWidth="1.2" />
         )}
       </svg>
+      </div>
+      <p className="mt-1 text-[12px] text-white/35 sm:hidden">Swipe the chart sideways to see all of it →</p>
 
       <p className="mt-2 min-h-[18px] text-[13px] tabular-nums text-white/60">
         {h

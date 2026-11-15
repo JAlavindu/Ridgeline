@@ -1,10 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 
 import { DEFAULT_VIABILITY, type Viability } from "../engine";
 
-import ScenarioCard from "../components/plan/ScenarioCard";
+import CompareGrid from "../components/plan/CompareGrid";
 import CustomSitePicker from "../components/plan/CustomSitePicker";
-import SettingsPanel from "../components/plan/SettingsPanel";
+import PlanBar from "../components/plan/PlanBar";
 import SlipChart from "../components/plan/SlipChart";
 import Timeline from "../components/plan/Timeline";
 import WindowFinder from "../components/plan/WindowFinder";
@@ -12,7 +12,8 @@ import { bestCards } from "../components/plan/metrics";
 import { lunarSites } from "../data/lunarSites";
 import { useCustomHorizon } from "../hooks/useCustomHorizon";
 import { useScenario, type ScenarioResult, type ScenarioState } from "../hooks/useScenario";
-import { MAX_CARDS, usePlan, type ScenarioCard as Card } from "../lib/plan";
+import { usePlan, type ScenarioCard as Card } from "../lib/plan";
+import { formatPoint } from "../lib/terrainZone";
 
 /** Hooks need a fixed count: one slot per possible card. */
 function useSlot(card: Card | undefined): ScenarioState {
@@ -35,6 +36,8 @@ export default function PlanPage() {
   const states = useBoard(cards);
   const [viability, setViability] = useState<Viability>(DEFAULT_VIABILITY);
   const [pickingFor, setPickingFor] = useState<string | null>(null);
+  // stable, so the modal's Escape listener is not re-attached on every render
+  const closePicker = useCallback(() => setPickingFor(null), []);
 
   const ready = cards
     .map((card, i) => ({ id: card.id, s: states[i] }))
@@ -58,91 +61,76 @@ export default function PlanPage() {
   return (
     <main className="min-h-screen bg-[#020202] px-4 pb-24 pt-24 text-white sm:px-8 sm:pt-28">
       <div className="mx-auto max-w-[1520px]">
-        <p className="text-[12px] text-white/45">Plan</p>
-        <h1 className="mt-1.5 font-['Michroma'] text-[28px] uppercase leading-[36px]">Plan a landing</h1>
+        <p className="text-[13px] text-white/45">Plan</p>
+        <h1 className="mt-1.5 font-['Michroma'] text-[28px] uppercase leading-[36px] sm:text-[36px] sm:leading-[44px]">Plan a landing</h1>
         <p className="mt-3 max-w-[70ch] text-[16px] leading-[1.75] text-white/65">
-          Compare up to four sites and dates side by side. Every number comes from the JPL ephemeris and the terrain
-          horizon for each site, and changes as soon as you edit a card or the mission rules.
+          Pick up to four landing sites and see which one gets the most sunlight, the shortest dark spell and the most
+          time to talk to Earth during your mission.
         </p>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="min-w-0">
-            <section aria-label="Scenario board" className="flex flex-wrap gap-4">
-              {cards.map((card, i) => (
-                <ScenarioCard
-                  key={card.id}
-                  card={card}
-                  state={states[i] ?? { status: "loading" }}
-                  selected={card.id === selected?.id}
-                  best={best}
-                  canRemove={cards.length > 1}
-                  canDuplicate={cards.length < MAX_CARDS}
-                  onUpdate={(patch) => dispatch({ type: "update", id: card.id, patch })}
-                  onSelect={() => dispatch({ type: "select", id: card.id })}
-                  onRemove={() => dispatch({ type: "remove", id: card.id })}
-                  onDuplicate={() => dispatch({ type: "duplicate", id: card.id })}
-                  onPickCustom={() => {
-                    dispatch({ type: "select", id: card.id });
-                    setPickingFor(card.id);
-                  }}
-                />
-              ))}
-              {cards.length < MAX_CARDS && (
-                <button
-                  type="button"
-                  onClick={addScenario}
-                  className="flex min-h-[160px] basis-full items-center justify-center rounded-[14px] border border-dashed border-white/[0.14] text-[15px] text-white/55 transition hover:border-white/30 hover:text-white"
-                >
-                  + Add scenario
-                </button>
-              )}
-            </section>
-
-            {pickingFor && cards.some((c) => c.id === pickingFor) && (
-              <div className="mt-8">
-                <CustomSitePicker
-                  initial={(() => {
-                    const c = cards.find((x) => x.id === pickingFor)!;
-                    return c.site.kind === "custom" ? { lat: c.site.lat, lon: c.site.lon } : null;
-                  })()}
-                  onCancel={() => setPickingFor(null)}
-                  onUse={(lat, lon) => {
-                    const label = `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? "S" : "N"}, ${(((lon % 360) + 360) % 360).toFixed(2)}° E`;
-                    dispatch({ type: "update", id: pickingFor, patch: { site: { kind: "custom", lat, lon, label } } });
-                    setPickingFor(null);
-                  }}
-                />
-              </div>
-            )}
-
-            {selected && (
-              <section aria-label="Selected scenario" className="mt-12">
-                <h2 className="text-[15px] font-medium">
-                  {selectedState?.status === "ready" ? selectedState.result.name : "Selected scenario"}
-                  <span className="ml-2 text-[12px] font-normal text-white/45">
-                    from {selected.startUtc.replace("T", " ")} UTC · {selected.missionDays} days
-                  </span>
-                </h2>
-                <Details
-                  state={selectedState}
-                  card={selected}
-                  viability={viability}
-                  onViability={setViability}
-                  onUseDate={(startUtc) => dispatch({ type: "update", id: selected.id, patch: { startUtc } })}
-                />
-              </section>
-            )}
-          </div>
-
-          <aside className="lg:sticky lg:top-24 lg:self-start">
-            <details className="group rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-4 lg:open:pb-2" open>
-              <summary className="cursor-pointer list-none text-[12px] text-white/50 lg:hidden [&::-webkit-details-marker]:hidden">
-                Mission rules ▾
-              </summary>
-              <SettingsPanel />
-            </details>
-          </aside>
+        <div className="mt-8">
+          <PlanBar mission={state.mission} onMission={(patch) => dispatch({ type: "mission", patch })} viability={viability} />
         </div>
+
+        <div className="mt-6">
+          <CompareGrid
+            cards={cards}
+            states={states}
+            selectedId={selected?.id}
+            best={best}
+            viability={viability}
+            onUpdate={(id, patch) => dispatch({ type: "update", id, patch })}
+            onOwnDates={(id, on) => dispatch({ type: "ownDates", id, on })}
+            onSelect={(id) => dispatch({ type: "select", id })}
+            onRemove={(id) => dispatch({ type: "remove", id })}
+            onDuplicate={(id) => dispatch({ type: "duplicate", id })}
+            onPickCustom={(id) => {
+              dispatch({ type: "select", id });
+              setPickingFor(id);
+            }}
+            onAdd={addScenario}
+          />
+          <p className="mt-2 text-[13px] text-white/40">
+            Click a column to see its details below.<span className="xl:hidden"> Swipe the table sideways to see all four columns →</span>
+          </p>
+        </div>
+
+        {pickingFor && cards.some((c) => c.id === pickingFor) && (
+          <CustomSitePicker
+            initial={(() => {
+              const c = cards.find((x) => x.id === pickingFor)!;
+              return c.site.kind === "custom" ? { lat: c.site.lat, lon: c.site.lon } : null;
+            })()}
+            onCancel={closePicker}
+            onUse={(lat, lon) => {
+              dispatch({ type: "update", id: pickingFor, patch: { site: { kind: "custom", lat, lon, label: formatPoint(lat, lon) } } });
+              setPickingFor(null);
+            }}
+          />
+        )}
+
+        {selected && (
+          <section aria-label="Selected scenario" className="mt-14">
+            <h2 className="text-[18px] font-medium">
+              {selectedState?.status === "ready" ? selectedState.result.name : "Selected scenario"}
+              <span className="ml-2 text-[14px] font-normal text-white/45">
+                from {selected.startUtc.replace("T", " ")} UTC · {selected.missionDays} days
+              </span>
+            </h2>
+            <Details
+              state={selectedState}
+              card={selected}
+              viability={viability}
+              onViability={setViability}
+              onUseDate={(startUtc) =>
+                // a column on the shared mission moves the whole mission; one with its own dates moves alone
+                selected.ownDates
+                  ? dispatch({ type: "update", id: selected.id, patch: { startUtc } })
+                  : dispatch({ type: "mission", patch: { startUtc } })
+              }
+            />
+          </section>
+        )}
       </div>
     </main>
   );
@@ -159,22 +147,25 @@ interface DetailsProps {
 /** The selected card's deeper views: launch slip and the mission timeline. */
 function Details({ state, card, viability, onViability, onUseDate }: DetailsProps): ReactNode {
   if (!state || state.status !== "ready") {
-    return <p className="mt-3 text-[12px] text-white/40">{state?.status === "error" ? state.message : "Working out the sky…"}</p>;
+    return <p className="mt-3 text-[14px] text-white/45">{state?.status === "error" ? state.message : "Working out the sky…"}</p>;
   }
   return (
-    <div className="mt-5 space-y-10">
-      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
-        <Timeline series={state.result.series} />
-      </div>
-      <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
-        <SlipChart
-          result={state.result}
-          startUtc={card.startUtc}
-          missionDays={card.missionDays}
-          viability={viability}
-          onViability={onViability}
-          onUseDate={onUseDate}
-        />
+    <div className="mt-5 space-y-6">
+      {/* side by side on wide screens, stacked below that */}
+      <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <div className="min-w-0 rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
+          <Timeline series={state.result.series} />
+        </div>
+        <div className="min-w-0 rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
+          <SlipChart
+            result={state.result}
+            startUtc={card.startUtc}
+            missionDays={card.missionDays}
+            viability={viability}
+            onViability={onViability}
+            onUseDate={onUseDate}
+          />
+        </div>
       </div>
       <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6">
         <WindowFinder
