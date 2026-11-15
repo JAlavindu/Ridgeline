@@ -68,6 +68,8 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | Sunlight at 1 AU | 1361 W/m² | `engine/sunlight.ts` |
 | Default mast height | 2 m | `geometry.py`, `engine/geometry.ts` |
 | Event refinement | bisect to 30 s (reported to the minute) | `engine/events.ts` |
+| Mission length (Plan page) | 1 to 365 days; a mission may not run past the end of the data (1 Jan 2033), and the app says so | `lib/plan.ts` `MAX_MISSION_DAYS`, `hooks/useScenario.ts` |
+| Mission sampling | every 10 minutes up to 90 days, every 30 minutes beyond (S3: the step does not change the averages) | `lib/plan.ts` `sampleMinutesFor` |
 | Flicker limit | 3,600 s | same |
 | Polar window limit | 75° | same |
 | Assumed horizon error | 0.1° | same |
@@ -85,7 +87,7 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | Terrain for every site | Real LOLA terrain for 5 polar sites only | The other masks were placeholders. They are labelled "synthetic" and the app treats those sites as a smooth Moon |
 | V12 sunrise within 1 day of ISRO's date | Within 3 days | The first result needed it; the rule was widened after seeing it and the gap is reported (see V12) |
 | Kernel file names in the plan for DSN | `*_260814` versions | NAIF published newer files; names are pinned in `pipeline/get_kernels.py` |
-| V9 vs PGDA 69 | Pending | Needs masks rebuilt for a 0 m mast |
+| V9 vs PGDA 69 | Run with 0 m masks; fails (median 3.6, 90th percentile 18.3 points) | Two sites agree; Malapert and Shackleton Site 004 do not. Site 004's horizon blocks the Sun completely, which NASA's map contradicts, so that horizon is being checked |
 | "Power-limited" label | Not built | Out of scope for the first release |
 | Mast-height slider for sites with NASA terrain | Smooth-Moon and custom sites only | Those horizons were built for a 2 m mast |
 
@@ -97,7 +99,7 @@ Status: **in app** = used on screen; **checks** = used in a validation test or e
 | D2 | UTC on screen, TDB inside | Done |
 | D3 | `MOON_ME` everywhere | Done |
 | D4 | `CN+S` | Done |
-| D5 | 2 m mast; 0 m only when comparing with PGDA 69 | 2 m for NASA-terrain sites; slider (0–10 m) for smooth-Moon and custom sites; 0 m pending (V9) |
+| D5 | 2 m mast; 0 m only when comparing with PGDA 69 | 2 m for NASA-terrain sites; slider (0–10 m) for smooth-Moon and custom sites; 0 m masks for the 4 V9 sites (`masks_0m/`) |
 | D6 | Show visible fraction; sunset needs 1 hour apart; "power-limited" below 0.5 | Fraction and flicker rule done; "power-limited" label not built |
 | D7 | Earth rule: centre default, any-part option, margin | Done: mission rules on the Plan page apply everywhere |
 | D8 | Geometry only; DSN as option | Done (DSN option built) |

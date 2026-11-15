@@ -10,7 +10,7 @@ Every dataset, service, paper, library, font and media file Ridgeline uses, with
 | NAIF extra kernels for DSN mode: `earthstns_itrf93_260814.bsp`, `earth_topo_260814.tf`, `earth_1962_260806_2126_combined.bpc` | Positions of the Goldstone, Madrid and Canberra stations and Earth's orientation | https://naif.jpl.nasa.gov/pub/naif/generic_kernels/ | NASA/JPL public data |
 | JPL Horizons API | Independent check of Sun, Earth and Moon directions (tests V1, V3, V15) | https://ssd.jpl.nasa.gov/api/horizons.api | NASA/JPL public service |
 | LRO LOLA polar elevation maps (`LDEM_80S_20MPP_ADJ`, `LDEM_80S_80MPP_ADJ`, `LDEM_60S_240MPP_ADJ`) | Horizon masks and 3D terrain tiles for the five polar sites | https://pgda.gsfc.nasa.gov/products/90 (**product page TO CONFIRM by the terrain owner**) | NASA public data |
-| NASA PGDA product 69, `AVGVISIB_85S_060M_201608.TIF` and `…_EARTH.TIF` | Average Sun and Earth visibility reference, neighbourhood crops (test V9, pending) | https://pgda.gsfc.nasa.gov/products/69 | NASA public data |
+| NASA PGDA product 69, `AVGVISIB_85S_060M_201608.TIF` and `…_EARTH.TIF` | Average Sun and Earth visibility reference, neighbourhood crops (test V9) | https://pgda.gsfc.nasa.gov/products/69 | NASA public data |
 | LROC QuickMap | Cross-check of site heights (`docs/validation_quickmap.md`) | https://quickmap.lroc.asu.edu/ | NASA/ASU |
 | NASA NSSDC Moon Fact Sheet | Moon diameter, gravity, density, equator tilt, distances | https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html | NASA public data |
 | DSN Telecommunications Link Design Handbook, 810-005, module 301, Rev. O | Station elevation limits 6°, 10.1°, 13.6° | https://deepspace.jpl.nasa.gov/dsndocs/810-005/ | NASA/JPL public document |

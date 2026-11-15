@@ -31,7 +31,7 @@ Do **not** show: the neighbourhood map or CSV export (not built). Custom coordin
 | DSN | Moon height at Goldstone within **0.005°** of Horizons | V15 |
 
 Say about the weak spots before they ask:
-- "The comparison with NASA's average-sunlight maps (V9) is pending: those maps are at ground level and our horizons use a 2 m mast, so the comparison needs terrain rebuilt first."
+- "Against NASA's average-sunlight maps (V9) we fail, and we show it. Two of four polar sites agree within about 4 points. At Shackleton Site 004 our horizon blocks the Sun completely where NASA finds 11%, so that site's terrain needs rebuilding: don't use Site 004 in a demo."
 - "Mission replays are plausibility checks, not proof."
 
 ## Likely questions

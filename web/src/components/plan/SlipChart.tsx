@@ -53,7 +53,9 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
         <p className="text-[13px] text-white/40">Same site and mission length, start moved by up to 60 days (hourly samples)</p>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Sunlight and longest night for each start date within 60 days" className="mt-3 block h-auto w-full">
+      {/* on a phone the chart keeps a readable width and scrolls sideways inside its panel */}
+      <div className="mt-3 overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Sunlight and longest night for each start date within 60 days" className="block h-auto w-full min-w-[560px]">
         {[0, 50, 100].map((v) => (
           <g key={v}>
             <line x1={PAD.l} x2={W - PAD.r} y1={yPct(v)} y2={yPct(v)} stroke="#fff" strokeOpacity={v === 0 ? 0.2 : 0.06} />
@@ -76,6 +78,8 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
         <path d={line((p) => yNight(p.longest_night_hours))} fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="1.2" strokeDasharray="4 3" />
         <line x1={x(slip)} x2={x(slip)} y1={PAD.t} y2={H - PAD.b} stroke="#ff3b12" strokeWidth="1.5" />
       </svg>
+      </div>
+      <p className="mt-1 text-[12px] text-white/35 sm:hidden">Swipe the chart sideways to see all of it →</p>
 
       <div className="mt-1 flex flex-wrap gap-x-4 text-[13px] text-white/45">
         <span><span className="mr-1 inline-block h-[2px] w-3 bg-[#f2c14e] align-middle" />Sun up (any part)</span>

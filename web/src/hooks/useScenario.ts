@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import {
+  coverage,
   flatMask,
   isoToTdb,
   makeObserver,
@@ -8,6 +9,7 @@ import {
   outlook,
   sampleSeries,
   summarize,
+  tdbToIso,
   type HorizonMask,
   type Observer,
   type Outlook,
@@ -16,7 +18,7 @@ import {
 } from "../engine";
 import { lunarSites } from "../data/lunarSites";
 import { utcInputToIso } from "../lib/format";
-import type { ScenarioCard } from "../lib/plan";
+import { sampleMinutesFor, type ScenarioCard } from "../lib/plan";
 import { MASK_MAST_M, earthOptionsOf, useSettings } from "../lib/settings";
 import { useEphemeris, useMask } from "./useEngine";
 
@@ -41,8 +43,6 @@ export type ScenarioState =
   | { status: "loading"; message?: string }
   | { status: "error"; message: string }
   | { status: "ready"; result: ScenarioResult };
-
-const SAMPLE_MINUTES = 10;
 
 /**
  * Everything the board shows for one card, from the real engine.
@@ -91,7 +91,16 @@ export function useScenario(card: ScenarioCard | null, customMask?: HorizonMask 
     try {
       const earth = earthOptionsOf(settings);
       const startTdb = isoToTdb(utcInputToIso(card.startUtc));
-      const series = sampleSeries(eph, obs, horizon, startTdb, card.missionDays * 24, SAMPLE_MINUTES, earth);
+      // Never quietly shorten a mission: if it would run past the end of the data, say so instead.
+      const { lastTdb } = coverage(eph);
+      if (startTdb + card.missionDays * 86400 > lastTdb + 1) {
+        const end = new Date(tdbToIso(lastTdb)).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+        return {
+          status: "error",
+          message: `Our data ends on ${end}, and this mission would run past it. Start earlier or make it shorter.`,
+        };
+      }
+      const series = sampleSeries(eph, obs, horizon, startTdb, card.missionDays * 24, sampleMinutesFor(card.missionDays), earth);
       const panelWm2 = meanPanelIrradiance(series, settings.panel, settings.panelFacingAzDeg);
       return {
         status: "ready",

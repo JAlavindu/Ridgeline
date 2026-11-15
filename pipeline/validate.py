@@ -507,15 +507,35 @@ def run_v9() -> dict:
         }
     median, p90 = float(np.median(gaps)), float(np.percentile(gaps, 90))
     print(f"  V9 vs PGDA 69: median gap {median:.1f} points, 90th percentile {p90:.1f}")
+    passed = median <= 5 and p90 <= 10
+
+    def worst(row: dict) -> float:
+        return max(abs(row["sun_gap_points"]), abs(row["earth_gap_points"]))
+
+    close = [i for i in V9_SITES if worst(rows[i]) <= 5]
+    far = [i for i in V9_SITES if worst(rows[i]) > 5]
+    per_site = "; ".join(f"{i}: Sun {rows[i]['sun_gap_points']:+.1f}, Earth {rows[i]['earth_gap_points']:+.1f}"
+                         for i in V9_SITES)
+    dark = [i for i in V9_SITES if rows[i]["ours_sun_mean_fraction"] == 0 and rows[i]["pgda69_sun"] > 0]
+    dark_note = ""
+    for i in dark:
+        mask = json.loads((MASKS_0M / f"{i}.json").read_text())
+        dark_note += (f" At {i} our 0 m horizon is at least {min(mask['elev_deg']):.1f} deg high in every direction, "
+                      "above the highest the Sun can reach this close to the pole, so we find no sunlight where "
+                      f"PGDA 69 finds {rows[i]['pgda69_sun']:.1f}%. That points to a problem in our horizon at that "
+                      "point, not in the Sun positions; it is being checked.")
     return {
         **base,
         "result": round(median, 2),
-        "outcome": "pass" if median <= 5 and p90 <= 10 else "fail",
+        "outcome": "pass" if passed else "fail",
         "explanation": (f"Median gap {median:.1f} points, 90th percentile {p90:.1f} (limits 5 and 10), over "
-                        f"{len(gaps)} comparisons. Not like for like in three ways: our 10-year window vs PGDA's "
-                        "18.6-year average, our hourly point at the site vs a 60 m pixel, and our horizon built from "
-                        "LOLA maps of different resolution. Our Sun value is the average visible part of the Sun's "
-                        "disc; the any-part share is in the details."),
+                        f"{len(gaps)} comparisons, so the test {'passes' if passed else 'fails'}. "
+                        f"Within 5 points at {', '.join(close) or 'no site'}; further off at "
+                        f"{', '.join(far) or 'no site'} ({per_site} points).{dark_note} "
+                        "The comparison is also not exactly like for like: our 10-year window vs PGDA's 18.6-year "
+                        "average, one point vs a 60 m pixel, and a horizon from LOLA maps of different resolution. "
+                        "Our Sun value is the average visible part of the Sun's disc; the any-part share is in the "
+                        "details."),
         "details": rows,
     }
 

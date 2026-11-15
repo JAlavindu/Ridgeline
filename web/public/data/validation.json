@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-14T20:43:40Z",
+  "generated_utc": "2026-11-15T11:09:01Z",
   "generator": "pipeline/validate.py",
   "tests": [
     {
@@ -208,9 +208,47 @@
       "tolerance": "median gap within 5 points, 90th percentile within 10 points",
       "unit": "points (median gap)",
       "expected_outcome": "pass",
-      "result": null,
-      "outcome": "pending",
-      "explanation": "Not run yet. PGDA 69 is measured at ground level, but our horizon masks were built for a 2 m mast, so the comparison would not be like for like. It needs the four polar masks rebuilt with a 0 m mast: python pipeline/write_masks.py --h-obs 0 --out web/public/data/masks_0m --only connecting_ridge,im2,malapert_massif,shackleton_site004.",
+      "result": 3.59,
+      "outcome": "fail",
+      "explanation": "Median gap 3.6 points, 90th percentile 18.3 (limits 5 and 10), over 8 comparisons, so the test fails. Within 5 points at connecting_ridge, im2; further off at malapert_massif, shackleton_site004 (connecting_ridge: Sun -0.9, Earth -4.3; im2: Sun -1.1, Earth +0.1; malapert_massif: Sun -13.4, Earth +2.9; shackleton_site004: Sun -11.1, Earth -30.0 points). At shackleton_site004 our 0 m horizon is at least 3.0 deg high in every direction, above the highest the Sun can reach this close to the pole, so we find no sunlight where PGDA 69 finds 11.1%. That points to a problem in our horizon at that point, not in the Sun positions; it is being checked. The comparison is also not exactly like for like: our 10-year window vs PGDA's 18.6-year average, one point vs a 60 m pixel, and a horizon from LOLA maps of different resolution. Our Sun value is the average visible part of the Sun's disc; the any-part share is in the details.",
+      "details": {
+        "connecting_ridge": {
+          "ours_sun_mean_fraction": 50.32,
+          "ours_sun_any_part_up": 56.65,
+          "pgda69_sun": 51.19,
+          "sun_gap_points": -0.87,
+          "ours_earth_any_part": 48.5,
+          "pgda69_earth": 52.76,
+          "earth_gap_points": -4.26
+        },
+        "im2": {
+          "ours_sun_mean_fraction": 44.89,
+          "ours_sun_any_part_up": 46.51,
+          "pgda69_sun": 45.99,
+          "sun_gap_points": -1.1,
+          "ours_earth_any_part": 92.39,
+          "pgda69_earth": 92.34,
+          "earth_gap_points": 0.05
+        },
+        "malapert_massif": {
+          "ours_sun_mean_fraction": 47.59,
+          "ours_sun_any_part_up": 49.34,
+          "pgda69_sun": 60.95,
+          "sun_gap_points": -13.36,
+          "ours_earth_any_part": 96.76,
+          "pgda69_earth": 93.84,
+          "earth_gap_points": 2.92
+        },
+        "shackleton_site004": {
+          "ours_sun_mean_fraction": 0.0,
+          "ours_sun_any_part_up": 0.0,
+          "pgda69_sun": 11.09,
+          "sun_gap_points": -11.09,
+          "ours_earth_any_part": 0.0,
+          "pgda69_earth": 29.96,
+          "earth_gap_points": -29.96
+        }
+      },
       "passed": false
     },
     {

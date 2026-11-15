@@ -69,8 +69,6 @@ const teamMembers = [
 ];
 
 export default function TeamPage() {
- 
-
   return (
     <main className="min-h-screen overflow-hidden bg-[#020202] pt-14 text-white">
 
