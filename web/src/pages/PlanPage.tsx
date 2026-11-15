@@ -67,7 +67,7 @@ export default function PlanPage() {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
-            <section aria-label="Scenario board" className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+            <section aria-label="Scenario board" className="flex flex-wrap gap-4">
               {cards.map((card, i) => (
                 <ScenarioCard
                   key={card.id}
@@ -91,7 +91,7 @@ export default function PlanPage() {
                 <button
                   type="button"
                   onClick={addScenario}
-                  className="flex min-h-[160px] items-center justify-center rounded-[14px] border border-dashed border-white/[0.14] text-[15px] text-white/55 transition hover:border-white/30 hover:text-white"
+                  className="flex min-h-[160px] basis-full items-center justify-center rounded-[14px] border border-dashed border-white/[0.14] text-[15px] text-white/55 transition hover:border-white/30 hover:text-white"
                 >
                   + Add scenario
                 </button>

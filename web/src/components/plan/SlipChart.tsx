@@ -31,7 +31,7 @@ export default function SlipChart({ result, startUtc, missionDays, viability, on
     return slipScan(eph, result.obs, result.horizon, result.startTdb, missionDays * 24, SLIPS, viability, earthOptionsOf(settings));
   }, [eph, result.obs, result.horizon, result.startTdb, missionDays, viability, settings]);
 
-  if (points.length === 0) return   <p className="mt-3 text-[13px] text-white/40">Scanning launch dates…</p>;
+  if (points.length === 0) return <p className="mt-3 text-[13px] text-white/40">Scanning launch dates…</p>;
 
   const maxNight = Math.max(24, Math.ceil(Math.max(...points.map((p) => p.longest_night_hours)) / 24) * 24);
   const x = (d: number) => PAD.l + ((d + 60) / 120) * (W - PAD.l - PAD.r);

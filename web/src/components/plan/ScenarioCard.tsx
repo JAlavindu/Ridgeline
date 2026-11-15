@@ -37,7 +37,7 @@ export default function ScenarioCard({
     <article
       aria-label="Scenario"
       onClick={onSelect}
-      className={`flex min-w-0 cursor-pointer flex-col rounded-[14px] border bg-[#0a0a0a] p-5 transition ${
+      className={`flex min-w-0 grow basis-[min(100%,340px)] cursor-pointer flex-col rounded-[14px] border bg-[#0a0a0a] p-5 transition ${
         selected ? "border-[#ff3b12]/70" : "border-white/[0.08] hover:border-white/20"
       }`}
     >
