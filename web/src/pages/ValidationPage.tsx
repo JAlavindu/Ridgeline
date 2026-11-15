@@ -9,6 +9,7 @@ import {
   type ValidationReport,
   type ValidationTest,
 } from "../lib/validation";
+import { EQUATIONS, MEASURE, type Equation } from "../lib/validationEquations";
 
 const DATA_URL = import.meta.env.BASE_URL + "data/validation.json";
 const REPO_URL = "https://github.com/JAlavindu/Ridgeline";
@@ -76,6 +77,14 @@ export default function ValidationPage() {
                 value={v10?.result != null ? `${v10.result}% (published ~88%)` : "not available"}
               />
             </dl>
+
+            <section className="mt-12" aria-label="How we compare two answers">
+              <h2 className="text-[15px] font-medium text-white">How we compare two answers</h2>
+              <p className="mt-1 text-[12px] text-white/45">
+                Most tests compare a sky position with a reference. Open any test below to see the equations it uses.
+              </p>
+              <Equations items={MEASURE} />
+            </section>
 
             {GROUPS.map((group) => {
               const tests = group.ids.map((id) => byId.get(id)).filter((t): t is ValidationTest => t !== undefined);
@@ -158,7 +167,32 @@ function Row({ test }: { test: ValidationTest }) {
       <div className="pb-5 pl-5 pr-2 text-[12px] leading-[1.75] text-white/60">
         <p>{test.what}</p>
         <p className="mt-2">{test.explanation}</p>
+        {EQUATIONS[test.id] && <Equations items={EQUATIONS[test.id]} />}
       </div>
     </details>
+  );
+}
+
+/** A list of equations, each with a label, the equation and an optional note. */
+function Equations({ items }: { items: Equation[] }) {
+  return (
+    <div className="mt-4 space-y-3">
+      {items.map((eq) => (
+        <div key={eq.label}>
+          <p className="text-[11px] uppercase tracking-wide text-white/40">{eq.label}</p>
+          <p className="mt-1 overflow-x-auto whitespace-pre border-l-2 border-white/15 bg-white/[0.03] px-3 py-2 font-['Cambria_Math',Cambria,'Times_New_Roman',serif] text-[14px] leading-[1.7] text-white/85">
+            {withSubscripts(eq.expr)}
+          </p>
+          {eq.note && <p className="mt-1 text-[12px] text-white/50">{eq.note}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Turns "r_{site}" into r with "site" drawn as a subscript. */
+function withSubscripts(text: string) {
+  return text.split(/_\{([^}]*)\}/).map((part, i) =>
+    i % 2 === 1 ? <sub key={i} className="text-[0.7em]">{part}</sub> : part,
   );
 }
