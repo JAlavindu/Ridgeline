@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { BodyOutlook } from "../../engine";
 import { lunarSites } from "../../data/lunarSites";
 import type { ScenarioState } from "../../hooks/useScenario";
@@ -26,6 +27,45 @@ function nextText(body: BodyOutlook): string {
   if (!body.next) return "No change in the next 60 days";
   const when = body.next.window_only ? "" : ` · ${body.next.formatted_target_utc}`;
   return `${eventLabel(body.next.event)} in ${formatCountdown(body.next)}${when}`;
+}
+
+const MIN_DAYS = 1;
+const MAX_DAYS = 30;
+
+/**
+ * Mission length. While typing, the box keeps whatever is typed (even empty), so "14" can be typed after
+ * clearing "1". A whole number from 1 to 30 is saved at once; anything else is put back on leaving the box.
+ */
+function DaysInput({ value, onCommit }: { value: number; onCommit: (days: number) => void }) {
+  const [draft, setDraft] = useState<{ value: number; text: string }>({ value, text: String(value) });
+  // A new value from outside (Duplicate, a saved plan) replaces the draft.
+  const text = draft.value === value ? draft.text : String(value);
+  const valid = (t: string) => /^\d+$/.test(t) && Number(t) >= MIN_DAYS && Number(t) <= MAX_DAYS;
+
+  return (
+    <label className="block min-w-0 text-[11px] text-white/45">
+      Days
+      <input
+        type="text"
+        inputMode="numeric"
+        aria-label="Mission length in days, 1 to 30"
+        value={text}
+        onChange={(e) => {
+          const t = e.target.value.replace(/\D/g, "").slice(0, 2);
+          if (valid(t)) {
+            setDraft({ value: Number(t), text: t });
+            onCommit(Number(t));
+          } else {
+            setDraft({ value, text: t });
+          }
+        }}
+        onBlur={() => setDraft({ value, text: String(value) })}
+        className={`mt-1 h-9 w-full min-w-0 rounded-md border bg-white/[0.03] px-2 text-[12px] tabular-nums text-white outline-none focus:border-white/35 ${
+          valid(text) ? "border-white/[0.12]" : "border-[#ff3b12]/70"
+        }`}
+      />
+    </label>
+  );
 }
 
 export default function ScenarioCard({
@@ -59,8 +99,8 @@ export default function ScenarioCard({
             <option value={CUSTOM_VALUE}>{card.site.kind === "custom" ? card.site.label : "Custom coordinates…"}</option>
           </select>
         </label>
-        <div className="grid grid-cols-[1fr_76px] gap-2">
-          <label className="block text-[11px] text-white/45">
+        <div className="grid grid-cols-[minmax(0,1fr)_60px] gap-2">
+          <label className="block min-w-0 text-[11px] text-white/45">
             Start (UTC)
             <input
               type="datetime-local"
@@ -68,23 +108,10 @@ export default function ScenarioCard({
               min="2023-01-01T00:00"
               max="2032-12-31T23:00"
               onChange={(e) => e.target.value && onUpdate({ startUtc: e.target.value })}
-              className="mt-1 h-9 w-full rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[12px] tabular-nums text-white outline-none [color-scheme:dark] focus:border-white/35"
+              className="mt-1 h-9 w-full min-w-0 rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[12px] tabular-nums text-white outline-none [color-scheme:dark] focus:border-white/35"
             />
           </label>
-          <label className="block text-[11px] text-white/45">
-            Days
-            <input
-              type="number"
-              min={1}
-              max={30}
-              value={card.missionDays}
-              onChange={(e) => {
-                const v = Math.round(Number(e.target.value));
-                if (v >= 1 && v <= 30) onUpdate({ missionDays: v });
-              }}
-              className="mt-1 h-9 w-full rounded-md border border-white/[0.12] bg-white/[0.03] px-2 text-[12px] tabular-nums text-white outline-none focus:border-white/35"
-            />
-          </label>
+          <DaysInput value={card.missionDays} onCommit={(missionDays) => onUpdate({ missionDays })} />
         </div>
       </div>
 

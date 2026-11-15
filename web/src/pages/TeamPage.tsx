@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 
 const teamMembers = [
   {
@@ -70,7 +69,6 @@ const teamMembers = [
 ];
 
 export default function TeamPage() {
-  const navigate = useNavigate();
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#020202] pt-14 text-white">
