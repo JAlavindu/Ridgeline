@@ -73,27 +73,7 @@ export default function LunarNavigator() {
 
       {/* ================= SECTION NUMBER ================= */}
 
-      <div
-        className="
-          relative
-          z-[60]
-
-          mb-10
-
-          text-[8px]
-          uppercase
-          tracking-[4px]
-          text-white/35
-
-          sm:mb-12
-          sm:text-[9px]
-          sm:tracking-[5px]
-
-          lg:mb-8
-        "
-      >
-        02 — LUNAR NAVIGATOR
-      </div>
+ 
 
       {/* =====================================================
           MAIN CONTENT
@@ -147,7 +127,7 @@ export default function LunarNavigator() {
           >
             <span className="h-px w-8 bg-[#ff3b12]" />
 
-            02 — NAVIGATION SYSTEM
+           
           </div>
 
           {/* TITLE */}
@@ -245,28 +225,7 @@ export default function LunarNavigator() {
 
           {/* LARGE STATEMENT */}
 
-          <h3
-            className="
-              max-w-[620px]
 
-              font-sans
-              font-light
-
-              text-[clamp(22px,2.4vw,38px)]
-
-              uppercase
-              leading-[1.15]
-              tracking-[-1px]
-
-              text-white
-            "
-          >
-            THE MOON ISN'T
-            <br />
-            AN EASY PLACE
-            <br />
-            TO LAND.
-          </h3>
 
           {/* DESCRIPTION */}
 
@@ -506,44 +465,7 @@ export default function LunarNavigator() {
           BOTTOM TECHNICAL FOOTER
       ===================================================== */}
 
-      <div
-        className="
-          relative
-          z-[60]
-
-          mt-14
-
-          flex
-          flex-col
-          gap-4
-
-          border-t
-          border-white/10
-
-          pt-5
-
-          text-[7px]
-          uppercase
-          tracking-[3px]
-          text-white/25
-
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-        "
-      >
-        <span>
-          LUNAR SOUTH POLE / ENVIRONMENTAL CONDITIONS
-        </span>
-
-        <span>
-          LIGHT → TERRAIN → COMMUNICATION
-        </span>
-
-        <span className="text-[#ff3b12]">
-          CONTINUE EXPLORING ↓
-        </span>
-      </div>
+      
     </section>
   );
 }
