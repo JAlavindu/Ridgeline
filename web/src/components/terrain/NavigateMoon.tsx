@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 import MoonModel from "../3d/MoonModel";
 import type { LunarSite } from "../../data/lunarSites";
@@ -12,7 +13,6 @@ interface NavigateMoonProps {
   selectedSite: LunarSite | null;
   focusedSite: LunarSite | null;
   onSelectSite: (site: LunarSite) => void;
-  /** true = sit centred inside its own panel (split view next to the site panel) */
   framed?: boolean;
 }
 
@@ -25,10 +25,32 @@ export default function NavigateMoon({
   onSelectSite,
   framed = false,
 }: NavigateMoonProps) {
-  const [
-    isInteracting,
-    setIsInteracting,
-  ] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const [spinning, setSpinning] = useState(true);
+
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
+
+  useEffect(() => {
+    if (!focusedSite) return;
+
+    controlsRef.current?.reset();
+  }, [focusedSite?.id]);
+
+  const stopSpin = () => {
+    setSpinning(false);
+  };
+
+  const resumeSpin = () => {
+    setSpinning(true);
+  };
+
+  const hintText = historyMode
+    ? focusedSite
+      ? `FOCUS · ${focusedSite.name}`
+      : "MOVE THROUGH MISSION HISTORY"
+    : spinning
+      ? "Click to stop, drag to turn, scroll to zoom"
+      : "Drag to turn, scroll to zoom";
 
   return (
     <div
@@ -65,9 +87,6 @@ export default function NavigateMoon({
           `
       }
     >
-
-      {/* FOCUS RING */}
-
       <div
         aria-hidden="true"
         className={`
@@ -82,10 +101,10 @@ export default function NavigateMoon({
               ? framed
                 ? "border border-white/[0.08]"
                 : `
-                border
-                border-[#ff3b12]/50
-                shadow-[0_0_70px_rgba(255,59,18,0.14)]
-              `
+                  border
+                  border-[#ff3b12]/50
+                  shadow-[0_0_70px_rgba(255,59,18,0.14)]
+                `
               : `
                 border
                 border-white/[0.05]
@@ -123,8 +142,12 @@ export default function NavigateMoon({
           alpha: true,
         }}
         className="!h-full !w-full touch-none"
+        onPointerDownCapture={() => {
+          if (!historyMode && spinning) {
+            stopSpin();
+          }
+        }}
       >
-
         <ambientLight intensity={1.1} />
 
         <directionalLight
@@ -145,12 +168,15 @@ export default function NavigateMoon({
           historyMode={historyMode}
           isInteracting={isInteracting}
           autoRotationSpeed={
-            historyMode ? 0 : 0.12
+            historyMode || !spinning
+              ? 0
+              : 0.12
           }
           onSelectSite={onSelectSite}
         />
 
         <OrbitControls
+          ref={controlsRef}
           enableZoom
           enablePan={false}
           enableDamping
@@ -158,41 +184,96 @@ export default function NavigateMoon({
           rotateSpeed={0.55}
           minDistance={4.2}
           maxDistance={7}
-          onStart={() =>
-            setIsInteracting(true)
-          }
-          onEnd={() =>
-            setIsInteracting(false)
-          }
+          onStart={() => {
+            setIsInteracting(true);
+          }}
+          onEnd={() => {
+            setIsInteracting(false);
+          }}
         />
       </Canvas>
 
-      {/* INSTRUCTION (the split-view panel shows its own) */}
-
       {!framed && (
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -bottom-8
-          left-1/2
-          -translate-x-1/2
-          whitespace-nowrap
-          text-[7px]
-          uppercase
-          tracking-[2px]
-          text-white/30
-        "
-      >
-        {historyMode
-          ? focusedSite
-            ? `FOCUS · ${focusedSite.name}`
-            : "MOVE THROUGH MISSION HISTORY"
-          : selectionMode
-            ? "DRAG TO ROTATE · SELECT A SITE"
-            : "DRAG TO ROTATE · PINCH TO ZOOM"}
-      </div>
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -bottom-
+            left-1/2
+            -translate-x-1/2
+            whitespace-nowrap
+            text-[9px]
+            uppercase
+            tracking-[1.5px]
+            text-white/40
+          "
+        >
+          {hintText}
+        </div>
       )}
+
+      {!framed && !historyMode && !spinning && (
+        <button
+          type="button"
+          onClick={resumeSpin}
+          className="
+            absolute
+            -bottom-[70px]
+            left-1/2
+            z-20
+            -translate-x-1/2
+            rounded-full
+            border
+            border-white/10
+            bg-white/[0.06]
+            px-4
+            py-2
+            text-[11px]
+            text-white/65
+            backdrop-blur-md
+            transition
+            hover:border-white/20
+            hover:bg-white/[0.1]
+            hover:text-white
+            active:scale-95
+          "
+        >
+          Resume spin
+        </button>
+      )}
+
+      {framed && !historyMode && !spinning && (
+        <button
+          type="button"
+          onClick={resumeSpin}
+          className="
+            absolute
+            bottom-4
+            left-1/2
+            z-20
+            -translate-x-1/2
+            rounded-full
+            border
+            border-white/10
+            bg-black/50
+            px-4
+            py-2
+            text-[11px]
+            text-white/70
+            backdrop-blur-md
+            transition
+            hover:border-white/20
+            hover:bg-white/[0.08]
+            hover:text-white
+            active:scale-95
+          "
+        >
+          Resume spin
+        </button>
+      )}
+
+      
     </div>
+    
   );
 }

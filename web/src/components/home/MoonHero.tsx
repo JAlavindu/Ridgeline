@@ -8,6 +8,7 @@ import {
   useTransform,
 } from "motion/react";
 import MoonModel from "../3d/MoonModel";
+import { Link } from "react-router-dom";
 
 export default function MoonHero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -223,7 +224,7 @@ const moonScale = useTransform(
           left-[34vw]
           top-[6vh]
 
-          z-[50]
+          z-[20]
           pointer-events-none
 
           w-[46vw]
@@ -412,19 +413,7 @@ const moonScale = useTransform(
           "
         >
 
-          <div
-            className="
-              mb-4
-
-              text-[9px]
-              uppercase
-              tracking-[5px]
-
-              text-white/40
-            "
-          >
-            01 — EXPLORATION
-          </div>
+          
 
 
           <h1
@@ -501,7 +490,7 @@ const moonScale = useTransform(
               text-[9px]
               leading-relaxed
 
-              text-white/60
+              text-black
             "
           >
             384 000 km
@@ -510,7 +499,7 @@ const moonScale = useTransform(
 
             <span
               className="
-                text-white/40
+                text-black
               "
             >
               from earth
@@ -693,25 +682,7 @@ const moonScale = useTransform(
             "
           >
 
-            <span
-              className="
-                absolute
-
-                left-0
-                top-3
-
-                bg-white
-
-                px-2
-                py-1
-
-                text-[8px]
-
-                text-black
-              "
-            >
-              MOON
-            </span>
+            
 
 
             <div
@@ -967,29 +938,429 @@ const moonScale = useTransform(
 
       </section>
 
+{/* =====================================================
+    ABOUT RIDGELINE
+===================================================== */}
+<section
+  className="
+    relative
+    z-30
+    w-full
+    overflow-hidden
+    border-t-0
+    bg-[#020202]/90
+    px-6
+    py-24
+    sm:px-8
+    sm:py-28
+    md:px-[7.5vw]
+    md:py-32
+    bg-[radial-gradient(circle_at_50%_50%,rgba(255,59,18,0.08),transparent_35%)]
+  "
+>
+  {/* TOP BLEND / SHADOW */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      -top-32
+      left-0
+      z-[1]
+      h-64
+      w-full
+      bg-gradient-to-b
+      from-[#000000]
+      via-[#020202]/80
+      to-transparent
+    "
+  />
 
+  {/* TOP SOFT GLOW */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      -top-24
+      left-1/2
+      z-[1]
+      h-48
+      w-[80%]
+      -translate-x-1/2
+      rounded-full
+      bg-black/70
+      blur-[80px]
+    "
+  />
+
+  {/* BOTTOM BLEND / SHADOW */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      -bottom-32
+      left-0
+      z-[1]
+      h-64
+      w-full
+      bg-gradient-to-t
+      from-[#000000]
+      via-[#020202]/80
+      to-transparent
+    "
+  />
+
+  {/* BOTTOM SOFT GLOW */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      -bottom-24
+      left-1/2
+      z-[1]
+      h-48
+      w-[80%]
+      -translate-x-1/2
+      rounded-full
+      bg-black/70
+      blur-[80px]
+    "
+  />
+
+  {/* BACKGROUND MOON GLOW */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      left-1/2
+      top-1/2
+      z-[2]
+      h-[600px]
+      w-[600px]
+      -translate-x-1/2
+      -translate-y-1/2
+      rounded-full
+      bg-white/[0.025]
+      blur-[100px]
+    "
+  />
+
+  {/* CONTENT */}
+  <div
+    className="
+      relative
+      z-10
+      mx-auto
+      max-w-[1100px]
+    "
+  >
+
+    {/* LABEL */}
+    <div className="text-center">
+      <span
+        className="
+          text-[8px]
+          tracking-[5px]
+          text-[#ff3b12]
+          sm:text-[9px]
+        "
+      >
+        ABOUT RIDGELINE
+      </span>
+    </div>
+
+    {/* MAIN STATEMENT */}
+    <div className="mt-10 text-center sm:mt-12">
+      <h2
+        className="
+          font-['Michroma']
+          text-[clamp(48px,9vw,125px)]
+          font-light
+          leading-[0.88]
+          tracking-[-5px]
+          text-white
+        "
+      >
+        RIDGELINE
+      </h2>
+
+      <p
+        className="
+          mx-auto
+          mt-7
+          max-w-[620px]
+          text-[12px]
+          leading-[1.8]
+          text-white/50
+          sm:text-[13px]
+        "
+      >
+        A clearer way to explore, compare and understand
+        potential lunar landing sites.
+      </p>
+    </div>
+
+    {/* DIVIDER */}
+    <div
+      className="
+        mx-auto
+        mt-16
+        h-px
+        w-full
+        bg-gradient-to-r
+        from-transparent
+        via-white/10
+        to-transparent
+        sm:mt-20
+      "
+    />
+
+    {/* PROJECT FLOW */}
+    <div className="mt-12 sm:mt-16">
+
+      {/* 01 */}
+      <div
+        className="
+          grid
+          grid-cols-[70px_1fr]
+          gap-5
+          border-b
+          border-white/10
+          pb-8
+          sm:grid-cols-[110px_1fr]
+          sm:gap-8
+          sm:pb-10
+        "
+      >
+        <span
+          className="
+            font-['Michroma']
+            text-[11px]
+            text-[#ff3b12]
+          "
+        >
+          01
+        </span>
+
+        <div>
+          <span
+            className="
+              text-[8px]
+              tracking-[3px]
+              text-white/30
+            "
+          >
+            THE CHALLENGE
+          </span>
+
+          <h3
+            className="
+              mt-3
+              font-['Michroma']
+              text-[20px]
+              font-light
+              tracking-[-1px]
+              text-white
+              sm:text-[26px]
+            "
+          >
+            Lunar landing decisions are complex.
+          </h3>
+
+          <p
+            className="
+              mt-3
+              max-w-[650px]
+              text-[10px]
+              leading-[1.7]
+              text-white/40
+              sm:text-[11px]
+            "
+          >
+            Choosing a landing site means considering multiple
+            factors such as terrain, sunlight, resources and
+            communication.
+          </p>
+        </div>
+      </div>
+
+      {/* 02 */}
+      <div
+        className="
+          grid
+          grid-cols-[70px_1fr]
+          gap-5
+          border-b
+          border-white/10
+          py-8
+          sm:grid-cols-[110px_1fr]
+          sm:gap-8
+          sm:py-10
+        "
+      >
+        <span
+          className="
+            font-['Michroma']
+            text-[11px]
+            text-[#ff3b12]
+          "
+        >
+          02
+        </span>
+
+        <div>
+          <span
+            className="
+              text-[8px]
+              tracking-[3px]
+              text-white/30
+            "
+          >
+            THE PROPOSAL
+          </span>
+
+          <h3
+            className="
+              mt-3
+              font-['Michroma']
+              text-[20px]
+              font-light
+              tracking-[-1px]
+              text-white
+              sm:text-[26px]
+            "
+          >
+            One place to understand it all.
+          </h3>
+
+          <p
+            className="
+              mt-3
+              max-w-[650px]
+              text-[10px]
+              leading-[1.7]
+              text-white/40
+              sm:text-[11px]
+            "
+          >
+            Ridgeline brings mission-relevant lunar information
+            together into an interactive experience that makes
+            potential landing sites easier to explore and compare.
+          </p>
+        </div>
+      </div>
+
+      {/* 03 */}
+      <div
+        className="
+          grid
+          grid-cols-[70px_1fr]
+          gap-5
+          border-b
+          border-white/10
+          py-8
+          sm:grid-cols-[110px_1fr]
+          sm:gap-8
+          sm:py-10
+        "
+      >
+        <span
+          className="
+            font-['Michroma']
+            text-[11px]
+            text-[#ff3b12]
+          "
+        >
+          03
+        </span>
+
+        <div>
+          <span
+            className="
+              text-[8px]
+              tracking-[3px]
+              text-white/30
+            "
+          >
+            THE EXPERIENCE
+          </span>
+
+          <h3
+            className="
+              mt-3
+              font-['Michroma']
+              text-[20px]
+              font-light
+              tracking-[-1px]
+              text-white
+              sm:text-[26px]
+            "
+          >
+            Explore the Moon. Compare the possibilities.
+          </h3>
+
+          <p
+            className="
+              mt-3
+              max-w-[650px]
+              text-[10px]
+              leading-[1.7]
+              text-white/40
+              sm:text-[11px]
+            "
+          >
+            Explore lunar landing sites through interactive
+            terrain, environmental and mission data, making it
+            easier to understand each location and discover
+            its potential.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* TEAM BUTTON */}
+    <div className="mt-10 text-center sm:mt-14">
+      <Link
+        to="/team"
+        className="
+          glass-chip
+          glass-accent
+          inline-flex
+          h-12
+          w-[190px]
+          items-center
+          justify-center
+          text-[10px]
+          tracking-wide
+          text-white
+          transition-all
+          duration-300
+          hover:-translate-y-1
+        "
+      >
+        MEET THE TEAM
+        <span className="ml-5">
+          ↗
+        </span>
+      </Link>
+    </div>
+
+  </div>
+</section>
       {/* =====================================================
           CHARACTERISATION SECTION
       ===================================================== */}
-{/* =====================================================
-    CHARACTERISATION SECTION
-===================================================== */}
+
 <section
   className="
     relative
     w-full
     overflow-visible
-    bg-[#020202]
-
     px-6
     py-12
-
     sm:px-8
     sm:py-14
-
     md:px-[6vw]
     md:py-16
-
     lg:px-[7.5vw]
     lg:py-20
   "
@@ -1021,28 +1392,7 @@ const moonScale = useTransform(
   />
 
   {/* ================= SECTION NUMBER ================= */}
-  <div
-    className="
-      relative
-      z-20
-
-      mb-6
-
-      text-[8px]
-      uppercase
-      tracking-[4px]
-      text-white/35
-
-      sm:mb-7
-
-      md:text-[9px]
-      md:tracking-[5px]
-
-      lg:mb-2
-    "
-  >
-    02 — CHARACTERISATION
-  </div>
+  
 
 
   {/* =====================================================
@@ -1081,7 +1431,7 @@ const moonScale = useTransform(
       "
     >
       {/* Small technical label */}
-      <div
+      {/* <div
         className="
           absolute
           bottom-2
@@ -1107,7 +1457,7 @@ const moonScale = useTransform(
         >
           DATA → TERRAIN → DECISION
         </div>
-      </div>
+      </div> */}
     </div>
 
 
@@ -1118,7 +1468,7 @@ const moonScale = useTransform(
     <div
       className="
         relative
-        z-30
+        z-[40]
 
         flex
         flex-col
@@ -1228,6 +1578,7 @@ const moonScale = useTransform(
       lg:gap-6
 
       xl:gap-8
+      
     "
   >
     {[
@@ -1261,15 +1612,27 @@ const moonScale = useTransform(
       },
     ].map((c) => (
       <div
-        key={c.n}
-        className="
-          border-t
-          border-white/20
-          pt-3
+  key={c.n}
+  className="
+    glass-card
+    glass-float
 
-          sm:pt-4
-        "
-      >
+    rounded-2xl
+    border
+    border-white/15
+    bg-white/[0.035]
+
+    p-5
+
+    transition-all
+    duration-300
+    hover:-translate-y-1
+
+    sm:p-6
+    hover:bg-[#ff3b12]
+    
+  "
+>
 
         {/* CARD HEADER */}
         <div
